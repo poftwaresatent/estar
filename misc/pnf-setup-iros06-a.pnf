@@ -1,0 +1,18 @@
+# object A can interfere with robot, but B cannot
+
+mgrid     4.0   3.0   0.03
+riskmap   sigma 0.95  1.5
+
+robot     0.5   1.5   0.3   0.3
+goal      3.5   1.5   0.3
+
+# upper wall does not obstruct object A
+# (interesting effect if object radius is bigger than robot radius...)
+object 1  1.5   2.5   0.3   0.5
+wall      0.0   2.0   1.0   2.0
+wall      2.0   2.0   4.0   2.0
+
+# lower wall obstructs object B
+object 2  2.5   0.5   0.6   0.2
+wall      0.0   1.0   2.0   1.0
+wall      3.0   1.0   4.0   1.0

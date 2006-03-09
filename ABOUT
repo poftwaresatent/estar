@@ -1,0 +1,35 @@
+Grid or graph based path planning methods such as NF1, A*, or
+Dijkstra's algorithm are constrained to movement choices along graph
+edges or discrete transitions between grid cells. They thus produce
+paths that are not optimal for real-world execution. Frequently, a
+smoothing step is performed after planning to alleviate this problem,
+which yields unsatisfactory results as it only locally addresses a
+symptom rooted in the discrete nature of the path choices during
+planning.
+
+The E* algorithm resolves this problem. We formulate navigation
+functions (i.e. functions with a unique global minimum at the goal
+configuration, to be used in conjunction with gradient descent to
+drive an agent from any start to the goal) as a distance measure in
+the continuous domain, of which E* computes samples. These are located
+at the nodes of a graph which is embedded in the configuration space
+of the robot. E* can be likened to graph search: It starts at the goal
+nodes and propagates through adjacent edges, assigning monotonically
+increasing values to nodes. However, the continuous formulation allows
+us to interpolate between edges, which resolves the issue with
+movement choices at a more fundamental level than methods that employ
+post-planning path smoothing.
+
+Papers describing E* have been published in international conferences
+and a PhD thesis. The current implementation has been used to prove
+the algorithm and evaluate its effectiveness.
+
+Distributing the Open Source C++ implementation of E* through
+SourceForge, along with a C wrapper for compatibility with legacy
+control architectures, allows roboticists to easily take advantage of
+our research. It is also of potential interest for other projects
+which need to estimate non-trivial distance functions, such as route
+planners not constrained to roads, or agents in animations and
+games. We rely on the Boost Graph Library for data representation. E*
+specific class hierarchies are layered on top of it, up to a
+high-level Facade for straightforward access.

@@ -1,0 +1,2 @@
+* should treat obstacle radius better in obstacle distance: propagate
+  with lambda_i = 0 from the BORDER instead of the center... (?)

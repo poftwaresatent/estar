@@ -1,0 +1,190 @@
+# Copyright (c) 2005 CNRS/LAAS
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+prefix=		@prefix@
+exec_prefix=	@exec_prefix@
+top_builddir=	.
+top_srcdir=	@top_srcdir@
+srcdir=		@srcdir@
+
+BINDIR=		@bindir@
+LIBDIR=		@libdir@
+INCLUDEDIR=	@includedir@
+
+SHELL=          /bin/bash
+AWK=            @AWK@
+CC=		@CC@
+CXX=		@CXX@
+LIBTOOL=	@LIBTOOL@
+INSTALL=	@INSTALL@
+INSTALL_DATA=   $(INSTALL) -m644
+MKINSTALLDIRS=	$(SHELL) $(srcdir)/mkinstalldirs
+
+LTCC=		$(LIBTOOL) --mode=compile $(CC)
+LTCXX=		$(LIBTOOL) --mode=compile $(CXX)
+LTLD=		$(LIBTOOL) --mode=link $(CXX)
+
+CPPFLAGS=       @CPPFLAGS@ @BOOST_CPPFLAGS@ -I$(top_srcdir)
+CFLAGS=         @CFLAGS@ @BOOST_CPPFLAGS@ $(CPPFLAGS)
+CXXFLAGS=       @CXXFLAGS@ @BOOST_CPPFLAGS@ $(CPPFLAGS)
+GLSTUFF=        @GLSTUFF@
+
+SHLIB_CURRENT=	0
+SHLIB_REVISION=	0
+SHLIB_AGE=	0
+LIB=            libestar.la
+
+CSRCS=          pnf/pnf_cooc.c
+
+CXXSRCS=        estar/Algorithm.cpp \
+		estar/AlphaKernel.cpp \
+		estar/base.cpp \
+		estar/check.cpp \
+		estar/cwrap.cpp \
+		estar/dump.cpp \
+		estar/Facade.cpp \
+		estar/Grid.cpp \
+		estar/Kernel.cpp \
+		estar/LSMKernel.cpp \
+		estar/NF1Kernel.cpp \
+		estar/numeric.cpp \
+		estar/Propagator.cpp \
+		estar/Queue.cpp \
+		estar/Upwind.cpp \
+		estar/util.cpp \
+		gfx/graphics.cpp \
+		gfx/MetaMousehandler.cpp \
+		gfx/Subwindow.cpp \
+		gfx/Viewport.cpp \
+		gfx/wrap_glu.cpp \
+		pnf/BufferZone.cpp \
+		pnf/Flow.cpp \
+		pnf/PNFRiskMap.cpp \
+		pnf/RobotShape.cpp \
+
+HEADERS=        estar/Algorithm.hpp \
+		estar/AlphaKernel.hpp \
+		estar/base.hpp \
+		estar/check.hpp \
+		estar/cwrap.h \
+		estar/dump.hpp \
+		estar/Facade.hpp \
+		estar/Grid.hpp \
+		estar/Kernel.hpp \
+		estar/LSMKernel.hpp \
+		estar/NF1Kernel.hpp \
+		estar/numeric.hpp \
+		estar/Propagator.hpp \
+		estar/Queue.hpp \
+		estar/RiskMap.hpp \
+		estar/Upwind.hpp \
+		estar/util.hpp \
+		gfx/graphics.hpp \
+		gfx/MetaMousehandler.hpp \
+		gfx/Mousehandler.hpp \
+		gfx/Subwindow.hpp \
+		gfx/Viewport.hpp \
+		gfx/wrap_gl.hpp \
+		gfx/wrap_glu.hpp \
+		gfx/wrap_glut.hpp \
+		pnf/BufferZone.hpp \
+		pnf/Flow.hpp \
+		pnf/pnf_cooc.h \
+		pnf/PNFRiskMap.hpp \
+		pnf/RobotShape.hpp
+
+BIN_CSRC=       pnf/cooc3d.c \
+		pnf/test_cooc.c \
+		tools/testwrap.c
+
+BIN_CXXSRC=     pnf/test_riskmap.cpp \
+		tools/test.cpp \
+		tools/test_dbg_opt.cpp \
+		tools/test_fake_os.cpp \
+		tools/testqorder.cpp
+
+GLBIN_SRC=      pnf/test_flow.cpp \
+		tools/gfx.cpp
+
+OBJS=           $(CXXSRCS:%.cpp=%.lo) $(CSRCS:%.c=%.lo)
+
+VPATH=		@srcdir@
+
+
+all: .depend subdirs $(LIB) binaries
+
+sinclude .depend
+
+$(LIB): $(OBJS)
+	$(LTLD) -o $@ -rpath $(LIBDIR) -R$(LIBDIR) \
+          -version-info $(SHLIB_CURRENT):$(SHLIB_REVISION):$(SHLIB_AGE) $(OBJS)
+
+binaries: $(BIN_CSRC:%.c=%.o) $(BIN_CXXSRC:%.cpp=%.o) $(GLBIN_SRC:%.cpp=%.o)
+	@ echo "FIXME: binaries target ignores .depend"
+	for bin in $(BIN_CSRC:%.c=%); do \
+	  $(CC) $(CFLAGS) -o $$bin $$bin.o -L.libs -lestar -lstdc++; \
+	done
+	for bin in $(BIN_CXXSRC:%.cpp=%); do \
+	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar; \
+	done
+	for bin in $(GLBIN_SRC:%.cpp=%); do \
+	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar $(GLSTUFF); \
+	done
+
+%.lo: %.c
+	$(LTCC) $(CFLAGS) -o $*.o -c $<
+
+%.lo: %.cpp
+	$(LTCXX) $(CXXFLAGS) -o $*.o -c $<
+
+subdirs:
+	- mkdir estar gfx pnf tools
+
+install:: $(LIB)
+	$(MKINSTALLDIRS) $(BINDIR) $(LIBDIR)
+	$(LIBTOOL) --mode=install $(INSTALL) $(LIB) $(LIBDIR)
+
+install:: estar.pc
+	$(MKINSTALLDIRS) $(LIBDIR)/pkgconfig
+	$(INSTALL) estar.pc $(LIBDIR)/pkgconfig
+
+install::
+	for header in $(HEADERS); do \
+	  subdir=`dirname $$header`; \
+	  $(MKINSTALLDIRS) $(INCLUDEDIR)/$$subdir; \
+	  $(INSTALL_DATA) $(srcdir)/$$header $(INCLUDEDIR)/$$subdir; \
+	done
+
+distclean: clean
+	rm -f .depend Makefile config.log config.status estar.pc libtool
+
+clean: 
+	$(LIBTOOL) --mode=clean rm -f $(OBJS) $(LIB)
+	- rm $(BIN_CXXSRC:%.cpp=%.o) $(BIN_CSRC:%.c=%.o) $(GLBIN_SRC:%.cpp=%.o)
+	- rm $(BIN_CXXSRC:%.cpp=%) $(BIN_CSRC:%.c=%) $(GLBIN_SRC:%.cpp=%)
+
+
+.depend: $(SRCS)
+	- rm .depend
+	for source in \
+	  $(CXXSRCS) $(CSRCS) $(BIN_CSRC) $(BIN_CXXSRC) $(GLBIN_SRC); \
+	  do \
+	    subdir=`dirname $$source`; \
+	    $(CC) -MM $(CPPFLAGS) $(top_srcdir)/$$source \
+	      | $(AWK) -v subdir=$$subdir \
+	'{if($$0~/^[^ ]/){sub(/o:/,"lo:"); print subdir "/" $$0} else print}' \
+	     >> .depend; \
+	done
+
+.PHONY: all clean distclean install depend

@@ -1,0 +1,10 @@
+# replica of fig. 10 in first PNF paper
+mgrid     6.0   5.5   0.06
+riskmap   sigma 0.9   1.5
+goal      4.2   4.5   0.5
+wall      0.5   4.5   1.0   4.0
+wall      1.0   4.0   3.0   4.0
+
+robot     0.8   2.3   0.4   0.2
+object 1  0.8   3.5   0.2   0.4
+#object 5  3.2   2.3   0.2   0.2

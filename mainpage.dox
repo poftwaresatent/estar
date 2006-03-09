@@ -1,0 +1,96 @@
+/** \namespace std C++ standard library. */
+
+/** \namespace boost Boost library. */
+
+/** \namespace estar E-Star core and utilities. */
+
+/** \namespace gfx Graphic utilities (uses OpenGL). */
+
+/** \namespace pnf Probabilistic Navigation Function. */
+
+/** \namespace local Test implementations etc. */
+
+/**
+   \mainpage
+
+   \section Introduction
+   
+   The E-Star library implements the interpolated graph replanner
+   originally developed in [1] and subsequently improved in [2]. It
+   also includes an implementation of the Probabilistic Navigation
+   Function, originally developed in [3] before E* had seen the day,
+   and modified for it in [4].
+   
+   
+   
+   \section Prerequisites
+   
+   - Boost Graph Library and smart pointers (http://www.boost.org/).
+   - An OpenGL implementation. This is only needed for some of the
+     included applications, but at the moment the build process (which
+     was recently replaced by autoconf) is not flexible enough to
+     switch these components off in case it doesn't find it on your
+     system.
+   
+   
+   
+   \section Building
+   
+   \verbatim
+   $ tar xfvz estar-X.Y.tar.gz
+   $ cd estar-X.Y
+   $ mkdir build
+   $ cd build
+   $ ../configure
+   $ make
+   $ su -c 'make install'
+   \endverbatim
+   
+   
+   
+   \section foo Getting Started
+   
+   Have a look at test.cpp, testwrap.c, gfx.cpp, and test_flow.cpp for
+   examples of using E* and PNF. The latter two programs are more
+   elaborate and produce graphical output. For example, you can
+   reproduce some of the figures in [4] by running:
+   
+   \verbatim
+   $ cd estar-X.Y/build/pnf
+   $ ./test_flow ../../misc/pnf-setup-iros06-a.pnf paper
+     (quit the program by pressing 'q')
+   $ ./test_flow ../../misc/pnf-setup-iros06-b.pnf paper
+   $ ./test_flow ../../misc/pnf-setup-iros06-c.pnf paper
+   $ ./test_flow ../../misc/pnf-setup-iros06-d.pnf paper
+   \endverbatim
+   
+   A good starting point for using E* is to read [2] and look at
+   estar::Facade, estar::Algorithm, and their source code. All the
+   core functionality is in the <a href="namespaceestar.html">estar
+   namespace</a>, which also includes some utilities.
+   
+   
+   
+   \section References
+   
+   [1] Roland Philippsen. "Motion Planning and Obstacle Avoidance for
+   Mobile Robots in Highly Cluttered Dynamic
+   Environments". Ph.D. Dissertation, Ecole Polytechnique Federale de
+   Lausanne, 2004. (Available online
+   http://library.epfl.ch/theses/?nr=3146)
+   
+   [2] Roland Philippsen and Roland Siegwart. "E*: An Algorithm for
+   Interpolated Path Replanning". Submitted to IEEE/RSJ International
+   Conference on Intelligent Robots and Systems (IROS), 2006.
+   
+   [3] Bjoern Jensen, Roland Philippsen, and Roland Siegwart. "Motion
+   Detection and Path Planning in Dynamic Environments". Workshop
+   Proceedings Reasoning with Uncertainty in Robotics, International
+   Joint Conference on Artificial Intelligence (IJCAI), 2003.
+
+   [4] Roland Philippsen, Bjoern Jensen, and Roland Siegwart. "Toward
+   Online Probabilistic Path Replanning in Dynamic
+   Environments". Submitted to IEEE/RSJ International Conference on
+   Intelligent Robots and Systems (IROS), 2006.
+   
+*/

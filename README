@@ -1,0 +1,56 @@
+==================================================
+E-star Interpolated Graph Replanner
+==================================================
+
+==================================================
+Copyrights and licenses on the source code:
+
+ Copyright (C) 2004, 2005 Swiss Federal Institute of Technology, Lausanne
+ Copyright (C) 2005, 2006 Roland Philippsen <roland dot philippsen at gmx net>
+ Released under the GNU General Public License, see LICENSE.GPL
+
+Copyrights and licenses on the build system:
+
+ Copyright (C) 1992-2004 Free Software Foundation, Inc.
+ Copyright (C) 1991 Massachusetts Institute of Technology
+ Released under the GNU General Public License, see LICENSE.GPL
+
+ Copyright (C) 2005 CNRS/LAAS
+ Relesed under a BSD license, see LICENSE.BSD
+==================================================
+
+
+DESCRIPTION
+
+The E* algorithm is a path planner for (mobile) robotics. Unlike A*,
+which constrains movements to graph edges, it produces smooth
+trajectories by interpolating between edges. Like D*, it supports
+dynamic replanning after local path cost changes.
+
+
+PREREQUISITES
+
+ * Boost Graph Library and smart pointers (http://www.boost.org/).
+ * An OpenGL implementation (currently works for Linux and OS X).
+ * Doxygen (optional, http://www.doxygen.org/).
+
+
+BUILDING
+
+ $ tar xfvz estar-X.Y.tar.gz
+ $ cd estar-X.Y
+ $ mkdir build
+ $ cd build
+ $ ../configure
+ $ make
+ $ su -c 'make install'
+
+
+DOCUMENTATION
+
+Point your favorite browser to file doc/html/index.html if it exists,
+or build it using doxygen by typing (after a successful configuration,
+see BUILDING above):
+
+ $ cd estar-X.Y
+ $ doxygen build/Doxyfile

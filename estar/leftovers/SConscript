@@ -1,0 +1,39 @@
+Import('env')
+
+slist = ['base.cpp',
+         'util.cpp',
+         'dump.cpp',
+         'check.cpp',
+         'numeric.cpp',
+         'Upwind.cpp',
+         'Queue.cpp',
+         'Facade.cpp',
+         'Kernel.cpp',
+         'AlphaKernel.cpp',
+         'NF1Kernel.cpp',
+         'LSMKernel.cpp',
+         'Grid.cpp',
+         'Algorithm.cpp',
+         'Propagator.cpp',
+         'cwrap.cpp']
+
+hlist = ['base.hpp',
+         'util.hpp',
+         'dump.hpp',
+         'check.hpp',
+         'numeric.hpp',
+         'Upwind.hpp',
+         'Queue.hpp',
+         'Facade.hpp',
+         'Kernel.hpp',
+         'AlphaKernel.hpp',
+         'NF1Kernel.hpp',
+         'LSMKernel.hpp',
+         'Grid.hpp',
+         'Algorithm.hpp',
+         'Propagator.hpp',
+         'RiskMap.hpp',
+         'cwrap.h']
+
+env.StageLibrary(env.StaticLibrary('estar', slist))
+env.StageHeader('estar', hlist)
