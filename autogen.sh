@@ -21,7 +21,8 @@ autoconf
 if [ $? -eq 0 ]; then
     echo "OK"
 else
-    echo "failed"
+    echo "FAILED"
+    echo "==> try removing $srcdir/autom4te.cache"
     cd $origdir
     exit 1
 fi
