@@ -96,4 +96,9 @@
    Environments". Submitted to IEEE/RSJ International Conference on
    Intelligent Robots and Systems (IROS), 2006.
    
+   
+   \section README
+   
+   \verbinclude README
+
 */

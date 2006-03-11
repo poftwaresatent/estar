@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "E-star Interpolated Graph Replanner"
+PROJECT_NAME           = "E* Interpolated Graph Replanner"
 PROJECT_NUMBER         = @PACKAGE_VERSION@
 OUTPUT_DIRECTORY       = doc
 OUTPUT_LANGUAGE        = English
@@ -13,7 +13,7 @@ REPEAT_BRIEF           = YES
 ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
-STRIP_FROM_PATH        = 
+STRIP_FROM_PATH        = @top_srcdir@
 SHORT_NAMES            = NO
 JAVADOC_AUTOBRIEF      = YES
 MULTILINE_CPP_IS_BRIEF = NO
@@ -61,13 +61,17 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = . estar tools pnf gfx
+INPUT                  = @top_srcdir@ \
+                         @top_srcdir@/estar \
+                         @top_srcdir@/bin \
+                         @top_srcdir@/pnf \
+                         @top_srcdir@/gfx
 FILE_PATTERNS          = *.h *.hpp *.c *.cpp *.dox
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
-EXAMPLE_PATH           = 
+EXAMPLE_PATH           = @top_srcdir@
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = 
@@ -95,7 +99,7 @@ GENERATE_HTML          = YES
 HTML_OUTPUT            = html
 HTML_FILE_EXTENSION    = .html
 HTML_HEADER            = 
-HTML_FOOTER            = 
+HTML_FOOTER            = @top_srcdir@/footer.html
 HTML_STYLESHEET        = 
 HTML_ALIGN_MEMBERS     = YES
 GENERATE_HTMLHELP      = NO

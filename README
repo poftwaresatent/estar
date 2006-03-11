@@ -52,5 +52,5 @@ Point your favorite browser to file doc/html/index.html if it exists,
 or build it using doxygen by typing (after a successful configuration,
 see BUILDING above):
 
- $ cd estar-X.Y
- $ doxygen build/Doxyfile
+ $ cd estar-X.Y/build
+ $ doxygen

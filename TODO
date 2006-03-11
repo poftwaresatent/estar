@@ -1,8 +1,6 @@
 * export script which excludes leftovers/ subdirs, runs autogen.sh,
   and produces source, binary, and documentation tarballs
-* use a custom stylesheet that includes SF.net logo
 * write a test for goal removals/additions
 * pnf/pnf_cooc could use some optimization and cleanup
 * make three separate libraries: libestar, libgfx, and libpnf
 * recursive make to simplify maintaining the build system
-* doxy should run from within build dir (like libsunflower)
