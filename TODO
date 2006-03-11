@@ -1,26 +1,21 @@
 * export script which excludes leftovers/ subdirs, runs autogen.sh,
   and produces source, binary, and documentation tarballs
-* use a custom stylesheet
+* use a custom stylesheet that includes SF.net logo
 * write a test for goal removals/additions
 * pnf/pnf_cooc could use some optimization and cleanup
 * rename
-  tools/gfx.cpp -> test_estar_gfx
-  tools/test.cpp -> test_estar
-  tools/testqorder.cpp -> test_estar_queue
-  tools/testwrap.c -> test_estar_cwrap
-  pnf/test_cooc.c -> test_pnf_cooc
-  pnf/test_flow.cpp -> test_pnf_gfx
-  pnf/test_riskmap.cpp -> test_pnf_riskmap
-* layout alternatives:
-  (a) $(PREFIX)/estar
-      $(PREFIX)/estar/gfx
-      $(PREFIX)/estar/pnf
-  (b) $(PREFIX)/estar
-      $(PREFIX)/estar/gfx
-      $(PREFIX)/pnf
-  but both are a bit awkward... maybe better:
-  (c) $(PREFIX)/estar
-      $(PREFIX)/estar-gfx
-      $(PREFIX)/estar-pnf
-  nah...
+  tools/gfx.cpp -> bin/test_estar_gfx
+  tools/test.cpp -> bin/test_estar
+  tools/testqorder.cpp -> bin/test_estar_queue
+  tools/testwrap.c -> bin/test_estar_cwrap
+  pnf/test_cooc.c -> bin/test_pnf_cooc
+  pnf/test_flow.cpp -> bin/test_pnf_gfx
+  pnf/test_riskmap.cpp -> bin/test_pnf_riskmap
+* change layout:
+  ./estar/
+  ./estar/gfx/
+  ./estar/pnf/
+  ./estar/
+  ./bin/
+  ./misc/
 * consider making three separate libraries

@@ -1,0 +1,13 @@
+Import('env')
+Import ('platform')
+
+e = env.Copy(LIBS = ['estar', 'stdc++'])
+e.StageBinary(e.Program(target = 'testwrap', source = 'testwrap.c'))
+
+e = env.Copy(LIBS = 'estar')
+e.StageBinary(e.Program(target = 'test', source = 'test.cpp'))
+e.StageBinary(e.Program(target = 'testqorder', source = 'testqorder.cpp'))
+
+e = env.Copy(LIBS = ['estar', 'gfx'])
+platform.SetGLStuff(e)
+e.StageBinary(e.Program(target = 'gfx', source = 'gfx.cpp'))

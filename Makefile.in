@@ -106,16 +106,16 @@ HEADERS=        estar/Algorithm.hpp \
 
 BIN_CSRC=       pnf/cooc3d.c \
 		pnf/test_cooc.c \
-		tools/testwrap.c
+		bin/testwrap.c
 
 BIN_CXXSRC=     pnf/test_riskmap.cpp \
-		tools/test.cpp \
-		tools/test_dbg_opt.cpp \
-		tools/test_fake_os.cpp \
-		tools/testqorder.cpp
+		bin/test.cpp \
+		bin/test_dbg_opt.cpp \
+		bin/test_fake_os.cpp \
+		bin/testqorder.cpp
 
 GLBIN_SRC=      pnf/test_flow.cpp \
-		tools/gfx.cpp
+		bin/gfx.cpp
 
 OBJS=           $(CXXSRCS:%.cpp=%.lo) $(CSRCS:%.c=%.lo)
 
@@ -149,7 +149,7 @@ binaries: $(BIN_CSRC:%.c=%.o) $(BIN_CXXSRC:%.cpp=%.o) $(GLBIN_SRC:%.cpp=%.o)
 	$(LTCXX) $(CXXFLAGS) -o $*.o -c $<
 
 subdirs:
-	- mkdir estar gfx pnf tools
+	- mkdir estar gfx pnf bin
 
 install:: $(LIB)
 	$(MKINSTALLDIRS) $(BINDIR) $(LIBDIR)
