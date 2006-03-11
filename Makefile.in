@@ -122,9 +122,8 @@ OBJS=           $(CXXSRCS:%.cpp=%.lo) $(CSRCS:%.c=%.lo)
 VPATH=		@srcdir@
 
 
-all: .depend subdirs $(LIB) binaries
+all: depend subdirs $(LIB) binaries
 
-sinclude .depend
 
 $(LIB): $(OBJS)
 	$(LTLD) -o $@ -rpath $(LIBDIR) -R$(LIBDIR) \
@@ -167,24 +166,40 @@ install::
 	done
 
 distclean: clean
-	rm -f .depend Makefile config.log config.status estar.pc libtool
+	rm -f Makefile Doxyfile config.log config.status estar.pc libtool
 
 clean: 
+	rm -f depend Makefile.depend
 	$(LIBTOOL) --mode=clean rm -f $(OBJS) $(LIB)
 	- rm $(BIN_CXXSRC:%.cpp=%.o) $(BIN_CSRC:%.c=%.o) $(GLBIN_SRC:%.cpp=%.o)
 	- rm $(BIN_CXXSRC:%.cpp=%) $(BIN_CSRC:%.c=%) $(GLBIN_SRC:%.cpp=%)
 
 
-.depend: $(SRCS)
-	- rm .depend
-	for source in \
-	  $(CXXSRCS) $(CSRCS) $(BIN_CSRC) $(BIN_CXXSRC) $(GLBIN_SRC); \
+depend:
+	rm -f Makefile.depend
+	for source in $(CXXSRCS) $(CSRCS); \
 	  do \
 	    subdir=`dirname $$source`; \
 	    $(CC) -MM $(CPPFLAGS) $(top_srcdir)/$$source \
 	      | $(AWK) -v subdir=$$subdir \
 	'{if($$0~/^[^ ]/){sub(/o:/,"lo:"); print subdir "/" $$0} else print}' \
-	     >> .depend; \
+	     >> Makefile.depend; \
 	done
+	for source in $(BIN_CSRC) $(BIN_CXXSRC) $(GLBIN_SRC); \
+	  do \
+	    subdir=`dirname $$source`; \
+	    $(CC) -MM $(CPPFLAGS) $(top_srcdir)/$$source \
+	      | $(AWK) -v subdir=$$subdir \
+	        '{if($$0~/^[^ ]/){print subdir "/" $$0} else print}' \
+	     >> Makefile.depend; \
+	done
+	echo -n "depend:" >> Makefile.depend
+	for source in \
+	  $(CXXSRCS) $(CSRCS) $(BIN_CSRC) $(BIN_CXXSRC) $(GLBIN_SRC) \
+	  $(HEADERS); \
+	  do \
+	    echo -n " $(top_srcdir)/$$source" >> Makefile.depend; \
+	done
+	echo "Makefile.depend written `date`" > depend
 
-.PHONY: all clean distclean install depend
+sinclude Makefile.depend
