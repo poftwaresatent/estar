@@ -5,3 +5,4 @@
 * pnf/pnf_cooc could use some optimization and cleanup
 * make three separate libraries: libestar, libgfx, and libpnf
 * recursive make to simplify maintaining the build system
+* doxy should run from within build dir (like libsunflower)
