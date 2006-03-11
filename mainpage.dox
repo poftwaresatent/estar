@@ -50,18 +50,21 @@
    
    \section foo Getting Started
    
-   Have a look at test.cpp, testwrap.c, gfx.cpp, and test_flow.cpp for
-   examples of using E* and PNF. The latter two programs are more
-   elaborate and produce graphical output. For example, you can
-   reproduce some of the figures in [4] by running:
+   Have a look at the <code>bin/</code> subdirectory for examples of
+   using E* and PNF. Most of these are simple text-based tools (that
+   produce files with data and gnuplot
+   instructions). <code>test_estar_gfx</code> and
+   <code>test_pnf_gfx</code> are more elaborate and produce graphical
+   output using OpenGL. For example, you can reproduce some of the
+   figures in [4] by running:
    
    \verbatim
-   $ cd estar-X.Y/build/pnf
-   $ ./test_flow ../../misc/pnf-setup-iros06-a.pnf paper
+   $ cd estar-X.Y/build/bin
+   $ ./test_pnf_gfx ../../misc/pnf-setup-iros06-a.pnf paper
      (quit the program by pressing 'q')
-   $ ./test_flow ../../misc/pnf-setup-iros06-b.pnf paper
-   $ ./test_flow ../../misc/pnf-setup-iros06-c.pnf paper
-   $ ./test_flow ../../misc/pnf-setup-iros06-d.pnf paper
+   $ ./test_pnf_gfx ../../misc/pnf-setup-iros06-b.pnf paper
+   $ ./test_pnf_gfx ../../misc/pnf-setup-iros06-c.pnf paper
+   $ ./test_pnf_gfx ../../misc/pnf-setup-iros06-d.pnf paper
    \endverbatim
    
    A good starting point for using E* is to read [2] and look at
