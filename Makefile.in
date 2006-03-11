@@ -104,18 +104,18 @@ HEADERS=        estar/Algorithm.hpp \
 		pnf/PNFRiskMap.hpp \
 		pnf/RobotShape.hpp
 
-BIN_CSRC=       pnf/cooc3d.c \
-		pnf/test_cooc.c \
-		bin/testwrap.c
+BIN_CSRC=       bin/test_pnf_cooc3d.c \
+		bin/test_pnf_cooc.c \
+		bin/test_estar_cwrap.c
 
-BIN_CXXSRC=     pnf/test_riskmap.cpp \
-		bin/test.cpp \
+BIN_CXXSRC=     bin/test_pnf_riskmap.cpp \
+		bin/test_estar.cpp \
 		bin/test_dbg_opt.cpp \
 		bin/test_fake_os.cpp \
-		bin/testqorder.cpp
+		bin/test_estar_queue.cpp
 
-GLBIN_SRC=      pnf/test_flow.cpp \
-		bin/gfx.cpp
+GLBIN_SRC=      bin/test_pnf_gfx.cpp \
+		bin/test_estar_gfx.cpp
 
 OBJS=           $(CXXSRCS:%.cpp=%.lo) $(CSRCS:%.c=%.lo)
 

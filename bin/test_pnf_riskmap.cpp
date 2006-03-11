@@ -19,7 +19,7 @@
  */
 
 
-#include "PNFRiskMap.hpp"
+#include <pnf/PNFRiskMap.hpp>
 #include <string>
 #include <sstream>
 #include <iostream>

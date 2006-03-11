@@ -4,18 +4,14 @@
 * write a test for goal removals/additions
 * pnf/pnf_cooc could use some optimization and cleanup
 * rename
-  tools/gfx.cpp -> bin/test_estar_gfx
-  tools/test.cpp -> bin/test_estar
-  tools/testqorder.cpp -> bin/test_estar_queue
-  tools/testwrap.c -> bin/test_estar_cwrap
-  pnf/test_cooc.c -> bin/test_pnf_cooc
-  pnf/test_flow.cpp -> bin/test_pnf_gfx
-  pnf/test_riskmap.cpp -> bin/test_pnf_riskmap
-* change layout:
-  ./estar/
-  ./estar/gfx/
-  ./estar/pnf/
-  ./estar/
-  ./bin/
-  ./misc/
+  DONE: tools/gfx.cpp        -> bin/test_estar_gfx
+  DONE: tools/test.cpp       -> bin/test_estar
+  DONE: tools/testqorder.cpp -> bin/test_estar_queue
+  DONE: tools/testwrap.c     -> bin/test_estar_cwrap
+  DONE: pnf/test_cooc.c      -> bin/test_pnf_cooc
+  DONE: pnf/test_flow.cpp    -> bin/test_pnf_gfx
+  DONE: pnf/test_riskmap.cpp -> bin/test_pnf_riskmap
+  DONE: pnf/cooc3d           -> bin/test_pnf_cooc3d
+  gfx/graphics.{h,c}pp -> estar/.
+  /!\ go over documentation as well
 * consider making three separate libraries

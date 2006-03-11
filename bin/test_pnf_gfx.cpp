@@ -18,9 +18,9 @@
  */
 
 
-#include "Flow.hpp"
-#include "PNFRiskMap.hpp"
-#include "RobotShape.hpp"
+#include <pnf/Flow.hpp>
+#include <pnf/PNFRiskMap.hpp>
+#include <pnf/RobotShape.hpp>
 #include <gfx/Viewport.hpp>
 #include <gfx/MetaMousehandler.hpp>
 #include <gfx/wrap_glu.hpp>

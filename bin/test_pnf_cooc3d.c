@@ -22,7 +22,7 @@
  */
 
 
-#include "pnf_cooc.h"
+#include <pnf/pnf_cooc.h>
 #include <stdio.h>
 
 
