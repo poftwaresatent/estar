@@ -3,15 +3,5 @@
 * use a custom stylesheet that includes SF.net logo
 * write a test for goal removals/additions
 * pnf/pnf_cooc could use some optimization and cleanup
-* rename
-  DONE: tools/gfx.cpp        -> bin/test_estar_gfx
-  DONE: tools/test.cpp       -> bin/test_estar
-  DONE: tools/testqorder.cpp -> bin/test_estar_queue
-  DONE: tools/testwrap.c     -> bin/test_estar_cwrap
-  DONE: pnf/test_cooc.c      -> bin/test_pnf_cooc
-  DONE: pnf/test_flow.cpp    -> bin/test_pnf_gfx
-  DONE: pnf/test_riskmap.cpp -> bin/test_pnf_riskmap
-  DONE: pnf/cooc3d           -> bin/test_pnf_cooc3d
-  gfx/graphics.{h,c}pp -> estar/.
-  /!\ go over documentation as well
-* consider making three separate libraries
+* make three separate libraries: libestar, libgfx, and libpnf
+* recursive make to simplify maintaining the build system
