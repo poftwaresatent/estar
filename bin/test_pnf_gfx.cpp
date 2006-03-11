@@ -26,7 +26,7 @@
 #include <gfx/wrap_glu.hpp>
 #include <gfx/wrap_glut.hpp>
 #include <estar/util.hpp>
-#include <gfx/graphics.hpp>
+#include <estar/graphics.hpp>
 #include <estar/numeric.hpp>
 #include <estar/Algorithm.hpp>
 #include <estar/LSMKernel.hpp>

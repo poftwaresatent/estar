@@ -25,10 +25,10 @@
 #include <estar/LSMKernel.hpp>
 #include <estar/AlphaKernel.hpp>
 #include <estar/Grid.hpp>
+#include <estar/graphics.hpp>
 #include <gfx/Viewport.hpp>
 #include <gfx/MetaMousehandler.hpp>
 #include <gfx/wrap_glut.hpp>
-#include <gfx/graphics.hpp>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <fstream>

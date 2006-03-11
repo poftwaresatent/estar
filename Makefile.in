@@ -63,7 +63,7 @@ CXXSRCS=        estar/Algorithm.cpp \
 		estar/Queue.cpp \
 		estar/Upwind.cpp \
 		estar/util.cpp \
-		gfx/graphics.cpp \
+		estar/graphics.cpp \
 		gfx/MetaMousehandler.cpp \
 		gfx/Subwindow.cpp \
 		gfx/Viewport.cpp \
@@ -90,7 +90,7 @@ HEADERS=        estar/Algorithm.hpp \
 		estar/RiskMap.hpp \
 		estar/Upwind.hpp \
 		estar/util.hpp \
-		gfx/graphics.hpp \
+		estar/graphics.hpp \
 		gfx/MetaMousehandler.hpp \
 		gfx/Mousehandler.hpp \
 		gfx/Subwindow.hpp \

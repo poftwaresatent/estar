@@ -19,7 +19,7 @@
 
 
 #include "graphics.hpp"
-#include "wrap_gl.hpp"
+#include <gfx/wrap_gl.hpp>
 #include <estar/RiskMap.hpp>
 #include <estar/Grid.hpp>
 #include <estar/numeric.hpp>
