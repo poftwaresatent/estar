@@ -148,6 +148,11 @@ binaries: depend subdirs $(BIN_OBJS)
 	done
 	echo "binaries built `date`" > binaries
 
+doc:
+	mkdir -p html
+	cp $(top_srcdir)/doxylogo.png html
+	doxygen
+	echo "doc build `date`" > doc
 
 %.lo: %.c
 	$(LTCC) $(CFLAGS) -o $*.o -c $<
