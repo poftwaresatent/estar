@@ -53,4 +53,4 @@ or build it using doxygen by typing (after a successful configuration,
 see BUILDING above):
 
  $ cd estar-X.Y/build
- $ doxygen
+ $ make doc
