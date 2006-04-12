@@ -18,6 +18,7 @@
  */
 
 
+#include "Getopt.hpp"
 #include <estar/util.hpp>
 #include <estar/RiskMap.hpp>
 #include <estar/numeric.hpp>
@@ -91,6 +92,7 @@ static void cleanup(void);
 
 static const unsigned int timer_delay(100);
 
+static bool text_only(false);
 static bool step(true);
 static bool continuous(false);
 static bool finish(false);
@@ -108,23 +110,37 @@ static shared_ptr<ostream> result_os;
 static shared_ptr<NHPRiskmap> m_riskmap;
 
 
-int main(int argc,
-	 char ** argv)
+int main(int argc, char ** argv)
 {
   parse_options(argc, argv);
   set_cleanup(cleanup);
   
-  double x0, y0, x1, y1;
-  get_grid_bbox(*m_grid, x0, y0, x1, y1);
-  static const bb_t realbbox(x0, y0, x1, y1);
-  m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 0.5, 1)));
-  m_value_view->SetMousehandler(Viewport::LEFT, m_mouse_meta.get());
-  m_value_view->Enable();
-  m_risk_view.reset(new Viewport("risk", realbbox, bb_t(0.5, 0, 1, 1)));
-  m_risk_view->SetMousehandler(Viewport::LEFT, m_mouse_meta.get());
-  m_risk_view->Enable();
-  
-  run_glthread(0);
+  if(text_only){
+    cout << "graphics disabled!\n";
+    if( ! result_os)
+      cout << "hint: enable writing to an output file to see results.\n";
+    while(m_algo->HaveWork()){
+      m_algo->ComputeOne(*m_kernel);
+      if(m_algo->GetStep() % 50 == 0){
+	cerr << ".";
+	if(m_algo->GetStep() % 2500 == 0)
+	  cerr << "\n";
+      }
+    }
+    cerr << "\n";
+  }
+  else{
+    double x0, y0, x1, y1;
+    get_grid_bbox(*m_grid, x0, y0, x1, y1);
+    static const bb_t realbbox(x0, y0, x1, y1);
+    m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 0.5, 1)));
+    m_value_view->SetMousehandler(Viewport::LEFT, m_mouse_meta.get());
+    m_value_view->Enable();
+    m_risk_view.reset(new Viewport("risk", realbbox, bb_t(0.5, 0, 1, 1)));
+    m_risk_view->SetMousehandler(Viewport::LEFT, m_mouse_meta.get());
+    m_risk_view->Enable();
+    run_glthread(0);
+  }
 }
 
 
@@ -325,39 +341,46 @@ void motion(int x, int y)
 
 void parse_options(int argc, char ** argv)
 {
-  m_algo = shared_ptr<Algorithm>(new Algorithm());
-  if(argc <= 1){
+  util::Parser parser;
+  string result_fname;
+  parser.Add(new util::Callback<bool>(text_only, 't', "text-only",
+				      "disable Open GL output"));
+  parser.Add(new util::Callback<string>(result_fname, 'o', "outfile",
+					"write results to specified file"));
+  cout << argv[0] << "\n";
+  parser.UsageMessage(cout);
+  const int res(parser.Do(argc, argv, cerr));
+  if(res < 0){
+    cerr << "ERROR in parse_options()\n";
+    exit(EXIT_FAILURE);
+  }
+  if(res >= argc){
     cerr << "ERROR: config file name expected\n";
     exit(EXIT_FAILURE);
-//     m_riskmap.reset(new NHPRiskmap(1, 1));
-//     m_grid.reset(new Grid(*m_algo, 5, 3, FOUR_CONNECTED));
-//     m_goal_ix = 0;
-//     m_goal_iy = 0;
-//     m_goal.insert(make_pair(m_grid->GetVertex(0, 0), 0));
-//     m_robot_ix = 4;
-//     m_robot_iy = 2;
-//     m_robot = m_grid->GetVertex(4, 2);
   }
-  else{
-    ifstream is(argv[1]);
-    if( ! is){
-      cerr << "ERROR in parse_options(): Couldn't open \""
-	   << argv[1] << "\"\n";
-      exit(EXIT_FAILURE);
-    }
-    parse_grid(is);
+  
+  m_algo = shared_ptr<Algorithm>(new Algorithm());
+  ifstream is(argv[res]);
+  if( ! is){
+    cerr << "ERROR in parse_options(): Couldn't open \""
+	 << argv[res] << "\"\n";
+    exit(EXIT_FAILURE);
   }
+  parse_grid(is);
+  
   for(map<vertex_t, double>::const_iterator ig(m_goal.begin());
       ig != m_goal.end(); ++ig)
     m_algo->AddGoal(ig->first, ig->second);
   
-  m_mouse_meta.reset(new MetaMousehandler(*m_algo, *m_grid, *m_kernel, 0, 1));
+  if( ! text_only)
+    m_mouse_meta.
+      reset(new MetaMousehandler(*m_algo, *m_grid, *m_kernel, 0, 1));
   
-  if(argc > 2){
-    result_os.reset(new ofstream(argv[2]));
+  if(result_fname != ""){
+    result_os.reset(new ofstream(result_fname.c_str()));
     if( ! (*result_os)){
       cerr << "ERROR in parse_options(): Couldn't open \""
-	   << argv[2] << "\"\n";
+	   << result_fname << "\"\n";
       exit(EXIT_FAILURE);
     }
   }

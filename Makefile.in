@@ -72,6 +72,7 @@ CXXSRCS=        estar/Algorithm.cpp \
 		pnf/Flow.cpp \
 		pnf/PNFRiskMap.cpp \
 		pnf/RobotShape.cpp \
+                bin/Getopt.cpp
 
 HEADERS=        estar/Algorithm.hpp \
 		estar/AlphaKernel.hpp \
@@ -102,7 +103,8 @@ HEADERS=        estar/Algorithm.hpp \
 		pnf/Flow.hpp \
 		pnf/pnf_cooc.h \
 		pnf/PNFRiskMap.hpp \
-		pnf/RobotShape.hpp
+		pnf/RobotShape.hpp \
+                bin/Getopt.hpp
 
 BIN_CSRC=       bin/test_pnf_cooc3d.c \
 		bin/test_pnf_cooc.c \
@@ -221,14 +223,6 @@ depend:
 	        '{if($$0~/^[^ ]/){print subdir "/" $$0} else print}' \
 	     >> Makefile.depend; \
 	done
-	echo -n "depend:" >> Makefile.depend
-	for source in \
-	  $(CXXSRCS) $(CSRCS) $(BIN_CSRC) $(BIN_CXXSRC) $(GLBIN_SRC) \
-	  $(HEADERS); \
-	  do \
-	    echo -n " $(top_srcdir)/$$source" >> Makefile.depend; \
-	done
-	echo >> Makefile.depend
 	echo "Makefile.depend written `date`" > depend
 
 sinclude Makefile.depend
