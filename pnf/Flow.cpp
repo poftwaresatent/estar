@@ -36,7 +36,6 @@
 #include <iostream>
 #include <cmath>
 
-
 #ifdef DEBUG
 # define PNF_FLOW_DEBUG
 #else // DEBUG
@@ -50,6 +49,9 @@
 #endif
 
 #define PVDEBUG PDEBUG_OFF
+
+#define BOOST_ENABLE_ASSERT_HANDLER
+#include <boost/assert.hpp>
 
 
 using estar::Facade;
@@ -433,6 +435,7 @@ namespace pnf {
   HavePNF()
     const
   {
+    BOOST_ASSERT( m_goal );
     return ! m_pnf->HaveWork();
   }
 
@@ -440,6 +443,7 @@ namespace pnf {
   void Flow::
   PropagatePNF()
   {
+    BOOST_ASSERT( m_goal );
     while(m_pnf->HaveWork())
       m_pnf->ComputeOne();
   }
@@ -755,4 +759,22 @@ namespace pnf {
   {
   }
   
+}
+
+
+void boost::assertion_failed(char const * expr, char const * function,
+			     char const * file, long line)
+{
+  const std::string sexpr(expr);
+  const char * hint("no hint available");
+  if(sexpr == "m_robot")
+    hint = "m_robot only valid after pnf::Flow::SetRobot()";
+  if(sexpr == "m_goal")
+    hint = "m_goal only valid after pnf::Flow::SetGoal()";
+  fprintf(stderr,
+	  "\n%s: %ld: assertion \"%s\" failed\n"
+	  "  function: %s\n"
+	  "  hint: %s\n",
+	  file, line, expr, function, hint);
+  reinterpret_cast<void (*)()>(0)(); // this might be a bit harsh...
 }
