@@ -68,6 +68,34 @@ namespace pnf {
     virtual double MetaToRisk(double meta) const = 0;
   };
   
+  
+  /** Directly descent from (r, m) = (0, 1), unlike Blunt or Sigma. */
+  class Spike: public PNFRiskMap {
+  public:
+    Spike(double cutoff, double degree);
+    virtual double RiskToMeta(double risk) const;
+    virtual double MetaToRisk(double meta) const;
+  };
+  
+  
+  /** Sort of "inverted" Spike, horizontal at (r, m) = (0, 1) but not
+      at m=0 (unlike Sigma). */
+  class Blunt: public PNFRiskMap {
+  public:
+    Blunt(double cutoff, double degree);
+    virtual double RiskToMeta(double risk) const;
+    virtual double MetaToRisk(double meta) const;
+  };
+  
+  
+  /** Horizontal at (r, m) = 0 and m = 0, unlike Spike and Blunt. */
+  class Sigma: public PNFRiskMap {
+  public:
+    Sigma(double cutoff, double degree);
+    virtual double RiskToMeta(double risk) const;
+    virtual double MetaToRisk(double meta) const;
+  };
+  
 }
 
 #endif // PNF_RISK_MAP_HPP

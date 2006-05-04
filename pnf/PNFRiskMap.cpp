@@ -29,34 +29,6 @@
 namespace pnf {
   
   
-  /** Directly descent from (r, m) = (0, 1), unlike Blunt or Sigma. */
-  class Spike: public PNFRiskMap {
-  public:
-    Spike(const std::string & name, double cutoff, double degree);
-    virtual double RiskToMeta(double risk) const;
-    virtual double MetaToRisk(double meta) const;
-  };
-  
-  
-  /** Sort of "inverted" Spike, horizontal at (r, m) = (0, 1) but not
-      at m=0 (unlike Sigma). */
-  class Blunt: public PNFRiskMap {
-  public:
-    Blunt(const std::string & name, double cutoff, double degree);
-    virtual double RiskToMeta(double risk) const;
-    virtual double MetaToRisk(double meta) const;
-  };
-  
-  
-  /** Horizontal at (r, m) = 0 and m = 0, unlike Spike and Blunt. */
-  class Sigma: public PNFRiskMap {
-  public:
-    Sigma(const std::string & name, double cutoff, double degree);
-    virtual double RiskToMeta(double risk) const;
-    virtual double MetaToRisk(double meta) const;
-  };
-  
-  
   PNFRiskMap::
   PNFRiskMap(const std::string & _name,
 	     double _cutoff, double _degree)
@@ -72,18 +44,18 @@ namespace pnf {
 	 double cutoff, double degree)
   {
     if(name == "spike")
-      return new Spike(name, cutoff, degree);
+      return new Spike(cutoff, degree);
     if(name == "blunt")
-      return new Blunt(name, cutoff, degree);
+      return new Blunt(cutoff, degree);
     if(name == "sigma")
-      return new Sigma(name, cutoff, degree);
+      return new Sigma(cutoff, degree);
     return 0;
   }
   
   
   Spike::
-  Spike(const std::string & name, double cutoff, double degree)
-    : PNFRiskMap(name, cutoff, degree)
+  Spike(double cutoff, double degree)
+    : PNFRiskMap("spike", cutoff, degree)
   {
   }
   
@@ -107,8 +79,8 @@ namespace pnf {
   
   
   Blunt::
-  Blunt(const std::string & name, double cutoff, double degree)
-    : PNFRiskMap(name, cutoff, degree)
+  Blunt(double cutoff, double degree)
+    : PNFRiskMap("blunt", cutoff, degree)
   {
   }
   
@@ -132,8 +104,8 @@ namespace pnf {
   
   
   Sigma::
-  Sigma(const std::string & name, double cutoff, double degree)
-    : PNFRiskMap(name, cutoff, degree)
+  Sigma(double cutoff, double degree)
+    : PNFRiskMap("sigma", cutoff, degree)
   {
   }
   
