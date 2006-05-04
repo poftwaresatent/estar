@@ -91,18 +91,18 @@ namespace estar {
   }
   
   
-  void dump_raw_value(const estar::Grid & grid,
-		      const estar::Algorithm & algo,
+  void dump_raw_value(const Grid & grid,
+		      const Algorithm & algo,
 		      size_t x0, size_t y0, size_t x1, size_t y1,
 		      double infinity_replacement,
 		      FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
-    const estar::value_map_t & value(algo.GetValueMap());
+    const value_map_t & value(algo.GetValueMap());
     for(size_t x(x0); x <= x1; x++){
       for(size_t y(y0); y <= y1; y++){
 	const double value(get(value, grid.GetVertex(x, y)));
-	if(value != estar::infinity)
+	if(value != infinity)
 	  fprintf(stream, "%zd   %zd   %f\n", x, y, value);
 	else
 	  fprintf(stream, "%zd   %zd   %f\n", x, y, infinity_replacement);
@@ -112,13 +112,13 @@ namespace estar {
   }
   
   
-  void dump_raw_meta(const estar::Grid & grid,
-		     const estar::Algorithm & algo,
+  void dump_raw_meta(const Grid & grid,
+		     const Algorithm & algo,
 		     size_t x0, size_t y0, size_t x1, size_t y1,
 		     FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
-    const estar::meta_map_t & meta(algo.GetMetaMap());
+    const meta_map_t & meta(algo.GetMetaMap());
     for(size_t x(x0); x <= x1; x++){
       for(size_t y(y0); y <= y1; y++)
 	fprintf(stream, "%zd   %zd   %f\n", x, y,
@@ -128,7 +128,7 @@ namespace estar {
   }
   
   
-  void dump_raw(const estar::Facade & facade,
+  void dump_raw(const Facade & facade,
 		FILE * value_stream,
 		FILE * meta_stream)
   {
@@ -350,6 +350,17 @@ namespace estar {
       linesep(grid, stream, ix0, ix1, even, 0);
     else
       linesep(grid, stream, ix0, ix1, oddsep, 0);
+  }
+  
+  
+  void dump_facade_range_highlight(const Facade & facade,
+				   size_t ix0, size_t iy0,
+				   size_t ix1, size_t iy1,
+				   size_t ixhigh, size_t iyhigh,
+				   FILE * stream)
+  {
+    dump_grid_range_highlight(facade.GetGrid(), ix0, iy0, ix1, iy1,
+			      ixhigh, iyhigh, stream);
   }
   
   

@@ -60,8 +60,8 @@ namespace estar {
      Similar to dump_raw(), but specifically for a Grid's values.
      \note BEWARE x1 and y1 are *inclusive*
   */
-  void dump_raw_value(const estar::Grid & grid,
-		      const estar::Algorithm & algo,
+  void dump_raw_value(const Grid & grid,
+		      const Algorithm & algo,
 		      size_t x0, size_t y0, size_t x1, size_t y1,
 		      double infinity_replacement,
 		      FILE * stream);
@@ -71,8 +71,8 @@ namespace estar {
      Similar to dump_raw(), but specifically for a Grid's meta information.
      \note BEWARE x1 and y1 are *inclusive*
   */
-  void dump_raw_meta(const estar::Grid & grid,
-		     const estar::Algorithm & algo,
+  void dump_raw_meta(const Grid & grid,
+		     const Algorithm & algo,
 		     size_t x0, size_t y0, size_t x1, size_t y1,
 		     FILE * stream);
   
@@ -82,7 +82,7 @@ namespace estar {
       same stream twice). Set a stream to NULL if you're not interested
       in that part of the dump. Uses -1 as infinity_replacement for
       dump_raw_value(). */
-  void dump_raw(const estar::Facade & facade,
+  void dump_raw(const Facade & facade,
 		FILE * value_stream,
 		FILE * meta_stream);
   
@@ -101,9 +101,14 @@ namespace estar {
 				 size_t ix1, size_t iy1,
 				 size_t ixhigh, size_t iyhigh,
 				 FILE * stream);
-  
+  void dump_facade_range_highlight(const Facade & facade,
+				   size_t ix0, size_t iy0,
+				   size_t ix1, size_t iy1,
+				   size_t ixhigh, size_t iyhigh,
+				   FILE * stream);
+
   void dump_upwind(const Algorithm & algo, const Grid * grid, FILE * stream);
-  
+    
 }
 
 #endif // ESTAR_DUMP_HPP
