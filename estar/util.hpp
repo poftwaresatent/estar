@@ -24,6 +24,7 @@
 
 #include <boost/scoped_array.hpp>
 #include <string>
+#include <vector>
 #include <unistd.h>
 #include <stdio.h>
 
@@ -89,7 +90,24 @@ namespace estar {
   
     outer_t data;
   };
-
+  
+  
+  /**
+     \return
+       0 on success<br>
+       1 if distance wasn't reached after maxstep iterations
+      -1 if the robot is outside the grid<br>
+      -2 if the grid is a hexgrid (not implemented yet)
+      
+     
+  */
+  int compute_carrot(const Facade & facade,
+		     double robot_x, double robot_y,
+		     double distance, double stepsize,
+		     size_t maxsteps,
+		     double & carrot_x, double & carrot_y,
+		     std::vector<std::pair<double, double> > * trace);
+  
 }
 
 #endif // ESTAR_UTIL_HPP
