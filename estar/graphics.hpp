@@ -102,6 +102,9 @@ namespace gfx {
   void get_grid_bbox(const estar::Grid & grid,
 		     double & x0, double & y0, double & x1, double & y1);
   
+  void get_grid_bbox(const estar::Facade & facade,
+		     double & x0, double & y0, double & x1, double & y1);
+  
 }
 
 #endif // GFX_GRAPHICS_HPP

@@ -477,6 +477,13 @@ namespace gfx {
   }
   
   
+  void get_grid_bbox(const estar::Facade & facade,
+		     double & x0, double & y0, double & x1, double & y1)
+  {
+    get_grid_bbox(facade.GetGrid(), x0, y0, x1, y1);
+  }
+  
+  
   void get_grid_bbox(const Grid & grid,
 		     double & x0, double & y0, double & x1, double & y1)
   {
