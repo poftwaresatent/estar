@@ -128,8 +128,9 @@ BIN_OBJS=       $(BIN_COBJS) $(BIN_CXXOBJS) $(GLBIN_OBJS)
 VPATH=		@srcdir@
 
 
-all: $(LIB) binaries
+all: lib binaries
 
+lib: $(LIB)
 
 $(LIB): depend subdirs $(OBJS)
 	$(LTLD) -o $@ -rpath $(LIBDIR) -R$(LIBDIR) \
@@ -185,7 +186,7 @@ install:: $(HEADERS)
 	done
 	echo "installed `date`" > install
 
-install:: binaries
+bininstall:: binaries
 	$(MKINSTALLDIRS) $(BINDIR)
 	for bin in \
 	  $(BIN_CSRC:%.c=%) $(BIN_CXXSRC:%.cpp=%) $(GLBIN_SRC:%.cpp=%); \
