@@ -67,7 +67,19 @@ namespace pnf {
     bool HaveEnvdist() const;
     void PropagateEnvdist(bool step);
     
-    void MapEnvdist();
+    /**
+       buffer zones around static objects: If the buffer factor is <=1
+       or the degree <=0 or the riskmap NULL, then simple "on/off"
+       information is used. Otherwise, a buffer is constructed on the
+       environment distance, which helps with discontinuity problems
+       at object boundaries such as the robot being fatally attrackted
+       to walls.
+     */
+    void MapEnvdist(double robot_buffer_factor,
+		    double robot_buffer_degree,
+		    double object_buffer_factor,
+		    double object_buffer_degree,
+		    const estar::RiskMap * riskmap);
     
     bool HaveObjdist(size_t id) const;
     void PropagateObjdist(size_t id);

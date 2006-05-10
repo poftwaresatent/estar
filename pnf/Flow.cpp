@@ -62,6 +62,7 @@ using estar::Grid;
 using estar::Algorithm;
 using estar::Kernel;
 using estar::dump_probabilities;
+using estar::RiskMap;
 using boost::shared_ptr;
 using boost::scoped_ptr;
 using std::make_pair;
@@ -191,7 +192,11 @@ namespace pnf {
   
   
   void Flow::
-  MapEnvdist()
+  MapEnvdist(double robot_buffer_factor,
+	     double robot_buffer_degree,
+	     double object_buffer_factor,
+	     double object_buffer_degree,
+	     const RiskMap * riskmap)
   {
     // Threshold envdist value with robot and object radii, use
     // non-Facade access for efficiency.
@@ -212,11 +217,23 @@ namespace pnf {
       const Grid & robgrid(m_robot->dist->GetGrid());
       Algorithm & robalgo(m_robot->dist->GetAlgorithm());
       const Kernel & robkernel(m_robot->dist->GetKernel());
-      for(size_t iv(0); iv < nvertices; ++iv)
-	if(get(envdist, envgrid.GetVertex(iv)) > radius)
-	  robalgo.SetMeta(robgrid.GetVertex(iv), freespace, robkernel);
-	else
-	  robalgo.SetMeta(robgrid.GetVertex(iv), obstacle, robkernel);
+      if((robot_buffer_factor <= 1)
+	 || (robot_buffer_degree <= 0)
+	 || (0 == riskmap))
+	for(size_t iv(0); iv < nvertices; ++iv)
+	  if(get(envdist, envgrid.GetVertex(iv)) > radius)
+	    robalgo.SetMeta(robgrid.GetVertex(iv), freespace, robkernel);
+	  else
+	    robalgo.SetMeta(robgrid.GetVertex(iv), obstacle, robkernel);
+      else{
+	const BufferZone buffer(radius, radius * robot_buffer_factor,
+				robot_buffer_degree);
+	for(size_t iv(0); iv < nvertices; ++iv){
+	  const double dd(get(envdist, envgrid.GetVertex(iv)));
+	  const double meta(riskmap->RiskToMeta(buffer.DistanceToRisk(dd)));
+	  robalgo.SetMeta(robgrid.GetVertex(iv), meta, robkernel);
+	}
+      }
       // set robot goal, this will skip obstacles
       DoAddGoal(*m_robot->dist, *m_robot->footprint);
     }
@@ -229,11 +246,23 @@ namespace pnf {
 	const Grid & objgrid(objdist.GetGrid());
 	Algorithm & objalgo(objdist.GetAlgorithm());
 	const Kernel & objkernel(objdist.GetKernel());
-	for(size_t iv(0); iv < nvertices; ++iv)
-	  if(get(envdist, envgrid.GetVertex(iv)) > radius)
-	    objalgo.SetMeta(objgrid.GetVertex(iv), freespace, objkernel);
-	  else
-	    objalgo.SetMeta(objgrid.GetVertex(iv), obstacle, objkernel);
+	if((object_buffer_factor <= 1)
+	   || (object_buffer_degree <= 0)
+	   || (0 == riskmap))
+	  for(size_t iv(0); iv < nvertices; ++iv)
+	    if(get(envdist, envgrid.GetVertex(iv)) > radius)
+	      objalgo.SetMeta(objgrid.GetVertex(iv), freespace, objkernel);
+	    else
+	      objalgo.SetMeta(objgrid.GetVertex(iv), obstacle, objkernel);
+	else{
+	  const BufferZone buffer(radius, radius * object_buffer_factor,
+				  object_buffer_degree);
+	  for(size_t iv(0); iv < nvertices; ++iv){
+	    const double dd(get(envdist, envgrid.GetVertex(iv)));
+	    const double meta(riskmap->RiskToMeta(buffer.DistanceToRisk(dd)));
+	    objalgo.SetMeta(objgrid.GetVertex(iv), meta, objkernel);
+	  }
+	}
 	// set object goal, this will skip obstacles
 	DoAddGoal(objdist, *io->second->footprint);
       }

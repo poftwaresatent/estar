@@ -99,8 +99,10 @@ namespace local {
     dynobj_t dynobj;
     double goal_x, goal_y, goal_r;
     bool paper;
+    double robot_buffer_factor, robot_buffer_degree;
+    double object_buffer_factor, object_buffer_degree;
   };
-
+  
 }
 
 using namespace local;
@@ -530,7 +532,11 @@ void timer(int handle)
     
     else if(1 == m_flowstep){
       cout << "map envdist\n";
-      m_flow->MapEnvdist();
+      m_flow->MapEnvdist(m_config->robot_buffer_factor,
+			 m_config->robot_buffer_degree,
+			 m_config->object_buffer_degree,
+			 m_config->object_buffer_degree,
+			 m_risk_map.get());
       ++m_flowstep;
     }
     
@@ -646,6 +652,10 @@ void motion(int x, int y)
 void parse_options(int argc, char ** argv)
 {
   m_config.reset(new Config());
+  m_config->robot_buffer_factor = -1;
+  m_config->robot_buffer_degree = -1;
+  m_config->object_buffer_factor = -1;
+  m_config->object_buffer_degree = -1;
   
   string config_name;
   if(argc > 1)
@@ -800,6 +810,42 @@ void parse_config(istream & config_is, ostream & dbg)
 	exit(EXIT_FAILURE);
       }
       m_config->dynobj.push_back(obj);
+    }
+    
+    else if(token == "robot_buffer_factor"){
+      tls >> m_config->robot_buffer_factor;
+      if( ! tls){
+	dbg << "Couldn't parse robot_buffer_factor from \""
+	    << tls.str() << "\"\n";
+	exit(EXIT_FAILURE);
+      }
+    }
+    
+    else if(token == "robot_buffer_degree"){
+      tls >> m_config->robot_buffer_degree;
+      if( ! tls){
+	dbg << "Couldn't parse robot_buffer_degree from \""
+	    << tls.str() << "\"\n";
+	exit(EXIT_FAILURE);
+      }
+    }
+    
+    else if(token == "object_buffer_factor"){
+      tls >> m_config->object_buffer_factor;
+      if( ! tls){
+	dbg << "Couldn't parse object_buffer_factor from \""
+	    << tls.str() << "\"\n";
+	exit(EXIT_FAILURE);
+      }
+    }
+    
+    else if(token == "object_buffer_degree"){
+      tls >> m_config->object_buffer_degree;
+      if( ! tls){
+	dbg << "Couldn't parse object_buffer_degree from \""
+	    << tls.str() << "\"\n";
+	exit(EXIT_FAILURE);
+      }
     }
     
     else{
