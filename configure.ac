@@ -40,7 +40,7 @@ AC_SUBST(GFXLIBS)
 
 dnl TO DO: Make a real check for GLUT, at the moment switch manually
 dnl        to debug the build on Linux
-glut=NOGLUT
+glut=GLUT
 AC_SUBST(glut)
 
 dnl Check for boost library.
