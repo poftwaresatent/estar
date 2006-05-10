@@ -141,15 +141,20 @@ $(LIB): depend subdirs $(OBJS)
 	$(LTLD) -o $@ -rpath $(LIBDIR) -R$(LIBDIR) \
           -version-info $(SHLIB_CURRENT):$(SHLIB_REVISION):$(SHLIB_AGE) $(OBJS)
 
-# To do: This remakes all binaries if just one of the *.o changes,
-# would be better to use three separate targets for each type of
-# binary.
+# To do:
+# 1. This remakes all binaries if just one of the *.o changes,
+#    would be better to use three separate targets for each type of
+#    binary.
+# 2. GLUTLIBS should only be needed for the GLUTBIN_SRC, but because
+#    estar/graphics.o is linked into libestar, even non-gfx binaries
+#    depend on it. Should do the PROPER solution: subdivide estar into a
+#    couple of distinct libraries.
 binaries: depend subdirs $(BIN_OBJS)
 	for bin in $(BIN_CSRC:%.c=%); do \
-	  $(CC) $(CFLAGS) -o $$bin $$bin.o -L.libs -lestar -lstdc++; \
+	  $(CC) $(CFLAGS) -o $$bin $$bin.o -L.libs -lestar -lstdc++ $(GLUTLIBS); \
 	done
 	for bin in $(BIN_CXXSRC:%.cpp=%); do \
-	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar; \
+	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar $(GLUTLIBS); \
 	done
 	for bin in $(GLUTBIN_SRC:%.cpp=%); do \
 	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar $(GLUTLIBS); \

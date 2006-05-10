@@ -3,11 +3,11 @@ URGENT:
   targets that depend on it (bin/test_estar_gfx.cpp,
   bin/test_pnf_gfx.cpp, gfx/Subwindow.cpp, gfx/Viewport.cpp) ACTUALLY,
   can probably exclude the whole gfx/ subfolder...
+* this needs: make three separate libraries: libestar, libgfx, and libpnf
 
 not so urgent:
 * export script which excludes leftovers/ subdirs, runs autogen.sh,
   and produces source, binary, and documentation tarballs
 * write a test for goal removals/additions
 * pnf/pnf_cooc could use some optimization and cleanup
-* make three separate libraries: libestar, libgfx, and libpnf
 * recursive make to simplify maintaining the build system
