@@ -101,9 +101,9 @@ namespace estar {
     const value_map_t & value(algo.GetValueMap());
     for(size_t x(x0); x <= x1; x++){
       for(size_t y(y0); y <= y1; y++){
-	const double value(get(value, grid.GetVertex(x, y)));
-	if(value != infinity)
-	  fprintf(stream, "%zd   %zd   %f\n", x, y, value);
+	const double vv(get(value, grid.GetVertex(x, y)));
+	if(vv != infinity)
+	  fprintf(stream, "%zd   %zd   %f\n", x, y, vv);
 	else
 	  fprintf(stream, "%zd   %zd   %f\n", x, y, infinity_replacement);
       }
@@ -167,12 +167,12 @@ namespace estar {
 	const GridNode & gn(grid->Vertex2Node(vertex));
 	fprintf(stream, " (%lu, %lu)", gn.ix, gn.iy);
       }
-      const double value(get(value, vertex));
-      if(value == infinity) fprintf(stream, " k: %g v: inf", iq->first);
-      else                  fprintf(stream, " k: %g v: %g", iq->first, value);
-      const double rhs(get(rhs, vertex));
-      if(rhs == infinity) fprintf(stream, " rhs: inf\n");
-      else                fprintf(stream, " rhs: %g\n", rhs);
+      const double vv(get(value, vertex));
+      if(vv == infinity) fprintf(stream, " k: %g v: inf", iq->first);
+      else               fprintf(stream, " k: %g v: %g", iq->first, vv);
+      const double rr(get(rhs, vertex));
+      if(rr == infinity) fprintf(stream, " rhs: inf\n");
+      else               fprintf(stream, " rhs: %g\n", rr);
       if((limit > 0) && (count > limit) && (iq->first != firstkey))
 	break;
     }

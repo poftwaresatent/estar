@@ -18,8 +18,8 @@ dnl Quick hack OS detection, has surely been solved elsewhere already...
 case "$host_os" in
 linux*)
   echo "Detected Linux platform."
-  CPPFLAGS="${CPPFLAGS} -DOSX"
-  GLSTUFF="-L/usr/X11R6/lib -lglut -lGLU -lGL -lXi -lXmu"
+  CPPFLAGS="${CPPFLAGS} -DLINUX"
+  GFXLIBS="-L/usr/X11R6/lib -lglut -lGLU -lGL -lXi -lXmu"
   ;;
 darwin*)
   echo "Detected OSX"
@@ -28,7 +28,7 @@ darwin*)
   else
     CPPFLAGS="${CPPFLAGS} -DOSX"
   fi
-  GLSTUFF="-framework OpenGL -framework GLUT -lobjc"
+  GFXLIBS="-framework OpenGL -framework GLUT -lobjc"
   ;;
 *)
   echo "host_vendor=${host_vendor} not handled, update configure.ac please!"
@@ -36,7 +36,12 @@ darwin*)
   ;;
 esac
 
-AC_SUBST(GLSTUFF)
+AC_SUBST(GFXLIBS)
+
+dnl TO DO: Make a real check for GLUT, at the moment switch manually
+dnl        to debug the build on Linux
+glut=NOGLUT
+AC_SUBST(glut)
 
 dnl Check for boost library.
 AC_DEFUN([CLBS_CHECK_BOOST],

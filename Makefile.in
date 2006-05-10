@@ -38,7 +38,9 @@ LTLD=		$(LIBTOOL) --mode=link $(CXX)
 CPPFLAGS=       @CPPFLAGS@ @BOOST_CPPFLAGS@ -I$(top_srcdir)
 CFLAGS=         @CFLAGS@ @BOOST_CPPFLAGS@ $(CPPFLAGS)
 CXXFLAGS=       @CXXFLAGS@ @BOOST_CPPFLAGS@ $(CPPFLAGS)
-GLSTUFF=        @GLSTUFF@
+
+#@glut@ expands to GLUT or NOGLUT depending on configure script
+@glut@LIBS=     @GFXLIBS@
 
 SHLIB_CURRENT=	0
 SHLIB_REVISION=	0
@@ -63,16 +65,18 @@ CXXSRCS=        estar/Algorithm.cpp \
 		estar/Queue.cpp \
 		estar/Upwind.cpp \
 		estar/util.cpp \
-		estar/graphics.cpp \
-		gfx/MetaMousehandler.cpp \
-		gfx/Subwindow.cpp \
-		gfx/Viewport.cpp \
-		gfx/wrap_glu.cpp \
 		pnf/BufferZone.cpp \
 		pnf/Flow.cpp \
 		pnf/PNFRiskMap.cpp \
 		pnf/RobotShape.cpp \
                 bin/Getopt.cpp
+
+#@glut@ expands to GLUT or NOGLUT depending on configure script
+@glut@SRCS=     gfx/MetaMousehandler.cpp \
+		gfx/Subwindow.cpp \
+		gfx/Viewport.cpp \
+		gfx/wrap_glu.cpp \
+		estar/graphics.cpp \
 
 HEADERS=        estar/Algorithm.hpp \
 		estar/AlphaKernel.hpp \
@@ -91,20 +95,21 @@ HEADERS=        estar/Algorithm.hpp \
 		estar/RiskMap.hpp \
 		estar/Upwind.hpp \
 		estar/util.hpp \
-		estar/graphics.hpp \
-		gfx/MetaMousehandler.hpp \
-		gfx/Mousehandler.hpp \
-		gfx/Subwindow.hpp \
-		gfx/Viewport.hpp \
-		gfx/wrap_gl.hpp \
-		gfx/wrap_glu.hpp \
-		gfx/wrap_glut.hpp \
 		pnf/BufferZone.hpp \
 		pnf/Flow.hpp \
 		pnf/pnf_cooc.h \
 		pnf/PNFRiskMap.hpp \
 		pnf/RobotShape.hpp \
                 bin/Getopt.hpp
+
+@glut@HEADERS=  gfx/MetaMousehandler.hpp \
+		gfx/Mousehandler.hpp \
+		gfx/Subwindow.hpp \
+		gfx/Viewport.hpp \
+		gfx/wrap_gl.hpp \
+		gfx/wrap_glu.hpp \
+		gfx/wrap_glut.hpp \
+		estar/graphics.hpp \
 
 BIN_CSRC=       bin/test_pnf_cooc3d.c \
 		bin/test_pnf_cooc.c \
@@ -118,11 +123,10 @@ BIN_CXXSRC=     bin/test_pnf_riskmap.cpp \
 		bin/test_estar_queue.cpp
 BIN_CXXOBJS=    $(BIN_CXXSRC:%.cpp=%.o)
 
-GLBIN_SRC=      bin/test_pnf_gfx.cpp \
+@glut@BIN_SRC=  bin/test_pnf_gfx.cpp \
 		bin/test_estar_gfx.cpp
-GLBIN_OBJS=     $(GLBIN_SRC:%.cpp=%.o)
 
-OBJS=           $(CXXSRCS:%.cpp=%.lo) $(CSRCS:%.c=%.lo)
+OBJS=           $(CXXSRCS:%.cpp=%.lo) $(CSRCS:%.c=%.lo) $(GLUTSRCS:%.c=%.lo)
 BIN_OBJS=       $(BIN_COBJS) $(BIN_CXXOBJS) $(GLBIN_OBJS)
 
 VPATH=		@srcdir@
@@ -146,8 +150,8 @@ binaries: depend subdirs $(BIN_OBJS)
 	for bin in $(BIN_CXXSRC:%.cpp=%); do \
 	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar; \
 	done
-	for bin in $(GLBIN_SRC:%.cpp=%); do \
-	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar $(GLSTUFF); \
+	for bin in $(GLUTBIN_SRC:%.cpp=%); do \
+	  $(CXX) $(CXXFLAGS) -o $$bin $$bin.o -L.libs -lestar $(GLUTLIBS); \
 	done
 	echo "binaries built `date`" > binaries
 
@@ -178,8 +182,8 @@ install:: estar.pc
 	$(INSTALL) estar.pc $(LIBDIR)/pkgconfig
 	echo "installed `date`" > install
 
-install:: $(HEADERS)
-	for header in $(HEADERS); do \
+install:: $(HEADERS) $(GLUTHEADERS)
+	for header in $(HEADERS) $(GLUTHEADERS); do \
 	  subdir=`dirname $$header`; \
 	  $(MKINSTALLDIRS) $(INCLUDEDIR)/$$subdir; \
 	  $(INSTALL_DATA) $(srcdir)/$$header $(INCLUDEDIR)/$$subdir; \
@@ -189,7 +193,7 @@ install:: $(HEADERS)
 bininstall:: binaries
 	$(MKINSTALLDIRS) $(BINDIR)
 	for bin in \
-	  $(BIN_CSRC:%.c=%) $(BIN_CXXSRC:%.cpp=%) $(GLBIN_SRC:%.cpp=%); \
+	  $(BIN_CSRC:%.c=%) $(BIN_CXXSRC:%.cpp=%) $(GLUTBIN_SRC:%.cpp=%); \
 	  do \
 	    $(LIBTOOL) --mode=install $(INSTALL) $$bin $(BINDIR); \
 	done
@@ -202,8 +206,9 @@ distclean: clean
 clean: 
 	rm -f depend Makefile.depend install subdirs binaries
 	$(LIBTOOL) --mode=clean rm -f $(OBJS) $(LIB)
-	- rm $(BIN_CXXSRC:%.cpp=%.o) $(BIN_CSRC:%.c=%.o) $(GLBIN_SRC:%.cpp=%.o)
-	- rm $(BIN_CXXSRC:%.cpp=%) $(BIN_CSRC:%.c=%) $(GLBIN_SRC:%.cpp=%)
+	- rm $(BIN_CXXSRC:%.cpp=%.o) $(BIN_CSRC:%.c=%.o)
+	- rm $(BIN_CXXSRC:%.cpp=%) $(BIN_CSRC:%.c=%)
+	- rm $(GLUTBIN_SRC:%.cpp=%) $(GLUTBIN_SRC:%.cpp=%.o)
 
 
 depend:
@@ -216,7 +221,7 @@ depend:
 	'{if($$0~/^[^ ]/){sub(/o:/,"lo:"); print subdir "/" $$0} else print}' \
 	     >> Makefile.depend; \
 	done
-	for source in $(BIN_CSRC) $(BIN_CXXSRC) $(GLBIN_SRC); \
+	for source in $(BIN_CSRC) $(BIN_CXXSRC) $(GLUTBIN_SRC); \
 	  do \
 	    subdir=`dirname $$source`; \
 	    $(CC) -MM $(CPPFLAGS) $(top_srcdir)/$$source \

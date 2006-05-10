@@ -27,6 +27,13 @@
 #include <math.h>
 #include <float.h>
 
+// under gcc (GCC) 3.4.4 20050721 (Red Hat 3.4.4-2) and maybe
+// elsewhere it happens that INFINITY is not defined after the
+// inclusion of math.h, so we try something else here...
+#ifndef INFINITY
+# define INFINITY DBL_MAX
+#endif // INFINITY
+
 
 /**
    \todo <code>(N-1) / N</code> can be cached. <code>N</code> should

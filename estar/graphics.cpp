@@ -174,8 +174,8 @@ namespace gfx {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	const double value(minval(get(value, grid.GetVertex(ix, iy)), delta));
-	csfunc(value / delta);
+	const double vv(minval(get(value, grid.GetVertex(ix, iy)), delta));
+	csfunc(vv / delta);
 	double xc, yc;
 	tie(xc, yc) = pfunc(ix, iy);
 	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
