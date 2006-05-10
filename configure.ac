@@ -31,16 +31,26 @@ darwin*)
   GFXLIBS="-framework OpenGL -framework GLUT -lobjc"
   ;;
 *)
-  echo "host_vendor=${host_vendor} not handled, update configure.ac please!"
+  echo "host_vendor=${host_vendor} not handled in OS detection"
+  echo "please update configure.ac"
   exit 1
   ;;
 esac
-
 AC_SUBST(GFXLIBS)
 
-dnl TO DO: Make a real check for GLUT, at the moment switch manually
-dnl        to debug the build on Linux
-glut=GLUT
+case "$host_os" in
+linux*)
+AC_CHECK_HEADER([GL/glut.h], [glut=GLUT], [glut=NOGLUT])
+  ;;
+darwin*)
+AC_CHECK_HEADER([GLUT/glut.h], [glut=GLUT], [glut=NOGLUT])
+  ;;
+*)
+  echo "host_vendor=${host_vendor} not handled in GLUT detection"
+  echo "please update configure.ac"
+  exit 1
+  ;;
+esac
 AC_SUBST(glut)
 
 dnl Check for boost library.
