@@ -43,6 +43,7 @@ namespace pnf {
   
   
   class RobotShape;
+  class BufferZone;
   
 
   /** High-level interface for PNF. Uses underlying estar::Facade
@@ -76,7 +77,10 @@ namespace pnf {
     void PropagateRobdist();
 
     void ComputeAllCooc();
-    void ComputeRisk(const estar::RiskMap & risk_map);
+    void ComputeRisk(const estar::RiskMap & risk_map,
+		     /** buffer around static obstacles BEFORE
+			 convolution with robot shape */
+		     const BufferZone & buffer);
     
     bool HavePNF() const;
     void PropagatePNF();

@@ -349,7 +349,8 @@ namespace pnf {
   /** \todo Maybe use non-facade access for efficiency. Hardcoded
       buffer parameters if compiling with STATIC_DIRACS */ 
   void Flow::
-  ComputeRisk(const estar::RiskMap & risk_map)
+  ComputeRisk(const estar::RiskMap & risk_map,
+	      const BufferZone & buffer)
   {
     BOOST_ASSERT( m_robot );
     estar::array<double> accu(xsize, ysize);
@@ -362,16 +363,6 @@ namespace pnf {
     // bitmap: goal cells are static objects, their co-occurrence is
     // 1, thus we initialize with (1-p)=(1-1)=0
 
-#undef STATIC_DIRACS
-#ifdef STATIC_DIRACS
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy)
-	if(m_envdist->IsGoal(ix, iy))
-	  accu[ix][iy] = 0;
-	else
-	  accu[ix][iy] = 1;
-#else // STATIC_DIRACS
-    const BufferZone buffer(0, 3 * half_diagonal, 2);
     const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
     const Grid & envgrid(m_envdist->GetGrid());
     for(size_t ix(0); ix < xsize; ++ix)
@@ -379,18 +370,14 @@ namespace pnf {
 	const double dist(get(envdist, envgrid.GetVertex(ix, iy)));
 	accu[ix][iy] = 1 - buffer.DistanceToRisk(dist);
       }
-#endif // STATIC_DIRACS
     
     // loop over all dynamic objects and multiply the corresponding
     // risk by (1 - cooc)
-#undef SKIP_OBJECTS
-#ifndef SKIP_OBJECTS
     for(objectmap_t::const_iterator io(m_object.begin());
 	io != m_object.end(); ++io)
       for(size_t ix(0); ix < xsize; ++ix)
 	for(size_t iy(0); iy < ysize; ++iy)
 	  accu[ix][iy] *= 1 - (*io->second->cooc)[ix][iy];
-#endif // SKIP_OBJECTS
     
     // convolute 1-risk by the robot shape and apply risk map to
     // produce meta information; first calculate all 1-risk because
@@ -413,13 +400,8 @@ namespace pnf {
     m_max_risk = 0;
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-#undef DISABLE_MASK
-#ifdef DISABLE_MASK
-	const double risk(accu[ix][iy]);
-#else // DISABLE_MASK
 	const double
 	  risk(m_robot->mask->FuseRisk(ix, iy, xsize, ysize, accu));
-#endif // DISABLE_MASK
 	(*m_risk)[ix][iy] = risk;
 	m_pnf->SetMeta(ix, iy, risk_map.RiskToMeta(risk));
 	if(risk > m_max_risk)

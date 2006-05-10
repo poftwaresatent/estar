@@ -19,6 +19,7 @@
 
 
 #include <pnf/Flow.hpp>
+#include <pnf/BufferZone.hpp>
 #include <pnf/PNFRiskMap.hpp>
 #include <pnf/RobotShape.hpp>
 #include <gfx/Viewport.hpp>
@@ -591,7 +592,8 @@ void timer(int handle)
     
     else if(5 == m_flowstep){
       cout << "compute risk\n";
-      m_flow->ComputeRisk(*m_risk_map);
+      const BufferZone buffer(0, 3 * m_flow->half_diagonal, 2);
+      m_flow->ComputeRisk(*m_risk_map, buffer);
       if(m_dump_risk)
 	dump_risk();
       ++m_flowstep;
