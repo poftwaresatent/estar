@@ -35,6 +35,8 @@ namespace pnf {
     
     BufferZone(double radius, double buffer, double degree);
     
+    /** risk is 1 up to radius, then descends towards 0 at buffer
+	(i.e. buffer is NOT added to radius) */
     double DistanceToRisk(double distance) const;
   };
   
