@@ -67,10 +67,6 @@ double pnf_cooc_detail(double lambda_i,
      || (v_i   <= DBL_EPSILON) || (v_i      >= INFINITY) || isnan(v_i)
      || (v_r   <= DBL_EPSILON) || (v_r      >= INFINITY) || isnan(v_r)
      || (delta <= DBL_EPSILON) || (delta    >= INFINITY) || isnan(delta)
-     || ((lambda_i >= 0)
-	 && ((lambda_i <=   DBL_EPSILON) || (lambda_i >=   INFINITY)))
-     || ((lambda_i < 0)
-	 && ((lambda_i >= - DBL_EPSILON) || (lambda_i <= - INFINITY)))
      || isnan(lambda_i)){
     (*boundguard) = 1;
     return 0;
