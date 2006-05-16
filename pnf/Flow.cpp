@@ -63,6 +63,7 @@ using estar::Algorithm;
 using estar::Kernel;
 using estar::dump_probabilities;
 using estar::RiskMap;
+using estar::array;
 using boost::shared_ptr;
 using boost::scoped_ptr;
 using std::make_pair;
@@ -80,7 +81,7 @@ namespace pnf {
       half_diagonal(0.707106781187 * _resolution), // sqrt(1/2)
       m_envdist(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0)),
       // m_robot invalid until SetRobot()
-      // m_object to be populated by AddDynamicObject()
+      // m_object to be populated by SetDynamicObject()
       // m_risk invalid until ComputeRisk()
       m_pnf(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0))
       // m_goal invalid until SetGoal()
@@ -128,7 +129,7 @@ namespace pnf {
     BOOST_ASSERT( dist );
     shared_ptr<object>
       obj(new object(new region(x, y, r, resolution, xsize, ysize),
-		     v, dist, id, new estar::array<double>(xsize, ysize)));
+		     v, dist, id, xsize, ysize));
     
     // do this in MapEnvdist() to keep goal out of obstacles:
     //   DoAddGoal(*obj->dist, *obj->footprint);
@@ -192,7 +193,7 @@ namespace pnf {
   
   
   void Flow::
-  MapEnvdist(double robot_buffer_factor,
+  _MapEnvdist(double robot_buffer_factor,
 	     double robot_buffer_degree,
 	     double object_buffer_factor,
 	     double object_buffer_degree,
@@ -301,6 +302,8 @@ namespace pnf {
     }
     while(io->second->dist->HaveWork())
       io->second->dist->ComputeOne();
+    
+    // transform dist to lambda
   }
   
   
@@ -382,7 +385,7 @@ namespace pnf {
 	      const BufferZone & buffer)
   {
     BOOST_ASSERT( m_robot );
-    estar::array<double> accu(xsize, ysize);
+    array<double> accu(xsize, ysize);
     
     // - compute combined probability as (1 - Sigma(1 - p))
     // - convolute with robot shape
@@ -414,7 +417,7 @@ namespace pnf {
     // 
     // also keep a copy of the accu array at this point, for plotting
     // the state before the "C-space transform"
-    m_wspace_risk.reset(new estar::array<double>(xsize, ysize));
+    m_wspace_risk.reset(new array<double>(xsize, ysize));
     m_max_wspace_risk = 0;
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
@@ -425,7 +428,7 @@ namespace pnf {
 	accu[ix][iy] = acc;
       }
     
-    m_risk.reset(new estar::array<double>(xsize, ysize));
+    m_risk.reset(new array<double>(xsize, ysize));
     m_max_risk = 0;
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
@@ -633,33 +636,33 @@ namespace pnf {
   }
   
   
-  std::pair<const estar::array<double> *, double> Flow::
+  std::pair<const array<double> *, double> Flow::
   GetCooc(size_t id)
     const
   {
     objectmap_t::const_iterator io(m_object.find(id));
     if(m_object.end() == io)
-      return make_pair(static_cast<const estar::array<double> *>(0), -1.0);
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
     return make_pair(io->second->cooc.get(), io->second->max_cooc);
   }
   
   
-  std::pair<const estar::array<double> *, double> Flow::
+  std::pair<const array<double> *, double> Flow::
   GetRisk()
     const
   {
     if( ! m_risk)
-      return make_pair(static_cast<const estar::array<double> *>(0), -1.0);
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
     return make_pair(m_risk.get(), m_max_risk);
   }
   
   
-  std::pair<const estar::array<double> *, double> Flow::
+  std::pair<const array<double> *, double> Flow::
   GetWSpaceRisk()
     const
   {
     if( ! m_wspace_risk)
-      return make_pair(static_cast<const estar::array<double> *>(0), -1.0);
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
     return make_pair(m_wspace_risk.get(), m_max_wspace_risk);
   }
   
@@ -678,12 +681,47 @@ namespace pnf {
   }
 
   
-  /** \todo This will add the center vertex twice in most cases! */
   Flow::region::
   region(double _x, double _y, double _rad,
 	 double scale, size_t xsize, size_t ysize)
     : x(_x), y(_y), rad(_rad)
   {
+    { // compute border (NE quadrant w/ zero and the diagonal)
+      const double r2lim(square(_rad / scale));
+      size_t bix(0);
+      size_t biy(static_cast<size_t>(_rad / scale));
+#ifdef PNF_FLOW_DEBUG
+      const size_t dbgsize(biy+1);
+      array<int> dbg(dbgsize, dbgsize);
+      for(size_t iy(0); iy < dbgsize; ++iy)
+	for(size_t ix(0); ix < dbgsize; ++ix)
+	  dbg[ix][iy] = 0;
+#endif // PNF_FLOW_DEBUG
+      border.push_back(array_index(bix, biy));
+      PDEBUG("border init %lu   %lu   %g   %g\n",
+	     bix, biy, sqrt(square(bix) + square(biy)), sqrt(r2lim));
+#ifdef PNF_FLOW_DEBUG
+      ++dbg[bix][biy];
+#endif // PNF_FLOW_DEBUG
+      for(++bix; bix <= biy; ++bix){
+	const double r2(square(bix) + square(biy));
+	if(r2 > r2lim) --biy;
+	border.push_back(array_index(bix, biy));
+	PDEBUG("border add  %lu   %lu   %g\n",
+	       bix, biy, sqrt(square(bix) + square(biy)));
+#ifdef PNF_FLOW_DEBUG
+	++dbg[bix][biy];
+#endif // PNF_FLOW_DEBUG
+      }
+#ifdef PNF_FLOW_DEBUG
+      for(size_t iy(dbgsize - 1); iy >= 0; --iy){
+	for(size_t ix(0); ix < dbgsize; ++ix)
+	  fprintf(stderr, "%lu ", dbg[ix][iy]);
+	fprintf(stderr, "\n");
+      }
+#endif // PNF_FLOW_DEBUG
+    }
+
     const double r2(square(_rad));
     const size_t xmax(xsize - 1);
     const size_t ymax(ysize - 1);
@@ -748,6 +786,7 @@ namespace pnf {
   }
 
   
+  /** \todo can be *quite* improved with standard circle drawing algorithm */
   Flow::baseobject::
   baseobject(region * _footprint, double _speed, estar::Facade * _dist)
     : footprint(_footprint), speed(_speed), dist(_dist)
@@ -757,8 +796,10 @@ namespace pnf {
   
   Flow::object::
   object(region * footprint, double speed, estar::Facade * dist,
-	 const size_t _id, estar::array<double> * _cooc)
-    : baseobject(footprint, speed, dist), id(_id), cooc(_cooc), max_cooc(-1)
+	 size_t _id, size_t xsize, size_t ysize)
+    : baseobject(footprint, speed, dist), id(_id),
+      lambda(new array<double>(xsize, ysize)),
+      cooc(new array<double>(xsize, ysize)), max_cooc(-1)
   {
   }
   

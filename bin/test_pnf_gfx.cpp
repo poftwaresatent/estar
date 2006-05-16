@@ -532,7 +532,7 @@ void timer(int handle)
     
     else if(1 == m_flowstep){
       cout << "map envdist\n";
-      m_flow->MapEnvdist(m_config->robot_buffer_factor,
+      m_flow->_MapEnvdist(m_config->robot_buffer_factor,
 			 m_config->robot_buffer_degree,
 			 m_config->object_buffer_degree,
 			 m_config->object_buffer_degree,

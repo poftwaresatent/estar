@@ -75,11 +75,14 @@ namespace pnf {
        at object boundaries such as the robot being fatally attrackted
        to walls.
      */
-    void MapEnvdist(double robot_buffer_factor,
+    void _MapEnvdist(double robot_buffer_factor,
 		    double robot_buffer_degree,
 		    double object_buffer_factor,
 		    double object_buffer_degree,
 		    const estar::RiskMap * riskmap);
+    
+    /** Convenient legacy wrapper. */
+    void MapEnvdist() { _MapEnvdist(0, 0, 0, 0, 0); }
     
     bool HaveObjdist(size_t id) const;
     void PropagateObjdist(size_t id);
@@ -140,6 +143,16 @@ namespace pnf {
     
     
   private:
+    /** Utility for representing eg the border of an object, ie a
+	non-filled disk. Only the positive quadrant can be
+	stored... */
+    class array_index {
+    public:
+      array_index(size_t _ix, size_t _iy)
+	: ix(_ix), iy(_iy) {}
+      size_t ix, iy;
+    };
+    
     /** Utility for holding a node (C-space vertex). */
     class node {
     public:
@@ -150,24 +163,24 @@ namespace pnf {
     };
     
     /** Utility for holding a region, ie list of node instances.
-	
 	\todo idea of goals that can be diffed against each other and
-	patches used on estar::Facade for goal modifications, eg via
-	visitor pattern... */
+	patches used on estar::Facade for goal modifications. */
     class region {
     public:
       /** \note populates the nodelist by filling a circle */
       region(double x, double y, double rad,
 	     double scale, size_t xsize, size_t ysize);
       const double x, y, rad;
+      typedef std::vector<array_index> border_t;
       typedef std::vector<node> nodelist_t;
+      border_t border;
       nodelist_t nodelist;
     };
     
     /** Utility base class for holding objects or the robot. */
     class baseobject {
     public:
-      /** \note transfers ownership, pure container, no computations */
+      /** \note transfers ownership */
       baseobject(region * footprint, double speed, estar::Facade * dist);
       boost::shared_ptr<region> footprint;
       const double speed;
@@ -177,10 +190,10 @@ namespace pnf {
     /** Utility for representing an object. */
     class object: public baseobject {
     public:
-      /** \note transfers ownership, pure container, no computations */
       object(region * footprint, double speed, estar::Facade * dist,
-	     const size_t id, estar::array<double> * cooc);
+	     size_t id, size_t xsize, size_t ysize);
       const size_t id;
+      boost::shared_ptr<estar::array<double> > lambda;
       boost::shared_ptr<estar::array<double> > cooc;
       double max_cooc;
     };
@@ -188,7 +201,7 @@ namespace pnf {
     /** Utility for representing the robot. */
     class robot: public baseobject {
     public:
-      /** \note transfers ownership, pure container, no computations */
+      /** \note transfers ownership */
       robot(region * footprint, double speed, estar::Facade * dist,
 	    RobotShape * mask);
       boost::shared_ptr<RobotShape> mask;

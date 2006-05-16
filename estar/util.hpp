@@ -84,7 +84,7 @@ namespace estar {
   
     array(size_t xsize, size_t ysize): data(new inner_t[xsize])
     { for(size_t ix(0); ix < xsize; ++ix) data[ix].reset(new T[ysize]); }
-  
+    
     inner_t & operator [] (size_t ix) { return data[ix]; }
     const inner_t & operator [] (size_t ix) const { return data[ix]; }
   
