@@ -6,12 +6,12 @@ AC_CANONICAL_HOST
 
 AC_PROG_CC
 if test "x${GCC}" = "xyes"; then
-  CFLAGS="-O3 -Wall -pipe"
+  CFLAGS="$CFLAGS -Wall -pipe"
 fi
 
 AC_PROG_CXX
 if test "x${GXX}" = "xyes"; then
-  CXXFLAGS="-O3 -Wall -pipe"
+  CXXFLAGS="$CXXFLAGS -Wall -pipe"
 fi
 
 dnl Quick hack OS detection, has surely been solved elsewhere already...

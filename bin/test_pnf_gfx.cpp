@@ -65,6 +65,7 @@ static void motion(int x, int y);
 
 static void add_wall(double x0, double y0, double x1, double y1, Flow & flow);
 static void dump_objdist();
+static void dump_lambda();
 static void dump_cooc();
 static void dump_risk();
 static void do_dump(const string & name,
@@ -74,8 +75,9 @@ static void do_dump(const string & name, const Facade & facade);
 static void draw_setup(double wall_r, double wall_g, double wall_b,
 		       double goal_r, double goal_g, double goal_b,
 		       double robot_r, double robot_g, double robot_b,
-		       double object_r, double object_g, double object_b);
-static void draw_setup(bool inv);
+		       double object_r, double object_g, double object_b,
+		       bool plotreg);
+static void draw_setup(bool inv, bool plotreg);
 
 
 namespace local {
@@ -118,6 +120,7 @@ static bool m_finish(true);
 
 static bool m_dump_envdist(true);
 static bool m_dump_objdist(true);
+static bool m_dump_lambda(true);
 static bool m_dump_robdist(true);
 static bool m_dump_cooc(true);
 static bool m_dump_risk(true);
@@ -127,7 +130,7 @@ static size_t m_flowstep(0);
 
 static shared_ptr<Viewport> m_envdist_view;
 static shared_ptr<Viewport> m_robdist_view;
-static vector<shared_ptr<Viewport> > m_objdist_view;
+static vector<shared_ptr<Viewport> > m_lambda_view;
 static vector<shared_ptr<Viewport> > m_cooc_view;
 static shared_ptr<Viewport> m_risk_view;
 static shared_ptr<Viewport> m_wspace_risk_view;
@@ -172,9 +175,9 @@ int main(int argc,
     m_robdist_view.reset(new VP("robdist", rbb, bb_t(0, 1-dy, 0.5, 1)));
     for(size_t io(0); io < m_config->dynobj.size(); ++io){
       {
-	ostringstream os("objdist");
+	ostringstream os("lambda");
 	os << m_config->dynobj[io].id;
-	m_objdist_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb0)));
+	m_lambda_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb0)));
       }
       {
 	ostringstream os("cooc");
@@ -199,10 +202,10 @@ int main(int argc,
     m_robdist_view.reset(new VP("robdist", rbb, bb_t(ldx, 1-ldy, 2*ldx, 1)));
     for(size_t io(0); io < m_config->dynobj.size(); ++io){
       {
-	ostringstream os("objdist");
+	ostringstream os("lambda");
 	os << m_config->dynobj[io].id;
 	const bb_t lbb(0, io*ldy, ldx, (io+1)*ldy);
-	m_objdist_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb)));
+	m_lambda_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb)));
       }
       {
 	ostringstream os("cooc");
@@ -262,16 +265,16 @@ void draw()
   if(m_config->paper){
     m_robdist_view->PushProjection();
     if(4 > m_flowstep){
-      draw_grid_value(m_flow->GetEnvdist(), INVERTED_GREY);
-      draw_setup(false);
+      draw_grid_value(m_flow->GetEnvdist(), ColorScheme::Get(INVERTED_GREY));
+      draw_setup(false, false);
     }
     else{
       BOOST_ASSERT( 0 != m_flow->GetRobdist() );
-      draw_grid_meta(*m_flow->GetRobdist(), INVERTED_GREY);
+      draw_grid_meta(*m_flow->GetRobdist(), ColorScheme::Get(INVERTED_GREY));
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		   m_config->goal_r, RED, 0, 1, 1);
-      draw_setup(false);
+		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+      draw_setup(false, false);
     }
     m_robdist_view->PopProjection();
     double max_max_cooc(0);
@@ -281,8 +284,8 @@ void draw()
 	if(5 > m_flowstep){
 	  BOOST_ASSERT( 0 != m_flow->GetObjdist(m_config->dynobj[io].id));
 	  draw_grid_value(*m_flow->GetObjdist(m_config->dynobj[io].id),
-			  INVERTED_GREY);    
-	  draw_setup(false);
+			  ColorScheme::Get(INVERTED_GREY));    
+	  draw_setup(false, false);
 	}
 	else{
 	  const array<double> * cooc;
@@ -292,11 +295,11 @@ void draw()
 	  if(max_cooc > max_max_cooc)
 	    max_max_cooc = max_cooc;
 	  draw_array(*cooc, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
-		     0, max_cooc, INVERTED_GREY);
+		     0, max_cooc, ColorScheme::Get(INVERTED_GREY));
 	  if(7 <= m_flowstep)
 	    draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		       m_config->goal_r, RED, 0, 1, 1);
-	  draw_setup(false);
+		       m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+	  draw_setup(false, false);
 	}
 	m_cooc_view[io]->PopProjection();
       }
@@ -308,11 +311,11 @@ void draw()
 	if(0 != wspace_risk){
 	  m_wspace_risk_view->PushProjection();
 	  draw_array(*wspace_risk, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
-		     0, max_max_cooc, INVERTED_GREY);
+		     0, max_max_cooc, ColorScheme::Get(INVERTED_GREY));
 	  if(7 <= m_flowstep)
 	    draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		       m_config->goal_r, RED, 0, 1, 1);
-	  draw_setup(false);
+		       m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+	  draw_setup(false, false);
 	  m_wspace_risk_view->PopProjection();
 	}
       }
@@ -323,55 +326,64 @@ void draw()
 	if(0 != risk){
 	  m_risk_view->PushProjection();
 	  draw_array(*risk, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
-		     0, max_risk, INVERTED_GREY);
+		     0, max_risk, ColorScheme::Get(INVERTED_GREY));
 	  if(7 <= m_flowstep)
 	    draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		       m_config->goal_r, RED, 0, 1, 1);
-	  draw_setup(true);
+		       m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+	  draw_setup(true, false);
 	  m_risk_view->PopProjection();
 	}
       }
       m_pnf_meta_view->PushProjection();
-      draw_grid_meta(m_flow->GetPNF(), INVERTED_GREY);
+      draw_grid_meta(m_flow->GetPNF(), ColorScheme::Get(INVERTED_GREY));
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		   m_config->goal_r, RED, 0, 1, 1);
-      draw_setup(false);
+		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+      draw_setup(false, false);
       m_pnf_meta_view->PopProjection();
     }
   }
   else{
     if(0 <= m_flowstep){
       m_envdist_view->PushProjection();
-      draw_grid_value(m_flow->GetEnvdist(), BLUE_GREEN_RED);
+      draw_grid_value(m_flow->GetEnvdist(), ColorScheme::Get(BLUE_GREEN_RED));
       draw_grid_queue(m_flow->GetEnvdist().GetGrid(),
 		      m_flow->GetEnvdist().GetAlgorithm());
       //       draw_grid_upwind(m_flow->GetEnvdist().GetGrid(),
       // 		       m_flow->GetEnvdist().GetAlgorithm(),
       // 		       1, 1, 1, 1);
-      draw_setup(false);
+      draw_setup(false, true);
       m_envdist_view->PopProjection();
     }
     if(3 <= m_flowstep){
       for(size_t io(0); io < m_config->dynobj.size(); ++io){
-	const Facade * objdist(m_flow->GetObjdist(m_config->dynobj[io].id));
-	if(0 == objdist){
-	  cerr << __func__ << "(): objdist " << m_config->dynobj[io].id
+	const array<double> * lambda;
+	double max_lambda;
+	tie(lambda, max_lambda) = m_flow->GetLambda(m_config->dynobj[io].id);
+	if(0 == lambda){
+	  cerr << __func__ << "(): lambda " << m_config->dynobj[io].id
 	       << " not in m_flow\n";
 	  exit(EXIT_FAILURE);
 	}
-	m_objdist_view[io]->PushProjection();
-	draw_grid_value(*objdist, BLUE_GREEN_RED);    
-	draw_setup(false);
-	m_objdist_view[io]->PopProjection();
+	m_lambda_view[io]->PushProjection();
+	draw_array(*lambda, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
+		   0, max_lambda, ColorScheme::Get(BLUE_GREEN_RED));
+	draw_setup(false, true);
+	const Region * region(m_flow->GetRegion(m_config->dynobj[io].id));
+	if(0 == region){
+	  cerr << __func__ << "(): region " << m_config->dynobj[io].id
+	       << " not in m_flow\n";
+	  exit(EXIT_FAILURE);
+	}
+	m_lambda_view[io]->PopProjection();
       }
     }
     if(4 <= m_flowstep){
       const Facade * robdist(m_flow->GetRobdist());
       if(0 != robdist){
 	m_robdist_view->PushProjection();
-	draw_grid_value(*robdist, BLUE_GREEN_RED);
-	draw_setup(false);
+	draw_grid_value(*robdist, ColorScheme::Get(BLUE_GREEN_RED));
+	draw_setup(false, true);
 	m_robdist_view->PopProjection();
       }
       else{
@@ -391,8 +403,8 @@ void draw()
 	}
 	m_cooc_view[io]->PushProjection();
 	draw_array(*cooc, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
-		   0, max_cooc, BLUE_GREEN_RED);
-	draw_setup(false);
+		   0, max_cooc, ColorScheme::Get(BLUE_GREEN_RED));
+	draw_setup(false, true);
 	m_cooc_view[io]->PopProjection();
       }
     }
@@ -403,27 +415,27 @@ void draw()
       if(0 != risk){
 	m_risk_view->PushProjection();
 	draw_array(*risk, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
-		   0, max_risk, BLUE_GREEN_RED);
+		   0, max_risk, ColorScheme::Get(BLUE_GREEN_RED));
 	if(7 <= m_flowstep)
 	  draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		     m_config->goal_r, RED, 0, 1, 1);
-	draw_setup(false);
+		     m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+	draw_setup(false, true);
 	m_risk_view->PopProjection();
       }
       m_pnf_meta_view->PushProjection();
-      draw_grid_meta(m_flow->GetPNF(), BLUE_GREEN_RED);
+      draw_grid_meta(m_flow->GetPNF(), ColorScheme::Get(BLUE_GREEN_RED));
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		   m_config->goal_r, RED, 0, 1, 1);
-      draw_setup(false);
+		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+      draw_setup(false, true);
       m_pnf_meta_view->PopProjection();
     }
     if(7 <= m_flowstep){
       m_pnf_value_view->PushProjection();
-      draw_grid_value(m_flow->GetPNF(), BLUE_GREEN_RED);
+      draw_grid_value(m_flow->GetPNF(), ColorScheme::Get(BLUE_GREEN_RED));
       draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		 m_config->goal_r, RED, 0, 1, 1);
-      draw_setup(false);
+		 m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+      draw_setup(false, true);
       m_pnf_value_view->PopProjection();
     }
   }
@@ -541,8 +553,10 @@ void timer(int handle)
     }
     
     else if(2 == m_flowstep){
-      if(m_flow->HaveAllObjdist())
+      if(m_flow->HaveAllObjdist()){
 	cout << "already have all objdist...\n";
+	++m_flowstep;
+      }
       else{
 	static size_t io(0);
 	if(io < m_config->dynobj.size()){
@@ -561,6 +575,8 @@ void timer(int handle)
 	if(m_flow->HaveAllObjdist()){
 	  if(m_dump_objdist)
 	    dump_objdist();
+	  if(m_dump_lambda)
+	    dump_lambda();
 	  ++m_flowstep;
 	}
       }
@@ -693,12 +709,35 @@ void parse_options(int argc, char ** argv)
 	     m_config->statobj[iw].x1, m_config->statobj[iw].y1,
 	     * m_flow);
   for(size_t io(0); io < m_config->dynobj.size(); ++io)
-    m_flow->SetDynamicObject(m_config->dynobj[io].id,
-			     m_config->dynobj[io].x, m_config->dynobj[io].y,
-			     m_config->dynobj[io].r, m_config->dynobj[io].v);
-  m_flow->SetRobot(m_config->robot_x, m_config->robot_y,
-		   m_config->robot_r, m_config->robot_v);
-  m_flow->SetGoal(m_config->goal_x, m_config->goal_y, m_config->goal_r);
+    if(!m_flow->SetDynamicObject(m_config->dynobj[io].id,
+				 m_config->dynobj[io].x,
+				 m_config->dynobj[io].y,
+				 m_config->dynobj[io].r,
+				 m_config->dynobj[io].v)){
+      cerr << "m_flow->SetDynamicObject() failed in " << __FUNCTION__ << ".\n"
+	   << "  id: " << m_config->dynobj[io].id
+	   << "  x: " << m_config->dynobj[io].x
+	   << "  y: " << m_config->dynobj[io].y
+	   << "  r: " << m_config->dynobj[io].r
+	   << "  v: " << m_config->dynobj[io].v << "\n";
+      exit(EXIT_FAILURE);
+    }
+  if(!m_flow->SetRobot(m_config->robot_x, m_config->robot_y,
+		       m_config->robot_r, m_config->robot_v)){
+    cerr << "m_flow->SetRobot() failed in " << __FUNCTION__ << ".\n"
+	 << "  x: " << m_config->robot_x
+	 << "  y: " << m_config->robot_y
+	 << "  r: " << m_config->robot_r
+	 << "  v: " << m_config->robot_v << "\n";
+    exit(EXIT_FAILURE);
+  }
+  if(!m_flow->SetGoal(m_config->goal_x, m_config->goal_y, m_config->goal_r)){
+    cerr << "m_flow->SetGoal() failed in " << __FUNCTION__ << ".\n"
+	 << "  x: " << m_config->goal_x
+	 << "  y: " << m_config->goal_y
+	 << "  r: " << m_config->goal_r << "\n";
+    exit(EXIT_FAILURE);
+  }
 }
 
 
@@ -938,6 +977,24 @@ void dump_cooc()
 }
 
 
+void dump_lambda()
+{
+  for(size_t io(0); io < m_config->dynobj.size(); ++io){
+    const size_t id(m_config->dynobj[io].id);
+    const array<double> * lambda;
+    double max_lambda;
+    tie(lambda, max_lambda) = m_flow->GetLambda(id);
+    if(0 == lambda){
+      cout << __func__ << "(): lambda " << id << " not in m_flow\n";
+      exit(EXIT_FAILURE);
+    }
+    ostringstream name;
+    name << "lambda" << id;
+    do_dump(name.str(), *lambda, max_lambda);
+  }
+}
+
+
 void dump_risk()
 {
   const array<double> * risk;
@@ -1011,12 +1068,13 @@ void do_dump(const string & name, const array<double> & data, double max_val)
 void draw_setup(double wall_r, double wall_g, double wall_b,
 		double goal_r, double goal_g, double goal_b,
 		double robot_r, double robot_g, double robot_b,
-		double object_r, double object_g, double object_b)
+		double object_r, double object_g, double object_b,
+		bool plotreg)
 {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   glMatrixMode(GL_MODELVIEW);
-  
   glLineWidth(1);
+  
   glColor3d(wall_r, wall_g, wall_b);
   glBegin(GL_LINES);
   for(size_t iw(0); iw < m_config->statobj.size(); ++iw){
@@ -1027,7 +1085,6 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
   }
   glEnd();
   
-  glLineWidth(2);
   glColor3d(goal_r, goal_g, goal_b);
   glPushMatrix();
   glTranslated(m_config->goal_x / m_config->grid_d + 0.5,
@@ -1038,6 +1095,11 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
     gluDisk(wrap_glu_quadric_instance(), rad, rad, 36, 1);
   }
   glPopMatrix();
+  if(plotreg && m_flow){
+    const pnf::Region * goal(m_flow->GetGoal());
+    if(goal)
+      draw_region(*goal, goal_r, goal_g, goal_b);
+  }
   
   glColor3d(robot_r, robot_g, robot_b);
   glPushMatrix();
@@ -1049,8 +1111,12 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
     gluDisk(wrap_glu_quadric_instance(), rad, rad, 36, 1);
   }
   glPopMatrix();
+  if(plotreg && m_flow){
+    const pnf::Region * robot(m_flow->GetRobot());
+    if(robot)
+      draw_region(*robot, robot_r, robot_g, robot_b);
+  }
   
-  glLineWidth(2);
   glColor3d(object_r, object_g, object_b);
   for(size_t io(0); io < m_config->dynobj.size(); ++io){
     glMatrixMode(GL_MODELVIEW);
@@ -1061,22 +1127,27 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
     const double rad(m_config->dynobj[io].r / m_config->grid_d);
     gluDisk(wrap_glu_quadric_instance(), rad, rad, 36, 1);
     glPopMatrix();
+    if(plotreg && m_flow){
+      const pnf::Region * region(m_flow->GetRegion(m_config->dynobj[io].id));
+      if(region)
+	draw_region(*region, object_r, object_g, object_b);
+    }
   }
 }
 
 
-void draw_setup(bool inv)
+void draw_setup(bool inv, bool plotreg)
 {
   if(inv)
     draw_setup(1, 1, 1,		// wall
 	       0.5, 0.5, 1,	// goal
 	       0.5, 1, 0.5,	// robot
-	       0, 1, 0		// object
-	       );
+	       0, 1, 0,		// object
+	       plotreg);
   else
     draw_setup(0, 0, 0,		// wall
 	       0.5, 0.5, 1,	// goal
 	       0.5, 1, 0.5,	// robot
-	       0, 1, 0		// object
-	       );
+	       0, 1, 0,		// object
+	       plotreg);
 }

@@ -186,7 +186,7 @@ void draw()
     have_path = true;
   
   m_value_view->PushProjection();
-  draw_grid_value(*m_grid, *m_algo, BLUE_GREEN_RED);
+  draw_grid_value(*m_grid, *m_algo, ColorScheme::Get(BLUE_GREEN_RED));
   draw_grid_connect(*m_grid, *m_algo, 0.5, 0.5, 0.5, 1);
   draw_grid_queue(*m_grid, *m_algo);
   draw_grid_upwind(*m_grid, *m_algo, 1, 1, 1, 5);
@@ -195,7 +195,7 @@ void draw()
       draw_trace(*m_grid, *m_algo,
 		 m_robot_ix, m_robot_iy,
 		 0.1, 2,
-		 GREEN_PINK_BLUE, 1, 0.5, 0);
+		 ColorScheme::Get(GREEN_PINK_BLUE), 1, 0.5, 0);
     glPointSize(5);
     glBegin(GL_POINTS);
     glColor3d(1, 0.5, 0.5);
@@ -207,13 +207,14 @@ void draw()
   m_value_view->PopProjection();
   
   m_risk_view->PushProjection();
-  draw_grid_risk(*m_grid, *m_algo, *m_riskmap, GREEN_PINK_BLUE);
+  draw_grid_risk(*m_grid, *m_algo, *m_riskmap,
+		 ColorScheme::Get(GREEN_PINK_BLUE));
   if(m_grid->connect != HEX_GRID){
     if(have_path)
       draw_trace(*m_grid, *m_algo,
 		 m_robot_ix, m_robot_iy,
 		 0.1, 2,
-		 GREY_WITH_SPECIAL, 1, 0.5, 0);
+		 ColorScheme::Get(GREY_WITH_SPECIAL), 1, 0.5, 0);
     glBegin(GL_POINTS);
     glColor3d(1, 0.5, 0.5);
     glVertex2d(m_robot_ix + 0.5, m_robot_iy + 0.5);

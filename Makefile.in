@@ -119,7 +119,8 @@ BIN_CXXSRC=     bin/test_pnf_riskmap.cpp \
 		bin/test_estar.cpp \
 		bin/test_dbg_opt.cpp \
 		bin/test_fake_os.cpp \
-		bin/test_estar_queue.cpp
+		bin/test_estar_queue.cpp \
+		bin/test_pnf_shape.cpp
 BIN_CXXOBJS=    $(BIN_CXXSRC:%.cpp=%.o)
 
 @glut@BIN_SRC=  bin/test_pnf_gfx.cpp \
@@ -149,7 +150,7 @@ $(LIB): depend subdirs $(OBJS)
 #    estar/graphics.o is linked into libestar, even non-gfx binaries
 #    depend on it. Should do the PROPER solution: subdivide estar into a
 #    couple of distinct libraries.
-binaries: depend subdirs $(BIN_OBJS)
+binaries: depend subdirs $(BIN_OBJS) $(LIB)
 	for bin in $(BIN_CSRC:%.c=%); do \
 	  $(CC) $(CFLAGS) -o $$bin $$bin.o -L.libs -lestar -lstdc++ $(GLUTLIBS); \
 	done
@@ -234,6 +235,18 @@ depend:
 	      | $(AWK) -v subdir=$$subdir \
 	        '{if($$0~/^[^ ]/){print subdir "/" $$0} else print}' \
 	     >> Makefile.depend; \
+	done
+	for source in $(BIN_CSRC); \
+	  do \
+	    subdir=`dirname $$source`; \
+	    exe=`basename $$source .c`; \
+	    echo "$$subdir/$$exe: $(LIB)" >> Makefile.depend; \
+	done
+	for source in $(BIN_CXXSRC) $(GLUTBIN_SRC); \
+	  do \
+	    subdir=`dirname $$source`; \
+	    exe=`basename $$source .cpp`; \
+	    echo "$$subdir/$$exe: $(LIB)" >> Makefile.depend; \
 	done
 	echo "Makefile.depend written `date`" > depend
 

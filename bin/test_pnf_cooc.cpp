@@ -25,6 +25,7 @@
 #include <pnf/pnf_cooc.h>
 #include <vector>
 #include <string>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -73,19 +74,27 @@ static void lwpp(const lwpp_param_t & param,
 
 int main(int argc, char ** argv)
 {
+  string setname("basic");
+  if(argc > 1)
+    setname = argv[1];
+  
   // rpos, rrad, opos, orad, vrob, vobj;
   lwpp_param_t param;
-  if(false){
+  if(setname == "basic"){
     param.push_back(lwpp_param_s(0, 0, -5, 0, 10, 20, "fast point object"));
     param.push_back(lwpp_param_s(0, 0, -5, 0, 10, 10, "slow point object"));
     param.push_back(lwpp_param_s(0, 0, -20, 0, 10, 20, "fast point object"));
     param.push_back(lwpp_param_s(0, 0, -20, 0, 10, 10, "slow point object"));
   }
-  else{
+  else if(setname == "extended"){
     param.push_back(lwpp_param_s(0, 0, -10, 0, 10, 20, "point object and robot"));
     param.push_back(lwpp_param_s(0, 4, -10, 0, 10, 10, "point object"));
     param.push_back(lwpp_param_s(0, 0, -10, 4, 10, 20, "point robot"));
     param.push_back(lwpp_param_s(0, 4, -10, 4, 10, 10, "both non-point"));
+  }
+  else{
+    cerr << argv[0] << ": sorry, don't know about \"" << setname << "\"\n";
+    return 1;
   }
   
   const double start_pos(-40);

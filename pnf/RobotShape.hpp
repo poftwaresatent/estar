@@ -28,33 +28,78 @@
 
 #include <pnf/Flow.hpp>
 #include <vector>
+#include <iosfwd>
 
 
 namespace pnf {
   
   
-  /** Two-dimensional correlation mask. Utility for C-space transform,
-      but (currently) independent of exact robot shape, that is to say
-      it performs C-space projection. */
-  class RobotShape
+  class Sprite
   {
   public:
-    RobotShape(double radius, double scale);
+    /** Utility for holding "relative" nodes. */
+    class sindex {
+    public:
+      sindex(ssize_t _x, ssize_t _y, double _r): x(_x), y(_y), r(_r) { }
+      ssize_t x, y;
+      double r;
+    };
     
-    double FuseRisk(size_t uix, size_t uiy,
-		    size_t uxsize, size_t uysize,
-		    const estar::array<double> & cooc) const;
+    typedef std::vector<sindex> indexlist_t;
+    
+    const double radius;
+    const double scale;
+    
+    Sprite(double radius, double scale);
+    
+    void Dump(std::ostream & os) const;
+    
+    const indexlist_t & GetBorder() const { return m_border; }
+    const indexlist_t & GetArea() const { return m_area; }
     
   private:
-    /** Utility for holding "relative" nodes. */
-    class offset {
-    public:
-      offset(ssize_t _x, ssize_t _y): x(_x), y(_y) { }
-      ssize_t x, y;
-    };
-    typedef std::vector<offset> offsetlist_t;
-    offsetlist_t m_offsetlist;
+    indexlist_t m_border;
+    indexlist_t m_area;
   };
+  
+  
+  class Region
+  {
+  public:
+    typedef Sprite::sindex sindex;
+    typedef Sprite::indexlist_t indexlist_t;
+    
+    const double x0;
+    const double y0;
+    
+    Region(boost::shared_ptr<Sprite> sprite,
+	   double x0, double y0, ssize_t xsize, ssize_t ysize);
+    
+    Region(double radius, double scale,
+	   double x0, double y0, ssize_t xsize, ssize_t ysize);
+    
+    const Sprite & GetSprite() const { return * m_sprite; }
+    const indexlist_t & GetBorder() const { return m_border; }
+    const indexlist_t & GetArea() const { return m_area; }
+    
+  private:
+    boost::shared_ptr<Sprite> m_sprite;
+    indexlist_t m_border;
+    indexlist_t m_area;
+    
+    void Init(double radius, double scale,
+	      double x0, double y0, ssize_t xsize, ssize_t ysize);
+  };
+  
+}
+
+
+namespace gfx {
+  
+  /** \todo HACK: this shouldn't live here, but it's in the middle of
+      a refactoring anyways... */
+  void draw_region(const pnf::Region & region,
+		   double red, double green, double blue);
   
 }
 

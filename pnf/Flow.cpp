@@ -36,6 +36,8 @@
 #include <iostream>
 #include <cmath>
 
+// tmp manual override
+#define DEBUG
 #ifdef DEBUG
 # define PNF_FLOW_DEBUG
 #else // DEBUG
@@ -54,6 +56,8 @@
 #include <boost/assert.hpp>
 
 
+using pnf::Region;
+using pnf::Sprite;
 using estar::Facade;
 using estar::square;
 using estar::minval;
@@ -64,10 +68,55 @@ using estar::Kernel;
 using estar::dump_probabilities;
 using estar::RiskMap;
 using estar::array;
+using estar::infinity;
 using boost::shared_ptr;
 using boost::scoped_ptr;
 using std::make_pair;
 using std::cerr;
+
+
+namespace local {
+  
+  
+  /** Utility for representing an object. */
+  class Object
+  {
+  public:
+    Object(size_t _id, double _speed,
+	   shared_ptr<Region> _region, shared_ptr<Facade> _dist,
+	   size_t xsize, size_t ysize)
+      : id(_id), speed(_speed), max_lambda(-1), max_cooc(-1),
+	region(_region), dist(_dist),
+	lambda(new array<double>(xsize, ysize)),
+	cooc(new array<double>(xsize, ysize))
+    {}
+    const size_t id;
+    const double speed;
+    double max_lambda;
+    double max_cooc;
+    shared_ptr<Region> region;
+    shared_ptr<Facade> dist;
+    shared_ptr<array<double> > lambda;
+    shared_ptr<array<double> > cooc;
+  };
+  
+  
+  /** Utility for representing the robot. */
+  class Robot
+  {
+  public:
+    Robot(double _speed, shared_ptr<Region> _region, shared_ptr<Facade> _dist)
+      : speed(_speed), region(_region), dist(_dist)
+    {}
+    const double speed;
+    shared_ptr<Region> region;
+    shared_ptr<Facade> dist;
+  };
+  
+}
+
+
+using namespace local;
 
 
 namespace pnf {
@@ -85,6 +134,12 @@ namespace pnf {
       // m_risk invalid until ComputeRisk()
       m_pnf(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0))
       // m_goal invalid until SetGoal()
+  {
+  }
+  
+  
+  Flow::
+  ~Flow()
   {
   }
   
@@ -118,28 +173,22 @@ namespace pnf {
   bool Flow::
   SetDynamicObject(size_t id, double x, double y, double r, double v)
   {
-    { // check if object inside grid
-      size_t foo;
-      if( ! CompIndices(x, y, foo, foo))
-	return false;
-    }
+    shared_ptr<Region> region(new Region(r, resolution, x, y, xsize, ysize));
+    if(region->GetArea().empty())
+      return false;
     
-    // allocate new object
-    Facade * dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
+    shared_ptr<Facade>
+      dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
     BOOST_ASSERT( dist );
-    shared_ptr<object>
-      obj(new object(new region(x, y, r, resolution, xsize, ysize),
-		     v, dist, id, xsize, ysize));
-    
-    // do this in MapEnvdist() to keep goal out of obstacles:
-    //   DoAddGoal(*obj->dist, *obj->footprint);
-    
-    // store it
+    shared_ptr<Object> obj(new Object(id, v, region, dist, xsize, ysize));
     objectmap_t::iterator io(m_object.find(id));
     if(m_object.end() == io)
       m_object.insert(make_pair(id, obj));
     else
       io->second = obj;
+    
+    // do this in MapEnvdist() to keep goal out of obstacles:
+    //   DoAddGoal(*obj->dist, *obj->region);
     
     return true;
   }
@@ -154,15 +203,22 @@ namespace pnf {
   
   
   /** \todo URGENT! Goal and obstacle handling not made for replanning. */
-  void Flow::
+  bool Flow::
   DoSetRobot(double x, double y, size_t ix, size_t iy, double r, double v)
   {
-    Facade * dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
+    shared_ptr<Region> region(new Region(r, resolution, x, y, xsize, ysize));
+    if(region->GetArea().empty())
+      return false;		// actually already checked by caller...
+    
+    shared_ptr<Facade>
+      dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
     BOOST_ASSERT( dist );
-    m_robot.reset(new robot(new region(x, y, r, resolution, xsize, ysize),
-			    v, dist, new RobotShape(r, resolution)));
+    m_robot.reset(new Robot(v, region, dist));
+    
     // do this in MapEnvdist() to keep goal out of obstacles:
-    //   DoAddGoal(*m_robot->dist, *m_robot->footprint);
+    //   DoAddGoal(*m_robot->dist, *m_robot->region);
+    
+    return true;
   }
   
   
@@ -214,7 +270,7 @@ namespace pnf {
     const double obstacle(m_robot->dist->GetObstacleMeta());
     
     { // Robot obstacles:
-      const double radius(m_robot->footprint->rad + half_diagonal);
+      const double radius(m_robot->region->GetSprite().radius);
       const Grid & robgrid(m_robot->dist->GetGrid());
       Algorithm & robalgo(m_robot->dist->GetAlgorithm());
       const Kernel & robkernel(m_robot->dist->GetKernel());
@@ -236,13 +292,13 @@ namespace pnf {
 	}
       }
       // set robot goal, this will skip obstacles
-      DoAddGoal(*m_robot->dist, *m_robot->footprint);
+      DoAddGoal(*m_robot->dist, *m_robot->region);
     }
     
     { // Object obstacles:
       for(objectmap_t::iterator io(m_object.begin()); io != m_object.end();
 	  ++io){
-	const double radius(io->second->footprint->rad + half_diagonal);
+	const double radius(io->second->region->GetSprite().radius);
 	Facade & objdist(*io->second->dist);
 	const Grid & objgrid(objdist.GetGrid());
 	Algorithm & objalgo(objdist.GetAlgorithm());
@@ -265,7 +321,7 @@ namespace pnf {
 	  }
 	}
 	// set object goal, this will skip obstacles
-	DoAddGoal(objdist, *io->second->footprint);
+	DoAddGoal(objdist, *io->second->region);
       }
     }
   }
@@ -302,8 +358,7 @@ namespace pnf {
     }
     while(io->second->dist->HaveWork())
       io->second->dist->ComputeOne();
-    
-    // transform dist to lambda
+    DoComputeLambda(*io->second);
   }
   
   
@@ -326,6 +381,7 @@ namespace pnf {
 	io != m_object.end(); ++io){
       while(io->second->dist->HaveWork())
 	io->second->dist->ComputeOne();
+      DoComputeLambda(*io->second);
     }
   }
   
@@ -348,20 +404,48 @@ namespace pnf {
   }
   
   
+  /** \todo EASY SPEEDUP: loop over border instead of area after
+      checking that the object center is not within the sprite! */
   void Flow::
-  DoComputeCooc(object & obj)
+  DoComputeLambda(Object & obj)
+  {
+    const Sprite::indexlist_t & area(obj.region->GetSprite().GetArea());
+    const value_map_t & objdist(obj.dist->GetAlgorithm().GetValueMap());
+    const Grid & objgrid(obj.dist->GetGrid());
+    obj.max_lambda = -1;	// could be more paranoid...
+    for(ssize_t ix(0); ix < static_cast<ssize_t>(xsize); ++ix)
+      for(ssize_t iy(0); iy < static_cast<ssize_t>(ysize); ++iy){
+	double lambda(infinity);
+	for(size_t ia(0); ia < area.size(); ++ia){
+	  const ssize_t jx(ix + area[ia].x);
+	  if((jx < 0) || (jx >= static_cast<ssize_t>(xsize)))
+	    continue;
+	  const ssize_t jy(iy + area[ia].y);
+	  if((jy < 0) || (jy >= static_cast<ssize_t>(ysize)))
+	    continue;
+	  const double ll(get(objdist, objgrid.GetVertex(jx, jy)));
+	  if(ll < lambda)
+	    lambda = ll;
+	}
+	(*obj.lambda)[ix][iy] = lambda;
+	if((lambda < infinity) && (lambda > obj.max_lambda))
+	  obj.max_lambda = lambda;
+      }
+  }
+  
+  
+  void Flow::
+  DoComputeCooc(Object & obj)
   {
     BOOST_ASSERT( m_robot );
     const value_map_t & robdist(m_robot->dist->GetAlgorithm().GetValueMap());
     const Grid & robgrid(m_robot->dist->GetGrid());
-    const value_map_t & objdist(obj.dist->GetAlgorithm().GetValueMap());
-    const Grid & objgrid(obj.dist->GetGrid());
     obj.max_cooc = 0;
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	const double cooc = pnf_cooc(get(objdist, objgrid.GetVertex(ix, iy)),
-				     get(robdist, robgrid.GetVertex(ix, iy)),
-				     obj.speed, m_robot->speed, resolution);
+	const double cooc(pnf_cooc((*obj.lambda)[ix][iy],
+				   get(robdist, robgrid.GetVertex(ix, iy)),
+				   obj.speed, m_robot->speed, resolution));
 	if(cooc > obj.max_cooc)
 	  obj.max_cooc = cooc;
 	(*obj.cooc)[ix][iy] = cooc;
@@ -381,7 +465,7 @@ namespace pnf {
   /** \todo Maybe use non-facade access for efficiency. Hardcoded
       buffer parameters if compiling with STATIC_DIRACS */ 
   void Flow::
-  ComputeRisk(const estar::RiskMap & risk_map,
+  ComputeRisk(const RiskMap & risk_map,
 	      const BufferZone & buffer)
   {
     BOOST_ASSERT( m_robot );
@@ -394,7 +478,7 @@ namespace pnf {
     // initialize with environment co-occurrence, ie the static object
     // bitmap: goal cells are static objects, their co-occurrence is
     // 1, thus we initialize with (1-p)=(1-1)=0
-
+    
     const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
     const Grid & envgrid(m_envdist->GetGrid());
     for(size_t ix(0); ix < xsize; ++ix)
@@ -428,19 +512,32 @@ namespace pnf {
 	accu[ix][iy] = acc;
       }
     
+    // the actual "convolution"    
     m_risk.reset(new array<double>(xsize, ysize));
     m_max_risk = 0;
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	const double
-	  risk(m_robot->mask->FuseRisk(ix, iy, xsize, ysize, accu));
+    const Sprite::indexlist_t & area(m_robot->region->GetSprite().GetArea());
+    for(ssize_t ix(0); ix < static_cast<ssize_t>(xsize); ++ix)
+      for(ssize_t iy(0); iy < static_cast<ssize_t>(ysize); ++iy){
+	double risk(1);
+	for(ssize_t ia(0); ia < static_cast<ssize_t>(area.size()); ++ia){
+	  const ssize_t jx(ix + area[ia].x);
+	  const ssize_t jy(iy + area[ia].y);
+	  if((jx < 0) || (jx >= static_cast<ssize_t>(xsize))
+	     || (jy < 0) || (jy >= static_cast<ssize_t>(ysize))){
+	    risk = 0;		// grid edges are walls
+	    break;
+	  }
+	  risk *= 1 - accu[jx][jy];
+	}
+	risk = 1 - risk;
 	(*m_risk)[ix][iy] = risk;
 	m_pnf->SetMeta(ix, iy, risk_map.RiskToMeta(risk));
 	if(risk > m_max_risk)
 	  m_max_risk = risk;
       }
-
+    
     // this is a bit of a hack that depend on the exact call order
+    BOOST_ASSERT( m_goal );
     DoAddGoal(*m_pnf, *m_goal);
   }
   
@@ -501,8 +598,7 @@ namespace pnf {
     size_t ix, iy;
     if( ! CompIndices(x, y, ix, iy))
       return false;
-    DoSetRobot(x, y, ix, iy, r, v);
-    return true;
+    return DoSetRobot(x, y, ix, iy, r, v);
   }
   
   
@@ -512,8 +608,9 @@ namespace pnf {
   {
     if(m_goal)
       DoRemoveGoal(*m_pnf, *m_goal);
-    scoped_ptr<region> goal(new region(x, y, r, resolution, xsize, ysize));
-    if(goal->nodelist.empty()){
+    scoped_ptr<Region> goal(new Region(r, resolution, x, y, xsize, ysize));
+    if(goal->GetArea().empty()){
+      PDEBUG("WARNING: empty goal area, treated like invalid goal!\n");
       m_goal.reset();
       return false;
     }
@@ -636,6 +733,38 @@ namespace pnf {
   }
   
   
+  const Region * Flow::
+  GetRobot()
+    const
+  {
+    if(!m_robot)
+      return 0;
+    return m_robot->region.get();
+  }
+  
+  
+  const Region * Flow::
+  GetRegion(size_t id)
+    const
+  {
+    objectmap_t::const_iterator io(m_object.find(id));
+    if(m_object.end() == io)
+      return 0;
+    return io->second->region.get();
+  }
+  
+  
+  std::pair<const array<double> *, double> Flow::
+  GetLambda(size_t id)
+    const
+  {
+    objectmap_t::const_iterator io(m_object.find(id));
+    if(m_object.end() == io)
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
+    return make_pair(io->second->lambda.get(), io->second->max_lambda);
+  }
+  
+  
   std::pair<const array<double> *, double> Flow::
   GetCooc(size_t id)
     const
@@ -680,135 +809,24 @@ namespace pnf {
     return iy < ysize;
   }
 
-  
-  Flow::region::
-  region(double _x, double _y, double _rad,
-	 double scale, size_t xsize, size_t ysize)
-    : x(_x), y(_y), rad(_rad)
-  {
-    { // compute border (NE quadrant w/ zero and the diagonal)
-      const double r2lim(square(_rad / scale));
-      size_t bix(0);
-      size_t biy(static_cast<size_t>(_rad / scale));
-#ifdef PNF_FLOW_DEBUG
-      const size_t dbgsize(biy+1);
-      array<int> dbg(dbgsize, dbgsize);
-      for(size_t iy(0); iy < dbgsize; ++iy)
-	for(size_t ix(0); ix < dbgsize; ++ix)
-	  dbg[ix][iy] = 0;
-#endif // PNF_FLOW_DEBUG
-      border.push_back(array_index(bix, biy));
-      PDEBUG("border init %lu   %lu   %g   %g\n",
-	     bix, biy, sqrt(square(bix) + square(biy)), sqrt(r2lim));
-#ifdef PNF_FLOW_DEBUG
-      ++dbg[bix][biy];
-#endif // PNF_FLOW_DEBUG
-      for(++bix; bix <= biy; ++bix){
-	const double r2(square(bix) + square(biy));
-	if(r2 > r2lim) --biy;
-	border.push_back(array_index(bix, biy));
-	PDEBUG("border add  %lu   %lu   %g\n",
-	       bix, biy, sqrt(square(bix) + square(biy)));
-#ifdef PNF_FLOW_DEBUG
-	++dbg[bix][biy];
-#endif // PNF_FLOW_DEBUG
-      }
-#ifdef PNF_FLOW_DEBUG
-      for(size_t iy(dbgsize - 1); iy >= 0; --iy){
-	for(size_t ix(0); ix < dbgsize; ++ix)
-	  fprintf(stderr, "%lu ", dbg[ix][iy]);
-	fprintf(stderr, "\n");
-      }
-#endif // PNF_FLOW_DEBUG
-    }
-
-    const double r2(square(_rad));
-    const size_t xmax(xsize - 1);
-    const size_t ymax(ysize - 1);
-    
-    if((_x >= 0) && (_y >= 0)){
-      const size_t xc(static_cast<size_t>(rint(_x / scale)));
-      const size_t yc(static_cast<size_t>(rint(_y / scale)));
-      if((xc <= xmax) && (yc <= ymax)){
-	PVDEBUG("center indices:   %zd   %zd\n", xc, yc);
-	nodelist.push_back(node(xc, yc, 0));
-      }
-    }
-#ifdef PNF_FLOW_DEBUG
-    if(nodelist.empty())
-      PDEBUG("goal center not in grid\n");
-#endif // PNF_FLOW_DEBUG
-    
-    const double x0((_x - _rad) / scale);
-    size_t ix0(0);
-    if(x0 > 0) ix0 = minval(static_cast<size_t>(rint(x0)), xmax);
-    
-    const double y0((_y - _rad) / scale);
-    size_t iy0(0);
-    if(y0 > 0) iy0 = minval(static_cast<size_t>(rint(y0)), ymax);
-    
-    const double x1((_x + _rad) / scale);
-    size_t ix1(0);
-    if(x1 > 0) ix1 = minval(static_cast<size_t>(rint(x1)), xmax);
-    
-    const double y1((_y + _rad) / scale);
-    size_t iy1(0);
-    if(y1 > 0) iy1 = minval(static_cast<size_t>(rint(y1)), ymax);
-    
-    PVDEBUG("bound indices:   %zd   %zd   %zd   %zd\n", ix0, iy0, ix1, iy1);
-    
-    for(size_t ix(ix0); ix <= ix1; ++ix)
-      for(size_t iy(iy0); iy <= iy1; ++iy){
-	const double dr2(square(ix * scale - _x) + square(iy * scale - _y));
-	if(dr2 <= r2)
-	  nodelist.push_back(node(ix, iy, sqrt(dr2)));
-      }
-  }
-
 
   void Flow::
-  DoAddGoal(estar::Facade & facade, const region & goal)
+  DoAddGoal(Facade & facade, const Region & goal)
   {
     const double obstacle(facade.GetObstacleMeta());
-    for(region::nodelist_t::const_iterator in(goal.nodelist.begin());
-	in != goal.nodelist.end(); ++in)
-      if(facade.GetMeta(in->ix, in->iy) != obstacle)
-	facade.AddGoal(in->ix, in->iy, in->val);
+    for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
+	in != goal.GetArea().end(); ++in)
+      if(facade.GetMeta(in->x, in->y) != obstacle)
+	facade.AddGoal(in->x, in->y, in->r);
   }
   
   
   void Flow::
-  DoRemoveGoal(estar::Facade & facade, const region & goal)
+  DoRemoveGoal(Facade & facade, const Region & goal)
   {
-    for(region::nodelist_t::const_iterator in(goal.nodelist.begin());
-	in != goal.nodelist.end(); ++in)
-      facade.RemoveGoal(in->ix, in->iy);
-  }
-
-  
-  /** \todo can be *quite* improved with standard circle drawing algorithm */
-  Flow::baseobject::
-  baseobject(region * _footprint, double _speed, estar::Facade * _dist)
-    : footprint(_footprint), speed(_speed), dist(_dist)
-  {
-  }
-  
-  
-  Flow::object::
-  object(region * footprint, double speed, estar::Facade * dist,
-	 size_t _id, size_t xsize, size_t ysize)
-    : baseobject(footprint, speed, dist), id(_id),
-      lambda(new array<double>(xsize, ysize)),
-      cooc(new array<double>(xsize, ysize)), max_cooc(-1)
-  {
-  }
-  
-  
-  Flow::robot::
-  robot(region * footprint, double speed, estar::Facade * dist,
-	RobotShape * _mask)
-    : baseobject(footprint, speed, dist), mask(_mask)
-  {
+    for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
+	in != goal.GetArea().end(); ++in)
+      facade.RemoveGoal(in->x, in->y);
   }
   
 }
@@ -822,7 +840,10 @@ void boost::assertion_failed(char const * expr, char const * function,
   if(sexpr == "m_robot")
     hint = "m_robot only valid after pnf::Flow::SetRobot()";
   if(sexpr == "m_goal")
-    hint = "m_goal only valid after pnf::Flow::SetGoal()";
+    hint =
+      "m_goal only valid after pnf::Flow::SetGoal()\n"
+      "    can be caused by empty goal sets\n"
+      "    see also 'repair' code in pnf::Sprite and pnf::Region ctors";
   fprintf(stderr,
 	  "\n%s: %ld: assertion \"%s\" failed\n"
 	  "  function: %s\n"

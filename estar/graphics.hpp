@@ -46,44 +46,54 @@ namespace gfx {
     BLUE_GREEN_RED,
     INVERTED_GREY,
     RED
-  } colorscheme_t;
+  } colorscheme_enum_t;
+  
+  
+  /** Utility for translating a value into a color. User-extendable! */
+  class ColorScheme
+  {
+  public:
+    virtual ~ColorScheme() { }
+    virtual void Set(double value) const = 0;
+    static const ColorScheme * Get(colorscheme_enum_t number);
+  };
   
   
   void draw_grid_value(const estar::Grid & grid,
 		       const estar::Algorithm & algo,
-		       colorscheme_t colorscheme);
+		       const ColorScheme * colorscheme);
   
   void draw_grid_value(const estar::Facade & facade,
-		       colorscheme_t colorscheme);
+		       const ColorScheme * colorscheme);
   
   void draw_grid_risk(const estar::Grid & grid,
 		      const estar::Algorithm & algo,
 		      const estar::RiskMap & riskmap,
-		      colorscheme_t colorscheme);
+		      const ColorScheme * colorscheme);
   
   void draw_grid_meta(const estar::Grid & grid,
  		      const estar::Algorithm & algo,
 		      const estar::Kernel & kernel,
-		      colorscheme_t colorscheme);
+		      const ColorScheme * colorscheme);
   
   void draw_grid_meta(const estar::Facade & facade,
-		      colorscheme_t colorscheme);
+		      const ColorScheme * colorscheme);
   
   void draw_array(const estar::array<double> & grid,
 		  size_t x0, size_t y0, size_t x1, size_t y1,
 		  double lower, double upper,
-		  colorscheme_t colorscheme);
+		  const ColorScheme * colorscheme);
   
   void draw_trace(const estar::Grid & grid,
 		  const estar::Algorithm & algo,
 		  size_t robot_ix, size_t robot_iy,
 		  double stepsize, double goalradius,
-		  colorscheme_t colorscheme,
+		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b);
   
   void draw_trace(const estar::Facade & facade,
 		  double robot_x, double robot_y, double goalradius,
-		  colorscheme_t colorscheme,
+		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b);
   
   void draw_grid_queue(const estar::Grid & grid,

@@ -39,10 +39,17 @@ namespace estar {
 }
 
 
+namespace local {
+  class Object;
+  class Robot;
+}
+
+
 namespace pnf {
   
   
-  class RobotShape;
+  class Sprite;
+  class Region;
   class BufferZone;
   
 
@@ -62,7 +69,7 @@ namespace pnf {
     
     
     static Flow * Create(size_t xsize, size_t ysize, double resolution);
-    
+    ~Flow();    
     
     bool HaveEnvdist() const;
     void PropagateEnvdist(bool step);
@@ -121,6 +128,15 @@ namespace pnf {
     const estar::Facade * GetObjdist(size_t id) const
     { return GetObjdist(id, 0); }
     
+    /** \return 0 if invalid id */
+    const pnf::Region * GetRegion(size_t id) const;
+    
+    /** \return 0 if invalid */
+    const pnf::Region * GetGoal() const { return m_goal.get(); }
+    
+    /** \return 0 if invalid */
+    const pnf::Region * GetRobot() const;
+    
     /** \return 0 if no robot defined */
     const estar::Facade * GetRobdist() const;
     
@@ -128,6 +144,10 @@ namespace pnf {
     estar::Facade & GetEnvdist() { return * m_envdist; }
     
     const estar::Facade & GetPNF()     const { return * m_pnf; }
+    
+    /** \return pair of pointer and max lambda value (excluding
+	infinity), or std::make_pair(0, -1) if invalid id */
+    std::pair<const estar::array<double> *, double> GetLambda(size_t id) const;
     
     /** \return pair of pointer and max cooc value, or
 	std::make_pair(0, -1) if invalid id */
@@ -143,77 +163,13 @@ namespace pnf {
     
     
   private:
-    /** Utility for representing eg the border of an object, ie a
-	non-filled disk. Only the positive quadrant can be
-	stored... */
-    class array_index {
-    public:
-      array_index(size_t _ix, size_t _iy)
-	: ix(_ix), iy(_iy) {}
-      size_t ix, iy;
-    };
-    
-    /** Utility for holding a node (C-space vertex). */
-    class node {
-    public:
-      node(size_t _ix, size_t _iy, double _val)
-	: ix(_ix), iy(_iy), val(_val) { }
-      size_t ix, iy;
-      double val;
-    };
-    
-    /** Utility for holding a region, ie list of node instances.
-	\todo idea of goals that can be diffed against each other and
-	patches used on estar::Facade for goal modifications. */
-    class region {
-    public:
-      /** \note populates the nodelist by filling a circle */
-      region(double x, double y, double rad,
-	     double scale, size_t xsize, size_t ysize);
-      const double x, y, rad;
-      typedef std::vector<array_index> border_t;
-      typedef std::vector<node> nodelist_t;
-      border_t border;
-      nodelist_t nodelist;
-    };
-    
-    /** Utility base class for holding objects or the robot. */
-    class baseobject {
-    public:
-      /** \note transfers ownership */
-      baseobject(region * footprint, double speed, estar::Facade * dist);
-      boost::shared_ptr<region> footprint;
-      const double speed;
-      boost::shared_ptr<estar::Facade> dist;
-    };
-    
-    /** Utility for representing an object. */
-    class object: public baseobject {
-    public:
-      object(region * footprint, double speed, estar::Facade * dist,
-	     size_t id, size_t xsize, size_t ysize);
-      const size_t id;
-      boost::shared_ptr<estar::array<double> > lambda;
-      boost::shared_ptr<estar::array<double> > cooc;
-      double max_cooc;
-    };
-    
-    /** Utility for representing the robot. */
-    class robot: public baseobject {
-    public:
-      /** \note transfers ownership */
-      robot(region * footprint, double speed, estar::Facade * dist,
-	    RobotShape * mask);
-      boost::shared_ptr<RobotShape> mask;
-    };
-    
-    typedef std::map<size_t, boost::shared_ptr<object> > objectmap_t;
+    typedef std::map<size_t, boost::shared_ptr<local::Object> > objectmap_t;
     
     boost::scoped_ptr<estar::Facade>  m_envdist;
-    boost::scoped_ptr<robot>          m_robot;
+    boost::scoped_ptr<local::Robot>   m_robot;
     objectmap_t                       m_object;
     boost::scoped_ptr<estar::Facade>  m_pnf;
-    boost::scoped_ptr<region>         m_goal;
+    boost::scoped_ptr<Region>         m_goal;
     
     boost::scoped_ptr<estar::array<double> > m_wspace_risk; // for plotting
     double m_max_wspace_risk;	// for plotting
@@ -221,15 +177,16 @@ namespace pnf {
     double m_max_risk;		// for plotting
     
     /** \todo do something like this in estar::Facade API */
-    static void DoAddGoal(estar::Facade & facade, const region & goal);
-    static void DoRemoveGoal(estar::Facade & facade, const region & goal);
+    static void DoAddGoal(estar::Facade & facade, const Region & goal);
+    static void DoRemoveGoal(estar::Facade & facade, const Region & goal);
     
     bool CompIndices(double x, double y, size_t & ix, size_t & iy) const;
     estar::Facade * GetObjdist(size_t id, FILE * verbose_stream) const;
 
-    void DoSetRobot(double x, double y, size_t ix, size_t iy,
+    bool DoSetRobot(double x, double y, size_t ix, size_t iy,
 		    double r, double v);
-    void DoComputeCooc(object & obj);
+    void DoComputeLambda(local::Object & obj);
+    void DoComputeCooc(local::Object & obj);
   };
   
 }

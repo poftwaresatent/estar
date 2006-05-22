@@ -84,6 +84,11 @@ namespace estar {
   
     array(size_t xsize, size_t ysize): data(new inner_t[xsize])
     { for(size_t ix(0); ix < xsize; ++ix) data[ix].reset(new T[ysize]); }
+  
+    array(size_t xsize, size_t ysize, const T & init): data(new inner_t[xsize])
+    { for(size_t ix(0); ix < xsize; ++ix)
+      { data[ix].reset(new T[ysize]);
+        for(size_t iy(0); iy < ysize; ++iy) data[ix][iy] = init; } }
     
     inner_t & operator [] (size_t ix) { return data[ix]; }
     const inner_t & operator [] (size_t ix) const { return data[ix]; }
@@ -98,8 +103,6 @@ namespace estar {
        1 if distance wasn't reached after maxstep iterations
       -1 if the robot is outside the grid<br>
       -2 if the grid is a hexgrid (not implemented yet)
-      
-     
   */
   int compute_carrot(const Facade & facade,
 		     double robot_x, double robot_y,
