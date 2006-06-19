@@ -59,37 +59,26 @@ namespace pnf {
   class Flow
   {
   private:
-    Flow(size_t xsize, size_t ysize, double resolution);
+    Flow(size_t xsize, size_t ysize, double resolution,
+	 bool perform_convolution);
     
     
   public:
+    typedef std::pair<const estar::array<double> *, double> array_info_t;
+    
     const size_t xsize, ysize;
     const double resolution;
     const double half_diagonal;
+    const bool perform_convolution;
     
-    
-    static Flow * Create(size_t xsize, size_t ysize, double resolution);
+    static Flow * Create(size_t xsize, size_t ysize, double resolution,
+			 bool perform_convolution);
     ~Flow();    
     
     bool HaveEnvdist() const;
     void PropagateEnvdist(bool step);
     
-    /**
-       buffer zones around static objects: If the buffer factor is <=1
-       or the degree <=0 or the riskmap NULL, then simple "on/off"
-       information is used. Otherwise, a buffer is constructed on the
-       environment distance, which helps with discontinuity problems
-       at object boundaries such as the robot being fatally attrackted
-       to walls.
-     */
-    void _MapEnvdist(double robot_buffer_factor,
-		    double robot_buffer_degree,
-		    double object_buffer_factor,
-		    double object_buffer_degree,
-		    const estar::RiskMap * riskmap);
-    
-    /** Convenient legacy wrapper. */
-    void MapEnvdist() { _MapEnvdist(0, 0, 0, 0, 0); }
+    void MapEnvdist();
     
     bool HaveObjdist(size_t id) const;
     void PropagateObjdist(size_t id);
@@ -97,12 +86,18 @@ namespace pnf {
     void PropagateAllObjdist();
     bool HaveRobdist() const;
     void PropagateRobdist();
-
-    void ComputeAllCooc();
-    void ComputeRisk(const estar::RiskMap & risk_map,
-		     /** buffer around static obstacles BEFORE
-			 convolution with robot shape */
-		     const BufferZone & buffer);
+    
+    /**
+       Buffer zones around static objects: If the buffer factor or
+       degree are non-positive, then simple "on/off" information is
+       used. Otherwise, a buffer is constructed on the environment
+       distance. Sensible values would be static_buffer_factor=1 and
+       static_buffer_degree=2, resulting in a quadratic risk decrease
+       extending one extra robot radius from the walls.
+     */
+    void ComputeAllCooc(double static_buffer_factor,
+			double static_buffer_degree);
+    void ComputeRisk(const estar::RiskMap & risk_map);
     
     bool HavePNF() const;
     void PropagatePNF();
@@ -146,20 +141,32 @@ namespace pnf {
     const estar::Facade & GetPNF()     const { return * m_pnf; }
     
     /** \return pair of pointer and max lambda value (excluding
-	infinity), or std::make_pair(0, -1) if invalid id */
-    std::pair<const estar::array<double> *, double> GetLambda(size_t id) const;
+	infinity) for the robot */
+    array_info_t GetRobotLambda() const;
+    
+    /** \return pair of pointer and max lambda value (excluding
+	infinity) for an object, or std::make_pair(0, -1) if the id is
+	invalid (no such dynamic object) */
+    array_info_t GetObjectLambda(size_t id) const;
+    
+    /** \return pair of pointer and max cooc value, if the environment
+	co-occurrence has been computed using ComputeAllCooc(),
+	otherwise (0, -1). */
+    array_info_t GetEnvCooc() const;
     
     /** \return pair of pointer and max cooc value, or
-	std::make_pair(0, -1) if invalid id */
-    std::pair<const estar::array<double> *, double> GetCooc(size_t id) const;
+	std::make_pair(0, -1) if invalid id or you forgot to call
+	ComputeAllCooc() */
+    array_info_t GetObjCooc(size_t id) const;
+    
+    /** \return pair of pointer and max cooc value, or
+	std::make_pair(0, -1) if invalid. */
+    array_info_t GetDynamicCooc() const;
     
     /** \return pair of pointer and max risk value, or
-	std::make_pair(0, -1) if risk not available yet */
-    std::pair<const estar::array<double> *, double> GetRisk() const;
-    
-    /** \return pair of pointer and max risk value, or
-	std::make_pair(0, -1) if risk not available yet */
-    std::pair<const estar::array<double> *, double> GetWSpaceRisk() const;
+	std::make_pair(0, -1) if risk not available yet
+	\note the "risk" is "just" the fusion of all co-occurrences */
+    array_info_t GetRisk() const;
     
     
   private:
@@ -171,10 +178,12 @@ namespace pnf {
     boost::scoped_ptr<estar::Facade>  m_pnf;
     boost::scoped_ptr<Region>         m_goal;
     
-    boost::scoped_ptr<estar::array<double> > m_wspace_risk; // for plotting
-    double m_max_wspace_risk;	// for plotting
-    boost::scoped_ptr<estar::array<double> > m_risk; // for plotting
-    double m_max_risk;		// for plotting
+    boost::scoped_ptr<estar::array<double> > m_env_cooc;
+    double m_max_env_cooc;
+    boost::scoped_ptr<estar::array<double> > m_dynamic_cooc;
+    double m_max_dynamic_cooc;
+    boost::scoped_ptr<estar::array<double> > m_risk;
+    double m_max_risk;
     
     /** \todo do something like this in estar::Facade API */
     static void DoAddGoal(estar::Facade & facade, const Region & goal);
@@ -185,7 +194,7 @@ namespace pnf {
 
     bool DoSetRobot(double x, double y, size_t ix, size_t iy,
 		    double r, double v);
-    void DoComputeLambda(local::Object & obj);
+    void DoComputeLambda(local::Robot & obj);
     void DoComputeCooc(local::Object & obj);
   };
   

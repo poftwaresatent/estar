@@ -1,4 +1,6 @@
 URGENT:
+* code a "ridge detection" for estar::compute_carrot() or maybe inside
+  estar::Grid::ComputeGradient()
 * check for GLUT header in configure.ac, and disable building of
   targets that depend on it (bin/test_estar_gfx.cpp,
   bin/test_pnf_gfx.cpp, gfx/Subwindow.cpp, gfx/Viewport.cpp) ACTUALLY,

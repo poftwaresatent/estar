@@ -87,10 +87,10 @@ int main(int argc, char ** argv)
     param.push_back(lwpp_param_s(0, 0, -20, 0, 10, 10, "slow point object"));
   }
   else if(setname == "extended"){
-    param.push_back(lwpp_param_s(0, 0, -10, 0, 10, 20, "point object and robot"));
-    param.push_back(lwpp_param_s(0, 4, -10, 0, 10, 10, "point object"));
-    param.push_back(lwpp_param_s(0, 0, -10, 4, 10, 20, "point robot"));
-    param.push_back(lwpp_param_s(0, 4, -10, 4, 10, 10, "both non-point"));
+    param.push_back(lwpp_param_s(0, 4, -20, 4, 10, 20, "lambda correction"));
+    param.push_back(lwpp_param_s(0, 4, -20, 0, 10, 20, "point object"));
+    param.push_back(lwpp_param_s(0, 0, -20, 4, 10, 20, "point robot"));
+    param.push_back(lwpp_param_s(0, 0, -20, 0, 10, 20, "point object and robot"));
   }
   else{
     cerr << argv[0] << ": sorry, don't know about \"" << setname << "\"\n";

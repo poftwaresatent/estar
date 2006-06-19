@@ -68,9 +68,9 @@ int main(int argc, char ** argv)
   for(size_t icurve(0); icurve < ncurves; ++icurve)
     meta[icurve] = new double[npoints];
   
-  static const char * name[] = {"sigma", "sigma", "sigma"};
-  static const double cutoff[] = { 0.8, 0.95, 0.95 };
-  static const double degree[] = { 2.0, 1.5, 5.0 };
+  static const char * name[] = {"spike", "spike", "spike"};
+  static const double cutoff[] = { 0.6, 0.8, 0.99 };
+  static const double degree[] = { 1.5, 2.5, 3.5 };
   
   PNFRiskMap * riskmap[ncurves];
   string desc[ncurves];

@@ -31,12 +31,12 @@ namespace pnf {
   public:
     const double radius;
     const double buffer;
+    const double r_plus_b;
     const double degree;
     
     BufferZone(double radius, double buffer, double degree);
     
-    /** risk is 1 up to radius, then descends towards 0 at buffer
-	(i.e. buffer is NOT added to radius) */
+    /** risk is 1 up to radius, then descends towards 0 at (radius + buffer) */
     double DistanceToRisk(double distance) const;
   };
   

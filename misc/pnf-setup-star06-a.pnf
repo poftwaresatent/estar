@@ -1,0 +1,12 @@
+riskmap              sigma 0.95 1.5
+perform_convolution  true
+static_buffer_factor 0.5
+static_buffer_degree 3
+
+mgrid     4.0   3.0   0.05
+robot     0.5   1.5   0.3   0.3
+goal      3.5   1.5   0.3
+
+object 2  2.5   0.5   0.6   0.2
+wall      0.0   1.0   2.0   1.0
+wall      3.0   1.0   4.0   1.0

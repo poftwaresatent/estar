@@ -78,39 +78,41 @@ using std::cerr;
 namespace local {
   
   
-  /** Utility for representing an object. */
-  class Object
-  {
-  public:
-    Object(size_t _id, double _speed,
-	   shared_ptr<Region> _region, shared_ptr<Facade> _dist,
-	   size_t xsize, size_t ysize)
-      : id(_id), speed(_speed), max_lambda(-1), max_cooc(-1),
-	region(_region), dist(_dist),
-	lambda(new array<double>(xsize, ysize)),
-	cooc(new array<double>(xsize, ysize))
-    {}
-    const size_t id;
-    const double speed;
-    double max_lambda;
-    double max_cooc;
-    shared_ptr<Region> region;
-    shared_ptr<Facade> dist;
-    shared_ptr<array<double> > lambda;
-    shared_ptr<array<double> > cooc;
-  };
-  
-  
   /** Utility for representing the robot. */
   class Robot
   {
   public:
-    Robot(double _speed, shared_ptr<Region> _region, shared_ptr<Facade> _dist)
-      : speed(_speed), region(_region), dist(_dist)
+    Robot(double _radius, double _speed,
+	  shared_ptr<Region> _region, shared_ptr<Facade> _dist,
+	  size_t xsize, size_t ysize)
+      : radius(_radius), speed(_speed), max_lambda(-1),
+	region(_region), dist(_dist),
+	lambda(new array<double>(xsize, ysize))
     {}
+    const double radius;
     const double speed;
+    double max_lambda;
     shared_ptr<Region> region;
     shared_ptr<Facade> dist;
+    shared_ptr<array<double> > lambda;
+  };
+  
+  
+  /** Utility for representing an object. */
+  class Object
+    : public Robot
+  {
+  public:
+    Object(size_t _id, double radius, double speed,
+	   shared_ptr<Region> region, shared_ptr<Facade> dist,
+	   size_t xsize, size_t ysize)
+      : Robot(radius, speed, region, dist, xsize, ysize),
+	id(_id), max_cooc(-1),
+	cooc(new array<double>(xsize, ysize))
+    {}
+    const size_t id;
+    double max_cooc;
+    shared_ptr<array<double> > cooc;
   };
   
 }
@@ -123,11 +125,13 @@ namespace pnf {
   
   
   Flow::
-  Flow(size_t _xsize, size_t _ysize, double _resolution)
+  Flow(size_t _xsize, size_t _ysize, double _resolution,
+       bool _perform_convolution)
     : xsize(_xsize),
       ysize(_ysize),
       resolution(_resolution),
       half_diagonal(0.707106781187 * _resolution), // sqrt(1/2)
+      perform_convolution(_perform_convolution),
       m_envdist(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0)),
       // m_robot invalid until SetRobot()
       // m_object to be populated by SetDynamicObject()
@@ -145,9 +149,10 @@ namespace pnf {
   
   
   Flow * Flow::
-  Create(size_t xsize, size_t ysize, double resolution)
+  Create(size_t xsize, size_t ysize, double resolution,
+	 bool perform_convolution)
   {
-    Flow * flow(new Flow(xsize, ysize, resolution));
+    Flow * flow(new Flow(xsize, ysize, resolution, perform_convolution));
     if(( ! flow->m_envdist) || ( ! flow->m_pnf)){
       delete flow;
       return 0;
@@ -173,14 +178,18 @@ namespace pnf {
   bool Flow::
   SetDynamicObject(size_t id, double x, double y, double r, double v)
   {
-    shared_ptr<Region> region(new Region(r, resolution, x, y, xsize, ysize));
+    const double region_radius(r - half_diagonal);
+    shared_ptr<Region>
+      region(new Region(region_radius, resolution, x, y, xsize, ysize));
     if(region->GetArea().empty())
       return false;
     
     shared_ptr<Facade>
       dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
     BOOST_ASSERT( dist );
-    shared_ptr<Object> obj(new Object(id, v, region, dist, xsize, ysize));
+    const double object_radius(r + half_diagonal);
+    shared_ptr<Object>
+      obj(new Object(id, object_radius, v, region, dist, xsize, ysize));
     objectmap_t::iterator io(m_object.find(id));
     if(m_object.end() == io)
       m_object.insert(make_pair(id, obj));
@@ -206,14 +215,17 @@ namespace pnf {
   bool Flow::
   DoSetRobot(double x, double y, size_t ix, size_t iy, double r, double v)
   {
-    shared_ptr<Region> region(new Region(r, resolution, x, y, xsize, ysize));
+    const double region_radius(r - half_diagonal);
+    shared_ptr<Region>
+      region(new Region(region_radius, resolution, x, y, xsize, ysize));
     if(region->GetArea().empty())
       return false;		// actually already checked by caller...
     
     shared_ptr<Facade>
       dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
     BOOST_ASSERT( dist );
-    m_robot.reset(new Robot(v, region, dist));
+    const double robot_radius(r + half_diagonal);
+    m_robot.reset(new Robot(robot_radius, v, region, dist, xsize, ysize));
     
     // do this in MapEnvdist() to keep goal out of obstacles:
     //   DoAddGoal(*m_robot->dist, *m_robot->region);
@@ -249,11 +261,7 @@ namespace pnf {
   
   
   void Flow::
-  _MapEnvdist(double robot_buffer_factor,
-	     double robot_buffer_degree,
-	     double object_buffer_factor,
-	     double object_buffer_degree,
-	     const RiskMap * riskmap)
+  MapEnvdist()
   {
     // Threshold envdist value with robot and object radii, use
     // non-Facade access for efficiency.
@@ -270,27 +278,14 @@ namespace pnf {
     const double obstacle(m_robot->dist->GetObstacleMeta());
     
     { // Robot obstacles:
-      const double radius(m_robot->region->GetSprite().radius);
       const Grid & robgrid(m_robot->dist->GetGrid());
       Algorithm & robalgo(m_robot->dist->GetAlgorithm());
       const Kernel & robkernel(m_robot->dist->GetKernel());
-      if((robot_buffer_factor <= 1)
-	 || (robot_buffer_degree <= 0)
-	 || (0 == riskmap))
-	for(size_t iv(0); iv < nvertices; ++iv)
-	  if(get(envdist, envgrid.GetVertex(iv)) > radius)
-	    robalgo.SetMeta(robgrid.GetVertex(iv), freespace, robkernel);
-	  else
-	    robalgo.SetMeta(robgrid.GetVertex(iv), obstacle, robkernel);
-      else{
-	const BufferZone buffer(radius, radius * robot_buffer_factor,
-				robot_buffer_degree);
-	for(size_t iv(0); iv < nvertices; ++iv){
-	  const double dd(get(envdist, envgrid.GetVertex(iv)));
-	  const double meta(riskmap->RiskToMeta(buffer.DistanceToRisk(dd)));
-	  robalgo.SetMeta(robgrid.GetVertex(iv), meta, robkernel);
-	}
-      }
+      for(size_t iv(0); iv < nvertices; ++iv)
+	if(get(envdist, envgrid.GetVertex(iv)) > m_robot->radius)
+	  robalgo.SetMeta(robgrid.GetVertex(iv), freespace, robkernel);
+	else
+	  robalgo.SetMeta(robgrid.GetVertex(iv), obstacle, robkernel);
       // set robot goal, this will skip obstacles
       DoAddGoal(*m_robot->dist, *m_robot->region);
     }
@@ -298,28 +293,15 @@ namespace pnf {
     { // Object obstacles:
       for(objectmap_t::iterator io(m_object.begin()); io != m_object.end();
 	  ++io){
-	const double radius(io->second->region->GetSprite().radius);
 	Facade & objdist(*io->second->dist);
 	const Grid & objgrid(objdist.GetGrid());
 	Algorithm & objalgo(objdist.GetAlgorithm());
 	const Kernel & objkernel(objdist.GetKernel());
-	if((object_buffer_factor <= 1)
-	   || (object_buffer_degree <= 0)
-	   || (0 == riskmap))
-	  for(size_t iv(0); iv < nvertices; ++iv)
-	    if(get(envdist, envgrid.GetVertex(iv)) > radius)
-	      objalgo.SetMeta(objgrid.GetVertex(iv), freespace, objkernel);
-	    else
-	      objalgo.SetMeta(objgrid.GetVertex(iv), obstacle, objkernel);
-	else{
-	  const BufferZone buffer(radius, radius * object_buffer_factor,
-				  object_buffer_degree);
-	  for(size_t iv(0); iv < nvertices; ++iv){
-	    const double dd(get(envdist, envgrid.GetVertex(iv)));
-	    const double meta(riskmap->RiskToMeta(buffer.DistanceToRisk(dd)));
-	    objalgo.SetMeta(objgrid.GetVertex(iv), meta, objkernel);
-	  }
-	}
+	for(size_t iv(0); iv < nvertices; ++iv)
+	  if(get(envdist, envgrid.GetVertex(iv)) > io->second->radius)
+	    objalgo.SetMeta(objgrid.GetVertex(iv), freespace, objkernel);
+	  else
+	    objalgo.SetMeta(objgrid.GetVertex(iv), obstacle, objkernel);
 	// set object goal, this will skip obstacles
 	DoAddGoal(objdist, *io->second->region);
       }
@@ -401,13 +383,14 @@ namespace pnf {
     BOOST_ASSERT( m_robot );
     while(m_robot->dist->HaveWork())
       m_robot->dist->ComputeOne();
+    DoComputeLambda(*m_robot);
   }
   
   
   /** \todo EASY SPEEDUP: loop over border instead of area after
       checking that the object center is not within the sprite! */
   void Flow::
-  DoComputeLambda(Object & obj)
+  DoComputeLambda(Robot & obj)
   {
     const Sprite::indexlist_t & area(obj.region->GetSprite().GetArea());
     const value_map_t & objdist(obj.dist->GetAlgorithm().GetValueMap());
@@ -438,13 +421,11 @@ namespace pnf {
   DoComputeCooc(Object & obj)
   {
     BOOST_ASSERT( m_robot );
-    const value_map_t & robdist(m_robot->dist->GetAlgorithm().GetValueMap());
-    const Grid & robgrid(m_robot->dist->GetGrid());
     obj.max_cooc = 0;
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
 	const double cooc(pnf_cooc((*obj.lambda)[ix][iy],
-				   get(robdist, robgrid.GetVertex(ix, iy)),
+				   (*m_robot->lambda)[ix][iy],
 				   obj.speed, m_robot->speed, resolution));
 	if(cooc > obj.max_cooc)
 	  obj.max_cooc = cooc;
@@ -454,87 +435,119 @@ namespace pnf {
   
   
   void Flow::
-  ComputeAllCooc()
+  ComputeAllCooc(double static_buffer_factor,
+		 double static_buffer_degree)
   {
+    PDEBUG("f: %g   d: %g\n", static_buffer_factor, static_buffer_degree);
+    BOOST_ASSERT( m_robot );
+    shared_ptr<BufferZone> buffer;
+    if((0 < static_buffer_factor) && (0 < static_buffer_degree)){
+      buffer.reset(new BufferZone(perform_convolution ? 0 : m_robot->radius,
+				  m_robot->radius * static_buffer_factor,
+				  static_buffer_degree));
+      PDEBUG("buffer (convolute: %s)   r: %g   b: %g   d: %g\n"
+	     "  example d = r * {0, 0.5, 1, 1.5, 2}\n"
+	     "  %g   %g   %g   %g   %g\n",
+	     perform_convolution ? "yes" : "no",
+	     perform_convolution ? 0 : m_robot->radius,
+	     m_robot->radius * static_buffer_factor,
+	     static_buffer_degree,
+	     buffer->DistanceToRisk(0),
+	     buffer->DistanceToRisk(m_robot->radius * 0.5),
+	     buffer->DistanceToRisk(m_robot->radius),
+	     buffer->DistanceToRisk(m_robot->radius * 1.5),
+	     buffer->DistanceToRisk(m_robot->radius * 2));
+    }
+    else
+      PDEBUG("static buffer factor and/or degree invalid ==> binary map\n");
+    m_env_cooc.reset(new array<double>(xsize, ysize));
+    m_max_env_cooc = 0;
+    const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
+    const Grid & envgrid(m_envdist->GetGrid());
+    for(size_t ix(0); ix < xsize; ++ix)
+      for(size_t iy(0); iy < ysize; ++iy){
+	const double dist(get(envdist, envgrid.GetVertex(ix, iy)));
+	double cooc;
+	if(buffer)
+	  cooc = buffer->DistanceToRisk(dist);
+	else if(perform_convolution)
+	  cooc = (dist <= estar::epsilon ? 1 : 0);
+	else
+	  cooc = (dist <= m_robot->radius ? 1 : 0);
+	(*m_env_cooc)[ix][iy] = cooc;
+	if(cooc > m_max_env_cooc)
+	  m_max_env_cooc = cooc;
+      }
+    
     for(objectmap_t::iterator io(m_object.begin());
 	io != m_object.end(); ++io)
       DoComputeCooc(*io->second);
   }
   
   
-  /** \todo Maybe use non-facade access for efficiency. Hardcoded
-      buffer parameters if compiling with STATIC_DIRACS */ 
   void Flow::
-  ComputeRisk(const RiskMap & risk_map,
-	      const BufferZone & buffer)
+  ComputeRisk(const RiskMap & risk_map)
   {
     BOOST_ASSERT( m_robot );
-    array<double> accu(xsize, ysize);
-    
-    // - compute combined probability as (1 - Sigma(1 - p))
-    // - convolute with robot shape
-    // - use risk map to transform result into PNF's meta values
-    
-    // initialize with environment co-occurrence, ie the static object
-    // bitmap: goal cells are static objects, their co-occurrence is
-    // 1, thus we initialize with (1-p)=(1-1)=0
-    
-    const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
-    const Grid & envgrid(m_envdist->GetGrid());
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	const double dist(get(envdist, envgrid.GetVertex(ix, iy)));
-	accu[ix][iy] = 1 - buffer.DistanceToRisk(dist);
-      }
-    
-    // loop over all dynamic objects and multiply the corresponding
-    // risk by (1 - cooc)
-    for(objectmap_t::const_iterator io(m_object.begin());
-	io != m_object.end(); ++io)
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy)
-	  accu[ix][iy] *= 1 - (*io->second->cooc)[ix][iy];
-    
-    // convolute 1-risk by the robot shape and apply risk map to
-    // produce meta information; first calculate all 1-risk because
-    // the convolution needs to have them all precalculated!
-    // 
-    // also keep a copy of the accu array at this point, for plotting
-    // the state before the "C-space transform"
-    m_wspace_risk.reset(new array<double>(xsize, ysize));
-    m_max_wspace_risk = 0;
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	const double acc(1 - accu[ix][iy]);
-	(*m_wspace_risk)[ix][iy] = acc;
-	if((acc < 1) && (acc > m_max_wspace_risk))
-	  m_max_wspace_risk = acc;
-	accu[ix][iy] = acc;
-      }
-    
-    // the actual "convolution"    
     m_risk.reset(new array<double>(xsize, ysize));
     m_max_risk = 0;
-    const Sprite::indexlist_t & area(m_robot->region->GetSprite().GetArea());
-    for(ssize_t ix(0); ix < static_cast<ssize_t>(xsize); ++ix)
-      for(ssize_t iy(0); iy < static_cast<ssize_t>(ysize); ++iy){
-	double risk(1);
-	for(ssize_t ia(0); ia < static_cast<ssize_t>(area.size()); ++ia){
-	  const ssize_t jx(ix + area[ia].x);
-	  const ssize_t jy(iy + area[ia].y);
-	  if((jx < 0) || (jx >= static_cast<ssize_t>(xsize))
-	     || (jy < 0) || (jy >= static_cast<ssize_t>(ysize))){
-	    risk = 0;		// grid edges are walls
-	    break;
-	  }
-	  risk *= 1 - accu[jx][jy];
+    m_dynamic_cooc.reset(new array<double>(xsize, ysize));
+    m_max_dynamic_cooc = 0;
+    
+    if( ! perform_convolution){
+      for(size_t ix(0); ix < xsize; ++ix)
+	for(size_t iy(0); iy < ysize; ++iy){
+	  double risk(1); // could be more direct, but caching m_dynamic_cooc
+	  for(objectmap_t::const_iterator io(m_object.begin());
+	      io != m_object.end(); ++io)
+	    risk *= 1 - (*io->second->cooc)[ix][iy];
+	  risk = 1 - risk;
+	  (*m_dynamic_cooc)[ix][iy] = risk;
+	  if(risk > m_max_dynamic_cooc)
+	    m_max_dynamic_cooc = risk;
+	  risk = 1 - (1 - risk) * (1 - (*m_env_cooc)[ix][iy]);
+	  (*m_risk)[ix][iy] = risk;
+	  if(risk > m_max_risk)
+	    m_max_risk = risk;
+	  m_pnf->SetMeta(ix, iy, risk_map.RiskToMeta(risk));	
 	}
-	risk = 1 - risk;
-	(*m_risk)[ix][iy] = risk;
-	m_pnf->SetMeta(ix, iy, risk_map.RiskToMeta(risk));
-	if(risk > m_max_risk)
-	  m_max_risk = risk;
-      }
+    }
+    
+    else{ // perform_convolution
+      array<double> accu(xsize, ysize);
+      for(size_t ix(0); ix < xsize; ++ix)
+	for(size_t iy(0); iy < ysize; ++iy){
+	  double risk(1); // could be more direct, but caching m_dynamic_cooc
+	  for(objectmap_t::const_iterator io(m_object.begin());
+	      io != m_object.end(); ++io)
+	    risk *= 1 - (*io->second->cooc)[ix][iy];
+	  risk = 1 - risk;
+	  (*m_dynamic_cooc)[ix][iy] = risk;
+	  if(risk > m_max_dynamic_cooc)
+	    m_max_dynamic_cooc = risk;
+	  accu[ix][iy] = 1 - (1 - risk) * (1 - (*m_env_cooc)[ix][iy]);
+	}
+      const Sprite::indexlist_t & area(m_robot->region->GetSprite().GetArea());
+      for(ssize_t ix(0); ix < static_cast<ssize_t>(xsize); ++ix)
+	for(ssize_t iy(0); iy < static_cast<ssize_t>(ysize); ++iy){
+	  double risk(1);
+	  for(ssize_t ia(0); ia < static_cast<ssize_t>(area.size()); ++ia){
+	    const ssize_t jx(ix + area[ia].x);
+	    const ssize_t jy(iy + area[ia].y);
+	    if((jx < 0) || (jx >= static_cast<ssize_t>(xsize))
+	       || (jy < 0) || (jy >= static_cast<ssize_t>(ysize))){
+	      risk = 0;           // grid edges are walls
+	      break;
+	    }
+	    risk *= 1 - accu[jx][jy];
+	  }
+	  risk = 1 - risk;
+	  (*m_risk)[ix][iy] = risk;
+	  if(risk > m_max_risk)
+	    m_max_risk = risk;
+	  m_pnf->SetMeta(ix, iy, risk_map.RiskToMeta(risk));	
+	}
+    }
     
     // this is a bit of a hack that depend on the exact call order
     BOOST_ASSERT( m_goal );
@@ -754,8 +767,18 @@ namespace pnf {
   }
   
   
-  std::pair<const array<double> *, double> Flow::
-  GetLambda(size_t id)
+  Flow::array_info_t Flow::
+  GetRobotLambda()
+    const
+  {
+    if( ! m_robot)
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
+    return make_pair(m_robot->lambda.get(), m_robot->max_lambda);
+  }
+  
+  
+  Flow::array_info_t Flow::
+  GetObjectLambda(size_t id)
     const
   {
     objectmap_t::const_iterator io(m_object.find(id));
@@ -765,8 +788,18 @@ namespace pnf {
   }
   
   
-  std::pair<const array<double> *, double> Flow::
-  GetCooc(size_t id)
+  Flow::array_info_t Flow::
+  GetEnvCooc()
+    const
+  {
+    if(!m_env_cooc)
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
+    return make_pair(m_env_cooc.get(), m_max_env_cooc);
+  }
+  
+  
+  Flow::array_info_t Flow::
+  GetObjCooc(size_t id)
     const
   {
     objectmap_t::const_iterator io(m_object.find(id));
@@ -776,23 +809,23 @@ namespace pnf {
   }
   
   
-  std::pair<const array<double> *, double> Flow::
+  Flow::array_info_t Flow::
+  GetDynamicCooc()
+    const
+  {
+    if( ! m_dynamic_cooc)
+      return make_pair(static_cast<const array<double> *>(0), -1.0);
+    return make_pair(m_dynamic_cooc.get(), m_max_dynamic_cooc);
+  }
+  
+  
+  Flow::array_info_t Flow::
   GetRisk()
     const
   {
     if( ! m_risk)
       return make_pair(static_cast<const array<double> *>(0), -1.0);
     return make_pair(m_risk.get(), m_max_risk);
-  }
-  
-  
-  std::pair<const array<double> *, double> Flow::
-  GetWSpaceRisk()
-    const
-  {
-    if( ! m_wspace_risk)
-      return make_pair(static_cast<const array<double> *>(0), -1.0);
-    return make_pair(m_wspace_risk.get(), m_max_wspace_risk);
   }
   
   

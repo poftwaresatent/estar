@@ -65,7 +65,8 @@ static void motion(int x, int y);
 
 static void add_wall(double x0, double y0, double x1, double y1, Flow & flow);
 static void dump_objdist();
-static void dump_lambda();
+static void dump_obj_lambda();
+static void dump_rob_lambda();
 static void dump_cooc();
 static void dump_risk();
 static void do_dump(const string & name,
@@ -101,8 +102,8 @@ namespace local {
     dynobj_t dynobj;
     double goal_x, goal_y, goal_r;
     bool paper;
-    double robot_buffer_factor, robot_buffer_degree;
-    double object_buffer_factor, object_buffer_degree;
+    double static_buffer_factor, static_buffer_degree;
+    bool perform_convolution;
   };
   
 }
@@ -129,11 +130,10 @@ static bool m_dump_pnf(true);
 static size_t m_flowstep(0);
 
 static shared_ptr<Viewport> m_envdist_view;
-static shared_ptr<Viewport> m_robdist_view;
-static vector<shared_ptr<Viewport> > m_lambda_view;
+static shared_ptr<Viewport> m_rob_lambda_view;
+static vector<shared_ptr<Viewport> > m_obj_lambda_view;
 static vector<shared_ptr<Viewport> > m_cooc_view;
 static shared_ptr<Viewport> m_risk_view;
-static shared_ptr<Viewport> m_wspace_risk_view;
 static shared_ptr<Viewport> m_pnf_meta_view;
 static shared_ptr<Viewport> m_pnf_value_view;
 
@@ -172,23 +172,18 @@ int main(int argc,
     const bb_t lbb0(0, 0, 0, 0);
     m_envdist_view.reset(new VP("envdist", rbb, lbb0));
     const double dy(1.0 / (m_config->dynobj.size() + 1.0));
-    m_robdist_view.reset(new VP("robdist", rbb, bb_t(0, 1-dy, 0.5, 1)));
+    m_rob_lambda_view.reset(new VP("lambdaR", rbb, bb_t(0, 1-dy, 0.5, 1)));
     for(size_t io(0); io < m_config->dynobj.size(); ++io){
-      {
-	ostringstream os("lambda");
-	os << m_config->dynobj[io].id;
-	m_lambda_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb0)));
-      }
-      {
-	ostringstream os("cooc");
-	os << m_config->dynobj[io].id;
-	const bb_t lbb(0, io*dy, 0.5, (io+1)*dy);
-	m_cooc_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb)));
-      }
+      ostringstream osl("lambdaO");
+      osl << m_config->dynobj[io].id;
+      m_obj_lambda_view.push_back(shared_ptr<VP>(new VP(osl.str(),rbb,lbb0)));
+      ostringstream osc("cooc");
+      osc << m_config->dynobj[io].id;
+      const bb_t lbb(0, io*dy, 0.5, (io+1)*dy);
+      m_cooc_view.push_back(shared_ptr<VP>(new VP(osc.str(), rbb, lbb)));
     }
     {
       const double dy(1.0 / 3);
-      m_wspace_risk_view.reset(new VP("risk", rbb, bb_t(0.5, 2*dy, 1, 1)));
       m_risk_view.reset(new VP("risk", rbb, bb_t(0.5, dy, 1, 2*dy)));
       m_pnf_meta_view.reset(new VP("pnf_meta", rbb, bb_t(0.5, 0, 1, dy)));
     }
@@ -199,21 +194,20 @@ int main(int argc,
     const double ldx(0.25);
     const double ldy(1.0 / (m_config->dynobj.size() + 1));
     m_envdist_view.reset(new VP("envdist", rbb, bb_t(0, 1-ldy, ldx, 1)));
-    m_robdist_view.reset(new VP("robdist", rbb, bb_t(ldx, 1-ldy, 2*ldx, 1)));
+    m_rob_lambda_view.reset(new VP("lambdaR", rbb, bb_t(ldx,1-ldy,2*ldx,1)));
+    // NOTE: bizarre error "redeclaration of main()" if no {} tweak...
     for(size_t io(0); io < m_config->dynobj.size(); ++io){
-      {
-	ostringstream os("lambda");
-	os << m_config->dynobj[io].id;
-	const bb_t lbb(0, io*ldy, ldx, (io+1)*ldy);
-	m_lambda_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb)));
-      }
-      {
-	ostringstream os("cooc");
-	os << m_config->dynobj[io].id;
-	const bb_t lbb(ldx, io*ldy, 2*ldx, (io+1)*ldy);
-	m_cooc_view.push_back(shared_ptr<VP>(new VP(os.str(), rbb, lbb)));
-      }
-    }
+      {// bizarre error workaround
+      ostringstream osl("lambdaO");
+      osl << m_config->dynobj[io].id;
+      const bb_t lbb(0, io*ldy, ldx, (io+1)*ldy);
+      m_obj_lambda_view.push_back(shared_ptr<VP>(new VP(osl.str(), rbb, lbb)));
+      }{// bizarre error workaround
+      ostringstream osc("cooc");
+      osc << m_config->dynobj[io].id;
+      const bb_t lbb(ldx, io*ldy, 2*ldx, (io+1)*ldy);
+      m_cooc_view.push_back(shared_ptr<VP>(new VP(osc.str(), rbb, lbb)));
+    }}// bizarre error workaround
     m_risk_view.reset(new VP("risk", rbb, bb_t(2*ldx, 0.5, 3*ldx, 1)));
     m_pnf_meta_view.reset(new VP("pnf_meta", rbb, bb_t(3*ldx, 0.5, 1, 1)));
     m_pnf_value_view.reset(new VP("pnf_value", rbb, bb_t(2*ldx, 0, 1, 0.5)));
@@ -263,7 +257,7 @@ void draw()
 #endif
   
   if(m_config->paper){
-    m_robdist_view->PushProjection();
+    m_rob_lambda_view->PushProjection();
     if(4 > m_flowstep){
       draw_grid_value(m_flow->GetEnvdist(), ColorScheme::Get(INVERTED_GREY));
       draw_setup(false, false);
@@ -276,9 +270,8 @@ void draw()
 		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
       draw_setup(false, false);
     }
-    m_robdist_view->PopProjection();
-    double max_max_cooc(0);
-    if(3 <= m_flowstep)
+    m_rob_lambda_view->PopProjection();
+    if(3 <= m_flowstep){
       for(size_t io(0); io < m_config->dynobj.size(); ++io){
 	m_cooc_view[io]->PushProjection();
 	if(5 > m_flowstep){
@@ -290,10 +283,8 @@ void draw()
 	else{
 	  const array<double> * cooc;
 	  double max_cooc;
-	  tie(cooc, max_cooc) = m_flow->GetCooc(m_config->dynobj[io].id);
+	  tie(cooc, max_cooc) = m_flow->GetObjCooc(m_config->dynobj[io].id);
 	  BOOST_ASSERT( 0 != cooc);
-	  if(max_cooc > max_max_cooc)
-	    max_max_cooc = max_cooc;
 	  draw_array(*cooc, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
 		     0, max_cooc, ColorScheme::Get(INVERTED_GREY));
 	  if(7 <= m_flowstep)
@@ -303,22 +294,8 @@ void draw()
 	}
 	m_cooc_view[io]->PopProjection();
       }
+    }
     if(6 <= m_flowstep){
-      {
-	const array<double> * wspace_risk;
-	double max_wspace_risk;
-	tie(wspace_risk, max_wspace_risk) = m_flow->GetWSpaceRisk();
-	if(0 != wspace_risk){
-	  m_wspace_risk_view->PushProjection();
-	  draw_array(*wspace_risk, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
-		     0, max_max_cooc, ColorScheme::Get(INVERTED_GREY));
-	  if(7 <= m_flowstep)
-	    draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		       m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
-	  draw_setup(false, false);
-	  m_wspace_risk_view->PopProjection();
-	}
-      }
       {
 	const array<double> * risk;
 	double max_risk;
@@ -344,7 +321,7 @@ void draw()
     }
   }
   else{
-    if(0 <= m_flowstep){
+    if((0 <= m_flowstep) && (5 > m_flowstep)){
       m_envdist_view->PushProjection();
       draw_grid_value(m_flow->GetEnvdist(), ColorScheme::Get(BLUE_GREEN_RED));
       draw_grid_queue(m_flow->GetEnvdist().GetGrid(),
@@ -359,43 +336,40 @@ void draw()
       for(size_t io(0); io < m_config->dynobj.size(); ++io){
 	const array<double> * lambda;
 	double max_lambda;
-	tie(lambda, max_lambda) = m_flow->GetLambda(m_config->dynobj[io].id);
+	tie(lambda, max_lambda) =
+	  m_flow->GetObjectLambda(m_config->dynobj[io].id);
 	if(0 == lambda){
-	  cerr << __func__ << "(): lambda " << m_config->dynobj[io].id
+	  cerr << __func__ << "(): object lambda " << m_config->dynobj[io].id
 	       << " not in m_flow\n";
 	  exit(EXIT_FAILURE);
 	}
-	m_lambda_view[io]->PushProjection();
+	m_obj_lambda_view[io]->PushProjection();
 	draw_array(*lambda, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
 		   0, max_lambda, ColorScheme::Get(BLUE_GREEN_RED));
-	draw_setup(false, true);
-	const Region * region(m_flow->GetRegion(m_config->dynobj[io].id));
-	if(0 == region){
-	  cerr << __func__ << "(): region " << m_config->dynobj[io].id
-	       << " not in m_flow\n";
-	  exit(EXIT_FAILURE);
-	}
-	m_lambda_view[io]->PopProjection();
+	draw_setup(false, false);
+	m_obj_lambda_view[io]->PopProjection();
       }
     }
     if(4 <= m_flowstep){
-      const Facade * robdist(m_flow->GetRobdist());
-      if(0 != robdist){
-	m_robdist_view->PushProjection();
-	draw_grid_value(*robdist, ColorScheme::Get(BLUE_GREEN_RED));
-	draw_setup(false, true);
-	m_robdist_view->PopProjection();
-      }
-      else{
-	cerr << __func__ << "(): robdist not in m_flow\n";
+      const array<double> * lambda;
+      double max_lambda;
+      tie(lambda, max_lambda) =
+	m_flow->GetRobotLambda();
+      if(0 == lambda){
+	cerr << __func__ << "(): robot lambda not in m_flow\n";
 	exit(EXIT_FAILURE);
       }
+      m_rob_lambda_view->PushProjection();
+      draw_array(*lambda, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
+		 0, max_lambda, ColorScheme::Get(BLUE_GREEN_RED));
+      draw_setup(false, false);
+      m_rob_lambda_view->PopProjection();
     }
     if(5 <= m_flowstep){
       for(size_t io(0); io < m_config->dynobj.size(); ++io){
 	const array<double> * cooc;
 	double max_cooc;
-	tie(cooc, max_cooc) = m_flow->GetCooc(m_config->dynobj[io].id);
+	tie(cooc, max_cooc) = m_flow->GetObjCooc(m_config->dynobj[io].id);
 	if(0 == cooc){
 	  cerr << __func__ << "(): cooc " << m_config->dynobj[io].id
 	       << " not in m_flow\n";
@@ -404,9 +378,21 @@ void draw()
 	m_cooc_view[io]->PushProjection();
 	draw_array(*cooc, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
 		   0, max_cooc, ColorScheme::Get(BLUE_GREEN_RED));
-	draw_setup(false, true);
+	draw_setup(false, false);
 	m_cooc_view[io]->PopProjection();
       }
+      const array<double> * cooc;
+      double max_cooc;
+      tie(cooc, max_cooc) = m_flow->GetEnvCooc();
+      if(0 == cooc){
+	cerr << __func__ << "(): environment cooc not in m_flow\n";
+	exit(EXIT_FAILURE);
+      }
+      m_envdist_view->PushProjection();
+      draw_array(*cooc, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1,
+		 0, max_cooc, ColorScheme::Get(BLUE_GREEN_RED));
+      draw_setup(false, false);
+      m_envdist_view->PopProjection();
     }
     if(6 <= m_flowstep){
       const array<double> * risk;
@@ -419,7 +405,7 @@ void draw()
 	if(7 <= m_flowstep)
 	  draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
 		     m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
-	draw_setup(false, true);
+	draw_setup(false, false);
 	m_risk_view->PopProjection();
       }
       m_pnf_meta_view->PushProjection();
@@ -427,7 +413,7 @@ void draw()
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
 		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
-      draw_setup(false, true);
+      draw_setup(false, false);
       m_pnf_meta_view->PopProjection();
     }
     if(7 <= m_flowstep){
@@ -435,7 +421,7 @@ void draw()
       draw_grid_value(m_flow->GetPNF(), ColorScheme::Get(BLUE_GREEN_RED));
       draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
 		 m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
-      draw_setup(false, true);
+      draw_setup(false, false);
       m_pnf_value_view->PopProjection();
     }
   }
@@ -544,11 +530,7 @@ void timer(int handle)
     
     else if(1 == m_flowstep){
       cout << "map envdist\n";
-      m_flow->_MapEnvdist(m_config->robot_buffer_factor,
-			 m_config->robot_buffer_degree,
-			 m_config->object_buffer_degree,
-			 m_config->object_buffer_degree,
-			 m_risk_map.get());
+      m_flow->MapEnvdist();
       ++m_flowstep;
     }
     
@@ -576,7 +558,7 @@ void timer(int handle)
 	  if(m_dump_objdist)
 	    dump_objdist();
 	  if(m_dump_lambda)
-	    dump_lambda();
+	    dump_obj_lambda();
 	  ++m_flowstep;
 	}
       }
@@ -600,13 +582,16 @@ void timer(int handle)
 	  }
 	  do_dump("robdist", *robdist);
 	}
+	if(m_dump_lambda)
+	  dump_rob_lambda();
 	++m_flowstep;
       }
     }
     
     else if(4 == m_flowstep){
       cout << "compute co-occurrences\n";
-      m_flow->ComputeAllCooc();
+      m_flow->ComputeAllCooc(m_config->static_buffer_factor,
+			     m_config->static_buffer_degree);
       if(m_dump_cooc)
 	dump_cooc();
       ++m_flowstep;
@@ -615,7 +600,7 @@ void timer(int handle)
     else if(5 == m_flowstep){
       cout << "compute risk\n";
       const BufferZone buffer(0, 3 * m_flow->half_diagonal, 2);
-      m_flow->ComputeRisk(*m_risk_map, buffer);
+      m_flow->ComputeRisk(*m_risk_map);
       if(m_dump_risk)
 	dump_risk();
       ++m_flowstep;
@@ -668,11 +653,10 @@ void motion(int x, int y)
 void parse_options(int argc, char ** argv)
 {
   m_config.reset(new Config());
-  m_config->robot_buffer_factor = -1;
-  m_config->robot_buffer_degree = -1;
-  m_config->object_buffer_factor = -1;
-  m_config->object_buffer_degree = -1;
-  
+  m_config->static_buffer_factor = 1;
+  m_config->static_buffer_degree = 2;
+  m_config->perform_convolution = true;
+
   string config_name;
   if(argc > 1)
     config_name = argv[1];
@@ -695,9 +679,8 @@ void parse_options(int argc, char ** argv)
   }
   parse_config(config_is, cerr);
   
-  m_flow.reset(Flow::Create(m_config->grid_x,
-			    m_config->grid_y,
-			    m_config->grid_d));
+  m_flow.reset(Flow::Create(m_config->grid_x, m_config->grid_y,
+			    m_config->grid_d, m_config->perform_convolution));
   if( ! m_flow){
     cerr << "Flow::Create() failed in " << __FUNCTION__ << ".\n";
     exit(EXIT_FAILURE);
@@ -851,38 +834,39 @@ void parse_config(istream & config_is, ostream & dbg)
       m_config->dynobj.push_back(obj);
     }
     
-    else if(token == "robot_buffer_factor"){
-      tls >> m_config->robot_buffer_factor;
+    else if(token == "static_buffer_factor"){
+      tls >> m_config->static_buffer_factor;
       if( ! tls){
-	dbg << "Couldn't parse robot_buffer_factor from \""
+	dbg << "Couldn't parse static_buffer_factor from \""
 	    << tls.str() << "\"\n";
 	exit(EXIT_FAILURE);
       }
     }
     
-    else if(token == "robot_buffer_degree"){
-      tls >> m_config->robot_buffer_degree;
+    else if(token == "static_buffer_degree"){
+      tls >> m_config->static_buffer_degree;
       if( ! tls){
-	dbg << "Couldn't parse robot_buffer_degree from \""
+	dbg << "Couldn't parse static_buffer_degree from \""
 	    << tls.str() << "\"\n";
 	exit(EXIT_FAILURE);
       }
     }
     
-    else if(token == "object_buffer_factor"){
-      tls >> m_config->object_buffer_factor;
+    else if(token == "perform_convolution"){
+      string foo;
+      tls >> foo;
       if( ! tls){
-	dbg << "Couldn't parse object_buffer_factor from \""
+	dbg << "Couldn't parse perform_convolution from \""
 	    << tls.str() << "\"\n";
 	exit(EXIT_FAILURE);
       }
-    }
-    
-    else if(token == "object_buffer_degree"){
-      tls >> m_config->object_buffer_degree;
-      if( ! tls){
-	dbg << "Couldn't parse object_buffer_degree from \""
-	    << tls.str() << "\"\n";
+      if((foo == "true") || (foo == "TRUE"))
+	m_config->perform_convolution = true;
+      else if((foo == "false") || (foo == "FALSE"))
+	m_config->perform_convolution = false;
+      else{
+	dbg << "Couldn't parse perform_convolution from \""
+	    << tls.str() << "\", please specify true or false!\n";
 	exit(EXIT_FAILURE);
       }
     }
@@ -965,46 +949,79 @@ void dump_cooc()
     const size_t id(m_config->dynobj[io].id);
     const array<double> * cooc;
     double max_cooc;
-    tie(cooc, max_cooc) = m_flow->GetCooc(id);
+    tie(cooc, max_cooc) = m_flow->GetObjCooc(id);
     if(0 == cooc){
-      cout << __func__ << "(): cooc " << id << " not in m_flow\n";
+      cout << __func__ << "(): object cooc " << id << " not in m_flow\n";
       exit(EXIT_FAILURE);
     }
     ostringstream name;
-    name << "cooc" << id;
+    name << "obj_cooc" << id;
     do_dump(name.str(), *cooc, max_cooc);
   }
+  const array<double> * cooc;
+  double max_cooc;
+  tie(cooc, max_cooc) = m_flow->GetEnvCooc();
+  if(0 == cooc){
+    cout << __func__ << "(): environment cooc not in m_flow\n";
+    exit(EXIT_FAILURE);
+  }
+  do_dump("env_cooc", *cooc, max_cooc);
 }
 
 
-void dump_lambda()
+void dump_obj_lambda()
 {
   for(size_t io(0); io < m_config->dynobj.size(); ++io){
     const size_t id(m_config->dynobj[io].id);
     const array<double> * lambda;
     double max_lambda;
-    tie(lambda, max_lambda) = m_flow->GetLambda(id);
+    tie(lambda, max_lambda) = m_flow->GetObjectLambda(id);
     if(0 == lambda){
-      cout << __func__ << "(): lambda " << id << " not in m_flow\n";
+      cout << __func__ << "(): object lambda " << id << " not in m_flow\n";
       exit(EXIT_FAILURE);
     }
     ostringstream name;
-    name << "lambda" << id;
+    name << "obj_lambda" << id;
     do_dump(name.str(), *lambda, max_lambda);
   }
 }
 
 
+void dump_rob_lambda()
+{
+  const array<double> * lambda;
+  double max_lambda;
+  tie(lambda, max_lambda) = m_flow->GetRobotLambda();
+  if(0 == lambda){
+    cout << __func__ << "(): robot lambda not in m_flow\n";
+    exit(EXIT_FAILURE);
+  }
+  do_dump("rob_lambda", *lambda, max_lambda);
+}
+
+
 void dump_risk()
 {
-  const array<double> * risk;
-  double max_risk;
-  tie(risk, max_risk) = m_flow->GetRisk();
-  if(0 == risk){
-    cout << __func__ << "(): risk  not in m_flow\n";
-    return;
+  {
+    const array<double> * dyn_cooc;
+    double max_dyn_cooc;
+    tie(dyn_cooc, max_dyn_cooc) = m_flow->GetDynamicCooc();
+    if(0 == dyn_cooc){
+      cout << __func__ << "(): dynamic co-occurrence  not in m_flow\n";
+      return;
+    }
+    do_dump("dyn_cooc", *dyn_cooc, max_dyn_cooc);
   }
-  do_dump("risk", *risk, max_risk);
+  {
+    const array<double> * risk;
+    double max_risk;
+    tie(risk, max_risk) = m_flow->GetRisk();
+    if(0 == risk){
+      cout << __func__ << "(): risk  not in m_flow\n";
+      return;
+    }
+    do_dump("risk", *risk, max_risk);
+  }
 }
 
 
@@ -1059,7 +1076,7 @@ void do_dump(const string & name, const array<double> & data, double max_val)
     return;
   }
   fprintf(of, "# max_%s: %f\n", name.c_str(), max_val);
-  dump_raw(data, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1, of);
+  dump_raw(data, -0.5, 0, 0, m_flow->xsize - 1, m_flow->ysize - 1, of);
   fclose(of);
   cout << "splot '" << fname.str() << "' w l\n";
 }

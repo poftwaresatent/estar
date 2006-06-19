@@ -6,10 +6,8 @@ riskmap   sigma 0.95  1.5
 robot     0.5   1.5   0.3   0.3
 goal      3.5   1.5   0.3
 
-robot_buffer_factor 2
-robot_buffer_degree 2
-object_buffer_factor 2
-object_buffer_degree 2
+static_buffer_factor 2
+static_buffer_degree 2
 
 
 # upper wall does not obstruct object A

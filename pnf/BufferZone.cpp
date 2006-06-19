@@ -29,6 +29,7 @@ namespace pnf {
   BufferZone(double _radius, double _buffer, double _degree)
     : radius(_radius),
       buffer(_buffer),
+      r_plus_b(_radius + _buffer),
       degree(_degree)
   {
   }
@@ -39,7 +40,7 @@ namespace pnf {
   {
     if(distance <= radius)
       return 1;
-    if(distance > radius + buffer)
+    if(distance >= r_plus_b)
       return 0;
     return pow(1 - (distance - radius) / buffer, degree);
   }

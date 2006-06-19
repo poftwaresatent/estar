@@ -79,13 +79,17 @@ namespace estar {
   
   
   void dump_raw(const array<double> &data,
+		double replace_infinity,
 		size_t x0, size_t y0, size_t x1, size_t y1,
 		FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
     for(size_t x(x0); x <= x1; x++){
       for(size_t y(y0); y <= y1; y++)
-	fprintf(stream, "%zd   %zd   %f\n", x, y, data[x][y]);
+	if(infinity != data[x][y])
+	  fprintf(stream, "%zd   %zd   %f\n", x, y, data[x][y]);
+	else
+	  fprintf(stream, "%zd   %zd   %f\n", x, y, replace_infinity);	  
       fprintf(stream, "\n");
     }
   }

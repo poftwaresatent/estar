@@ -1,8 +1,16 @@
 # object A can interfere with robot, but B cannot
 
-mgrid     4.0   3.0   0.03
-riskmap   sigma 0.95  1.5
+##riskmap              spike 0.05 4
+##perform_convolution  false
+##static_buffer_factor 0.2
+##static_buffer_degree 2
 
+riskmap              sigma 0.95 1.5
+perform_convolution  true
+static_buffer_factor 0.5
+static_buffer_degree 3
+
+mgrid     4.0   3.0    0.05
 robot     0.5   1.5   0.3   0.3
 goal      3.5   1.5   0.3
 

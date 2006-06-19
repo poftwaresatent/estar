@@ -103,6 +103,12 @@ namespace estar {
        1 if distance wasn't reached after maxstep iterations
       -1 if the robot is outside the grid<br>
       -2 if the grid is a hexgrid (not implemented yet)
+      
+      \todo URGENT: Need ridge detection (and avoidance) to avoid
+      going straight toward obstacle in case the robot is on the ridge
+      where two wavefronts meet after they swept around an
+      obstacle. In such a case, one direction should be chosen at
+      "random"!
   */
   int compute_carrot(const Facade & facade,
 		     double robot_x, double robot_y,

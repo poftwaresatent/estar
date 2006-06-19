@@ -52,6 +52,8 @@ namespace estar {
      \note BEWARE x1 and y1 are *inclusive*
   */
   void dump_raw(const array<double> &data,
+		/** use this instead of infinite values */
+		double replace_infinity,
 		size_t x0, size_t y0, size_t x1, size_t y1,
 		FILE * stream);
   
