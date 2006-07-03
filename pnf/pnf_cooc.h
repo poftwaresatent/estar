@@ -116,6 +116,23 @@ double pnf_cooc(double lambda_i,
 		double delta);
 
 
+
+/**
+   For testing an alternate form of "worst case" by maximizing the
+   expected co-occurrence over all object speeds (from 0 to v_i). We
+   do not have a closed-form solution yet, which is why this function
+   simply tries a discrete number of speeds (could probably use
+   Newton-Raphson, but the real deal is finding that closed-form
+   solution anyways).
+*/
+double pnf_cooc_test_alt(double lambda_i,
+			 double lambda_r,
+			 double v_i,
+			 double v_r,
+			 double delta,
+			 unsigned int n_v_i_steps);
+
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

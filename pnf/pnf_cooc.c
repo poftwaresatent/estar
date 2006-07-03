@@ -156,3 +156,25 @@ double pnf_cooc(double lambda_i,
 		    &left, &bothleft, &middle, &bothright, &right,
 		    &boundguard);
 }
+
+
+double pnf_cooc_test_alt(double lambda_i,
+			 double lambda_r,
+			 double v_i,
+			 double v_r,
+			 double delta,
+			 unsigned int n_v_i_steps)
+{
+  double dvi;
+  double vii;
+  double result = 0;
+  if(n_v_i_steps < 2)
+    n_v_i_steps = 2;
+  dvi = v_i / n_v_i_steps;
+  for(vii = dvi; vii <= v_i; vii += dvi){
+    const double cooc = pnf_cooc(lambda_i, lambda_r, vii, v_r, delta);
+    if(cooc > result)
+      result = cooc;
+  }
+  return result;
+}

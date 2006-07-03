@@ -23,15 +23,19 @@
 
 
 #include <pnf/pnf_cooc.h>
+#include <estar/numeric.hpp>
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
 
 using namespace std;
+using estar::absval;
+using estar::maxval;
 
 
 struct lwpp_param_s {
@@ -43,7 +47,13 @@ struct lwpp_param_s {
   string msg;
 };
 
-typedef vector<struct lwpp_param_s> lwpp_param_t;
+typedef vector<lwpp_param_s> lwpp_param_t;
+
+
+static void test_normal(double start_pos, double end_pos, double resolution,
+			const lwpp_param_t & param);
+static void test_alt(double start_pos, double end_pos, double resolution,
+		     const lwpp_param_t & param);
 
 
 static void dump_double(FILE *stream,
@@ -80,6 +90,12 @@ int main(int argc, char ** argv)
   
   // rpos, rrad, opos, orad, vrob, vobj;
   lwpp_param_t param;
+  double start_pos(-40);
+  double end_pos(40);
+  double resolution(0.5);
+  void (*test)(double, double, double, const lwpp_param_t &);
+  test = test_normal;
+  
   if(setname == "basic"){
     param.push_back(lwpp_param_s(0, 0, -5, 0, 10, 20, "fast point object"));
     param.push_back(lwpp_param_s(0, 0, -5, 0, 10, 10, "slow point object"));
@@ -92,153 +108,24 @@ int main(int argc, char ** argv)
     param.push_back(lwpp_param_s(0, 0, -20, 4, 10, 20, "point robot"));
     param.push_back(lwpp_param_s(0, 0, -20, 0, 10, 20, "point object and robot"));
   }
+  else if(setname == "wce"){
+    resolution = 0.1;
+    for(int i(1); i <= 20; ++i){
+      ostringstream os;
+      os << "\"vi=" << i << "\"";
+      param.push_back(lwpp_param_s(5, 0, -5, 0, 10, i, os.str()));
+    }
+  }
+  else if(setname == "alt"){
+    param.push_back(lwpp_param_s(5, 0, -5, 0, 10, 20, "v_i=20"));
+    test = test_alt;
+  }
   else{
     cerr << argv[0] << ": sorry, don't know about \"" << setname << "\"\n";
     return 1;
   }
   
-  const double start_pos(-40);
-  const double end_pos(40);
-  const double resolution(0.5);
-  
-  double * co_occurrence;
-  double * position;
-  size_t position_len;
-  
-  double * pleft;
-  double * pbothleft;
-  double * pmiddle;
-  double * pbothright;
-  double * pright;
-  int * left;
-  int * bothleft;
-  int * middle;
-  int * bothright;
-  int * right;
-  
-  FILE *datastream = fopen("test_cooc.data", "w");
-  if(NULL == datastream){
-    perror("test_cooc.data");
-    exit(EXIT_FAILURE);
-  }
-  
-  FILE *plotstream = fopen("test_cooc.plot", "w");
-  if(NULL == plotstream){
-    perror("test_cooc.plot");
-    fclose(datastream);
-    exit(EXIT_FAILURE);
-  }
-  
-  FILE *plotallstream = fopen("test_cooc.plotall", "w");
-  if(NULL == plotallstream){
-    perror("test_cooc.plotall");
-    fclose(datastream);
-    fclose(plotstream);
-    exit(EXIT_FAILURE);
-  }
-  
-  FILE *plotfigstream = fopen("test_cooc.plotfig", "w");
-  if(NULL == plotfigstream){
-    perror("test_cooc.plotfig");
-    fclose(datastream);
-    fclose(plotstream);
-    fclose(plotallstream);
-    exit(EXIT_FAILURE);
-  }
-  
-  lwpp(param, start_pos, end_pos, resolution,
-       &co_occurrence, &position, &position_len,
-       &pleft, &pbothleft, &pmiddle, &pbothright, &pright,
-       &left, &bothleft, &middle, &bothright, &right);
-
-  fprintf(datastream,
-	  "### IN\n"
-	  "# rpos rrad opos orad vrob vobj\n");
-  for(size_t ii(0); ii < param.size(); ++ii)
-    fprintf(datastream, "# %g %g %g %g %g %g\n",
-	    param[ii].rpos, param[ii].rrad, param[ii].opos,
-	    param[ii].orad, param[ii].vrob, param[ii].vobj);
-  fprintf(datastream,  
-	  "# start_pos == %g\n"
-	  "# end_pos == %g\n"
-	  "# resolution == %g\n"
-	  "### OUT\n"
-	  "# position_len == %u\n",
-	  start_pos, end_pos, resolution, position_len);
-  
-  dump_double(datastream,
-	      "\n\n# pos\tco_occurrence[ipos][iobj]:\n",
-	      position, co_occurrence, position_len, param.size());
-  dump_double(datastream,
-	      "\n\n# pos\tpleft[ipos][iobj]:\n",
-	      position, pleft, position_len, param.size());
-  dump_double(datastream,
-	      "\n\n# pos\tpbothleft[ipos][iobj]:\n",
-	      position, pbothleft, position_len, param.size());
-  dump_double(datastream,
-	      "\n\n# pos\tpmiddle[ipos][iobj]:\n",
-	      position, pmiddle, position_len, param.size());
-  dump_double(datastream,
-	      "\n\n# pos\tpbothright[ipos][iobj]:\n",
-	      position, pbothright, position_len, param.size());
-  dump_double(datastream,
-	      "\n\n# pos\tpright[ipos][iobj]:\n",
-	      position, pright, position_len, param.size());
-  
-  dump_int(datastream,
-	   "\n\n# pos\tleft[ipos][iobj]:\n",
-	   position, left, position_len, param.size());
-  dump_int(datastream,
-	   "\n\n# pos\tbothleft[ipos][iobj]:\n",
-	   position, bothleft, position_len, param.size());
-  dump_int(datastream,
-	   "\n\n# pos\tmiddle[ipos][iobj]:\n",
-	   position, middle, position_len, param.size());
-  dump_int(datastream,
-	   "\n\n# pos\tbothright[ipos][iobj]:\n",
-	   position, bothright, position_len, param.size());
-  dump_int(datastream,
-	   "\n\n# pos\tright[ipos][iobj]:\n",
-	   position, right, position_len, param.size());
-  
-  dump_plot(plotstream, "Co-occurrence Estimation", param, 0);
-  dump_plot_fig(plotfigstream, "Co-occurrence Estimation", param, 0);
-  
-  dump_plot(plotallstream, "Co-occurrence Estimation", param, 0);
-  dump_plot(plotallstream, "P left",         param, 1);
-  dump_plot(plotallstream, "P bothleft",     param, 2);
-  dump_plot(plotallstream, "P middle",       param, 3);
-  dump_plot(plotallstream, "P bothright",    param, 4);
-  dump_plot(plotallstream, "P right",        param, 5);
-  //   dump_plot(plotallstream, "left",          param, 6);
-  //   dump_plot(plotallstream, "bothleft",      param, 7);
-  //   dump_plot(plotallstream, "middle",        param, 8);
-  //   dump_plot(plotallstream, "bothright",     param, 9);
-  //   dump_plot(plotallstream, "right",         param, 10);
-  
-  free(co_occurrence);
-  free(position);
-  free(pleft);
-  free(pbothleft);
-  free(pmiddle);
-  free(pbothright);
-  free(pright);
-  free(left);
-  free(bothleft);
-  free(middle);
-  free(bothright);
-  free(right);
-  
-  fclose(datastream);
-  fclose(plotstream);
-  fclose(plotallstream);
-  fclose(plotfigstream);
-  
-  printf("sh test_cooc.plot\n");
-  printf("sh test_cooc.plotall\n");
-  printf("sh test_cooc.plotfig\n");
-  
-  return 0;
+  test(start_pos, end_pos, resolution, param);
 }
 
 
@@ -347,14 +234,13 @@ static void dump_plot(FILE *stream,
   if(param.empty())
     return;
   fprintf(stream,
-	  "gnuplot -persist <<EOF\n"
 	  "set title '%s'\n"
 	  "plot 'test_cooc.data' i %d u 1:2 w l t '%s'",
 	  title.c_str(), dataset, param[0].msg.c_str());
   for(size_t jj(1); jj < param.size(); ++jj)
     fprintf(stream, ", 'test_cooc.data' i %d u 1:%d w l t '%s'",
 	    dataset, jj + 2, param[jj].msg.c_str());
-  fprintf(stream, "\nEOF\n");
+  fprintf(stream, "\nset mouse\npause -1 \"hit return to quit\"\n");
 }
 
 
@@ -376,4 +262,213 @@ void dump_plot_fig(FILE *stream,
     fprintf(stream, ", 'test_cooc.data' i %d u 1:%d w l t '%s'",
 	    dataset, jj + 2, param[jj].msg.c_str());
   fprintf(stream, "\nEOF\n");
+}
+
+
+void test_normal(double start_pos, double end_pos, double resolution,
+		 const lwpp_param_t & param)
+{
+  FILE *datastream = fopen("test_cooc.data", "w");
+  if(NULL == datastream){
+    perror("test_cooc.data");
+    exit(EXIT_FAILURE);
+  }
+  FILE *plotstream = fopen("test_cooc.plot", "w");
+  if(NULL == plotstream){
+    perror("test_cooc.plot");
+    fclose(datastream);
+    exit(EXIT_FAILURE);
+  }
+  FILE *plotallstream = fopen("test_cooc.plotall", "w");
+  if(NULL == plotallstream){
+    perror("test_cooc.plotall");
+    fclose(datastream);
+    fclose(plotstream);
+    exit(EXIT_FAILURE);
+  }
+  FILE *plotfigstream = fopen("test_cooc.plotfig", "w");
+  if(NULL == plotfigstream){
+    perror("test_cooc.plotfig");
+    fclose(datastream);
+    fclose(plotstream);
+    fclose(plotallstream);
+    exit(EXIT_FAILURE);
+  }
+  
+  size_t position_len;
+  double * co_occurrence, * position;
+  double * pleft, * pbothleft, * pmiddle, * pbothright, * pright;
+  int * left, * bothleft, * middle, * bothright, * right;
+  lwpp(param, start_pos, end_pos, resolution,
+       &co_occurrence, &position, &position_len,
+       &pleft, &pbothleft, &pmiddle, &pbothright, &pright,
+       &left, &bothleft, &middle, &bothright, &right);
+
+  fprintf(datastream,
+	  "### IN\n"
+	  "# rpos rrad opos orad vrob vobj\n");
+  for(size_t ii(0); ii < param.size(); ++ii)
+    fprintf(datastream, "# %g %g %g %g %g %g\n",
+	    param[ii].rpos, param[ii].rrad, param[ii].opos,
+	    param[ii].orad, param[ii].vrob, param[ii].vobj);
+  fprintf(datastream,  
+	  "# start_pos == %g\n"
+	  "# end_pos == %g\n"
+	  "# resolution == %g\n"
+	  "### OUT\n"
+	  "# position_len == %u\n",
+	  start_pos, end_pos, resolution, position_len);
+  
+  dump_double(datastream,
+	      "\n\n# pos\tco_occurrence[ipos][iobj]:\n",
+	      position, co_occurrence, position_len, param.size());
+  dump_double(datastream,
+	      "\n\n# pos\tpleft[ipos][iobj]:\n",
+	      position, pleft, position_len, param.size());
+  dump_double(datastream,
+	      "\n\n# pos\tpbothleft[ipos][iobj]:\n",
+	      position, pbothleft, position_len, param.size());
+  dump_double(datastream,
+	      "\n\n# pos\tpmiddle[ipos][iobj]:\n",
+	      position, pmiddle, position_len, param.size());
+  dump_double(datastream,
+	      "\n\n# pos\tpbothright[ipos][iobj]:\n",
+	      position, pbothright, position_len, param.size());
+  dump_double(datastream,
+	      "\n\n# pos\tpright[ipos][iobj]:\n",
+	      position, pright, position_len, param.size());
+  dump_int(datastream,
+	   "\n\n# pos\tleft[ipos][iobj]:\n",
+	   position, left, position_len, param.size());
+  dump_int(datastream,
+	   "\n\n# pos\tbothleft[ipos][iobj]:\n",
+	   position, bothleft, position_len, param.size());
+  dump_int(datastream,
+	   "\n\n# pos\tmiddle[ipos][iobj]:\n",
+	   position, middle, position_len, param.size());
+  dump_int(datastream,
+	   "\n\n# pos\tbothright[ipos][iobj]:\n",
+	   position, bothright, position_len, param.size());
+  dump_int(datastream,
+	   "\n\n# pos\tright[ipos][iobj]:\n",
+	   position, right, position_len, param.size());
+  dump_plot(plotstream, "Co-occurrence Estimation", param, 0);
+  dump_plot_fig(plotfigstream, "Co-occurrence Estimation", param, 0);
+  dump_plot(plotallstream, "Co-occurrence Estimation", param, 0);
+  dump_plot(plotallstream, "P left",         param, 1);
+  dump_plot(plotallstream, "P bothleft",     param, 2);
+  dump_plot(plotallstream, "P middle",       param, 3);
+  dump_plot(plotallstream, "P bothright",    param, 4);
+  dump_plot(plotallstream, "P right",        param, 5);
+  //   dump_plot(plotallstream, "left",          param, 6);
+  //   dump_plot(plotallstream, "bothleft",      param, 7);
+  //   dump_plot(plotallstream, "middle",        param, 8);
+  //   dump_plot(plotallstream, "bothright",     param, 9);
+  //   dump_plot(plotallstream, "right",         param, 10);
+  
+  free(co_occurrence);
+  free(position);
+  free(pleft);
+  free(pbothleft);
+  free(pmiddle);
+  free(pbothright);
+  free(pright);
+  free(left);
+  free(bothleft);
+  free(middle);
+  free(bothright);
+  free(right);
+  
+  fclose(datastream);
+  fclose(plotstream);
+  fclose(plotallstream);
+  fclose(plotfigstream);
+  
+  printf("gnuplot test_cooc.plot\n");
+  printf("sh test_cooc.plotall\n");
+  printf("sh test_cooc.plotfig\n");
+}
+
+
+void test_alt(double start_pos, double end_pos, double resolution,
+	      const lwpp_param_t & param)
+{
+  FILE *datastream = fopen("test_cooc.data", "w");
+  if(NULL == datastream){
+    perror("test_cooc.data");
+    exit(EXIT_FAILURE);
+  }
+  FILE *plotstream = fopen("test_cooc.plot", "w");
+  if(NULL == plotstream){
+    perror("test_cooc.plot");
+    fclose(datastream);
+    exit(EXIT_FAILURE);
+  }
+  FILE *plotfigstream = fopen("test_cooc.plotfig", "w");
+  if(NULL == plotfigstream){
+    perror("test_cooc.plotfig");
+    fclose(datastream);
+    fclose(plotstream);
+    exit(EXIT_FAILURE);
+  }
+  
+  const size_t
+    poslen(static_cast<size_t>(ceil((end_pos-start_pos)/resolution)));
+  double pos[poslen];
+  for(size_t ii(0); ii < poslen; ii++)
+    pos[ii] = start_pos + (ii + 0.5) * resolution;
+  const size_t alen(param.size() * poslen);
+  double cooc[alen];
+  for(size_t ii(0); ii < param.size(); ++ii){
+    for(size_t jj(0); jj < poslen; ++jj){
+      const double
+	lambda_r(maxval(0.0, absval(pos[jj]-param[ii].rpos) - param[ii].rrad));
+      double lambda_i(pos[jj] - param[ii].opos);
+      if(lambda_i > 0){
+	if(lambda_i <= param[ii].orad)
+	  lambda_i = 0;
+	else
+	  lambda_i -= param[ii].orad;
+      }
+      else{
+	if(lambda_i >= - param[ii].orad)
+	  lambda_i = 0;
+	else
+	  lambda_i += param[ii].orad;
+      }
+      const size_t kk(ii + jj * param.size());
+      const unsigned int n_v_i_steps(100);
+      cooc[kk] = pnf_cooc_test_alt(lambda_i, lambda_r,
+				   param[ii].vobj, param[ii].vrob,
+				   resolution, n_v_i_steps);
+    }
+  }
+  
+  fprintf(datastream,
+	  "### IN\n"
+	  "# rpos rrad opos orad vrob vobj\n");
+  for(size_t ii(0); ii < param.size(); ++ii)
+    fprintf(datastream, "# %g %g %g %g %g %g\n",
+	    param[ii].rpos, param[ii].rrad, param[ii].opos,
+	    param[ii].orad, param[ii].vrob, param[ii].vobj);
+  fprintf(datastream,  
+	  "# start_pos == %g\n"
+	  "# end_pos == %g\n"
+	  "# resolution == %g\n"
+	  "### OUT\n"
+	  "# position_len == %u\n",
+	  start_pos, end_pos, resolution, poslen);
+  
+  dump_double(datastream,
+	      "\n\n# pos\tco_occurrence[ipos][iobj]:\n",
+	      pos, cooc, poslen, param.size());
+  dump_plot(plotstream, "Co-occurrence Estimation", param, 0);
+  dump_plot_fig(plotfigstream, "Co-occurrence Estimation", param, 0);
+
+  fclose(datastream);
+  fclose(plotstream);
+  fclose(plotfigstream);
+
+  printf("gnuplot test_cooc.plot\n");
+  printf("sh test_cooc.plotfig\n");
 }
