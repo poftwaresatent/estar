@@ -60,7 +60,7 @@ namespace pnf {
   {
   private:
     Flow(size_t xsize, size_t ysize, double resolution,
-	 bool perform_convolution);
+	 bool perform_convolution, bool alternate_worst_case);
     
     
   public:
@@ -70,10 +70,11 @@ namespace pnf {
     const double resolution;
     const double half_diagonal;
     const bool perform_convolution;
+    const bool alternate_worst_case; // just for (hacked) trials...
     
     static Flow * Create(size_t xsize, size_t ysize, double resolution,
-			 bool perform_convolution);
-    ~Flow();    
+			 bool perform_convolution, bool alternate_worst_case);
+    ~Flow();
     
     bool HaveEnvdist() const;
     void PropagateEnvdist(bool step);

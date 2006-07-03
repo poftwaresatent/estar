@@ -126,12 +126,13 @@ namespace pnf {
   
   Flow::
   Flow(size_t _xsize, size_t _ysize, double _resolution,
-       bool _perform_convolution)
+       bool _perform_convolution, bool _alternate_worst_case)
     : xsize(_xsize),
       ysize(_ysize),
       resolution(_resolution),
       half_diagonal(0.707106781187 * _resolution), // sqrt(1/2)
       perform_convolution(_perform_convolution),
+      alternate_worst_case(_alternate_worst_case),
       m_envdist(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0)),
       // m_robot invalid until SetRobot()
       // m_object to be populated by SetDynamicObject()
@@ -150,9 +151,10 @@ namespace pnf {
   
   Flow * Flow::
   Create(size_t xsize, size_t ysize, double resolution,
-	 bool perform_convolution)
+	 bool perform_convolution, bool alternate_worst_case)
   {
-    Flow * flow(new Flow(xsize, ysize, resolution, perform_convolution));
+    Flow * flow(new Flow(xsize, ysize, resolution,
+			 perform_convolution, alternate_worst_case));
     if(( ! flow->m_envdist) || ( ! flow->m_pnf)){
       delete flow;
       return 0;
@@ -422,15 +424,29 @@ namespace pnf {
   {
     BOOST_ASSERT( m_robot );
     obj.max_cooc = 0;
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	const double cooc(pnf_cooc((*obj.lambda)[ix][iy],
-				   (*m_robot->lambda)[ix][iy],
-				   obj.speed, m_robot->speed, resolution));
-	if(cooc > obj.max_cooc)
-	  obj.max_cooc = cooc;
-	(*obj.cooc)[ix][iy] = cooc;
-      }
+    if(alternate_worst_case){
+      const unsigned int nvisteps(100);
+      for(size_t ix(0); ix < xsize; ++ix)
+	for(size_t iy(0); iy < ysize; ++iy){
+	  const double cooc(pnf_cooc_test_alt((*obj.lambda)[ix][iy],
+					      (*m_robot->lambda)[ix][iy],
+					      obj.speed, m_robot->speed,
+					      resolution, nvisteps));
+	  if(cooc > obj.max_cooc)
+	    obj.max_cooc = cooc;
+	  (*obj.cooc)[ix][iy] = cooc;
+	}
+    }
+    else
+      for(size_t ix(0); ix < xsize; ++ix)
+	for(size_t iy(0); iy < ysize; ++iy){
+	  const double cooc(pnf_cooc((*obj.lambda)[ix][iy],
+				     (*m_robot->lambda)[ix][iy],
+				     obj.speed, m_robot->speed, resolution));
+	  if(cooc > obj.max_cooc)
+	    obj.max_cooc = cooc;
+	  (*obj.cooc)[ix][iy] = cooc;
+	}
   }
   
   

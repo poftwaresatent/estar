@@ -103,7 +103,7 @@ namespace local {
     double goal_x, goal_y, goal_r;
     bool paper;
     double static_buffer_factor, static_buffer_degree;
-    bool perform_convolution;
+    bool perform_convolution, alternate_worst_case;
   };
   
 }
@@ -656,6 +656,7 @@ void parse_options(int argc, char ** argv)
   m_config->static_buffer_factor = 1;
   m_config->static_buffer_degree = 2;
   m_config->perform_convolution = true;
+  m_config->alternate_worst_case = false;
 
   string config_name;
   if(argc > 1)
@@ -680,7 +681,8 @@ void parse_options(int argc, char ** argv)
   parse_config(config_is, cerr);
   
   m_flow.reset(Flow::Create(m_config->grid_x, m_config->grid_y,
-			    m_config->grid_d, m_config->perform_convolution));
+			    m_config->grid_d, m_config->perform_convolution,
+			    m_config->alternate_worst_case));
   if( ! m_flow){
     cerr << "Flow::Create() failed in " << __FUNCTION__ << ".\n";
     exit(EXIT_FAILURE);
@@ -866,6 +868,25 @@ void parse_config(istream & config_is, ostream & dbg)
 	m_config->perform_convolution = false;
       else{
 	dbg << "Couldn't parse perform_convolution from \""
+	    << tls.str() << "\", please specify true or false!\n";
+	exit(EXIT_FAILURE);
+      }
+    }
+    
+    else if(token == "alternate_worst_case"){
+      string foo;
+      tls >> foo;
+      if( ! tls){
+	dbg << "Couldn't parse alternate_worst_case from \""
+	    << tls.str() << "\"\n";
+	exit(EXIT_FAILURE);
+      }
+      if((foo == "true") || (foo == "TRUE"))
+	m_config->alternate_worst_case = true;
+      else if((foo == "false") || (foo == "FALSE"))
+	m_config->alternate_worst_case = false;
+      else{
+	dbg << "Couldn't parse alternate_worst_case from \""
 	    << tls.str() << "\", please specify true or false!\n";
 	exit(EXIT_FAILURE);
       }
