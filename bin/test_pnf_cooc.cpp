@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
     }
   }
   else if(setname == "alt"){
-    param.push_back(lwpp_param_s(5, 0, -5, 0, 10, 20, "v_i=20"));
+    param.push_back(lwpp_param_s(5, 0, -5, 0, 10, 20, "envelope for v_i=20"));
     test = test_alt;
   }
   else{
