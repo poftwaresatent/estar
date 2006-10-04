@@ -43,6 +43,7 @@
 
 #define USE_GL
 #undef USE_DEPTH_BUFFER
+#undef USE_DOUBLE_BUFFER
 
 
 using namespace pnf;
@@ -222,12 +223,17 @@ int main(int argc,
 void init_glut(int * argc, char ** argv,
 	       int width, int height)
 {
-  glutInit(argc, argv);
 #ifdef USE_DEPTH_BUFFER
-  glutInitDisplayMode(GLUT_DEPTH | GLUT_RGBA | GLUT_DOUBLE);
-#else
-  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
-#endif
+  unsigned int glmode(GLUT_DEPTH | GLUT_RGBA);
+#else // ! USE_DEPTH_BUFFER
+  unsigned int glmode(GLUT_RGB);
+#endif // USE_DEPTH_BUFFER
+#ifdef USE_DOUBLE_BUFFER
+  glmode |= GLUT_DOUBLE;
+#endif // USE_DOUBLE_BUFFER
+
+  glutInit(argc, argv);
+  glutInitDisplayMode(glmode);
   glutInitWindowPosition(0, 0);
   glutInitWindowSize(width, height);
   
@@ -427,7 +433,10 @@ void draw()
   }
   
   glFlush();
+  
+#ifdef USE_DOUBLE_BUFFER
   glutSwapBuffers();
+#endif // USE_DOUBLE_BUFFER
 }
 
 
