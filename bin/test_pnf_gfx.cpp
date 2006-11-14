@@ -43,7 +43,7 @@
 
 #define USE_GL
 #undef USE_DEPTH_BUFFER
-#undef USE_DOUBLE_BUFFER
+#define USE_DOUBLE_BUFFER
 
 
 using namespace pnf;
