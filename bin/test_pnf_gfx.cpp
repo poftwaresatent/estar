@@ -265,7 +265,8 @@ void draw()
   if(m_config->paper){
     m_rob_lambda_view->PushProjection();
     if(4 > m_flowstep){
-      draw_grid_value(m_flow->GetEnvdist(), ColorScheme::Get(INVERTED_GREY));
+      draw_grid_value(m_flow->GetEnvdist(),
+		      ColorScheme::Get(INVERTED_GREY), true);
       draw_setup(false, false);
     }
     else{
@@ -283,7 +284,7 @@ void draw()
 	if(5 > m_flowstep){
 	  BOOST_ASSERT( 0 != m_flow->GetObjdist(m_config->dynobj[io].id));
 	  draw_grid_value(*m_flow->GetObjdist(m_config->dynobj[io].id),
-			  ColorScheme::Get(INVERTED_GREY));    
+			  ColorScheme::Get(INVERTED_GREY), true);
 	  draw_setup(false, false);
 	}
 	else{
@@ -329,7 +330,8 @@ void draw()
   else{
     if((0 <= m_flowstep) && (5 > m_flowstep)){
       m_envdist_view->PushProjection();
-      draw_grid_value(m_flow->GetEnvdist(), ColorScheme::Get(BLUE_GREEN_RED));
+      draw_grid_value(m_flow->GetEnvdist(),
+		      ColorScheme::Get(BLUE_GREEN_RED), true);
       draw_grid_queue(m_flow->GetEnvdist().GetGrid(),
 		      m_flow->GetEnvdist().GetAlgorithm());
       //       draw_grid_upwind(m_flow->GetEnvdist().GetGrid(),
@@ -424,7 +426,8 @@ void draw()
     }
     if(7 <= m_flowstep){
       m_pnf_value_view->PushProjection();
-      draw_grid_value(m_flow->GetPNF(), ColorScheme::Get(BLUE_GREEN_RED));
+      draw_grid_value(m_flow->GetPNF(),
+		      ColorScheme::Get(BLUE_GREEN_RED), true);
       draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
 		 m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
       draw_setup(false, false);

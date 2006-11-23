@@ -186,7 +186,7 @@ void draw()
     have_path = true;
   
   m_value_view->PushProjection();
-  draw_grid_value(*m_grid, *m_algo, ColorScheme::Get(BLUE_GREEN_RED));
+  draw_grid_value(*m_grid, *m_algo, ColorScheme::Get(BLUE_GREEN_RED), true);
   draw_grid_connect(*m_grid, *m_algo, 0.5, 0.5, 0.5, 1);
   draw_grid_queue(*m_grid, *m_algo);
   draw_grid_upwind(*m_grid, *m_algo, 1, 1, 1, 5);

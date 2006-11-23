@@ -61,10 +61,12 @@ namespace gfx {
   
   void draw_grid_value(const estar::Grid & grid,
 		       const estar::Algorithm & algo,
-		       const ColorScheme * colorscheme);
+		       const ColorScheme * colorscheme,
+		       bool auto_scale_value);
   
   void draw_grid_value(const estar::Facade & facade,
-		       const ColorScheme * colorscheme);
+		       const ColorScheme * colorscheme,
+		       bool auto_scale_value);
   
   void draw_grid_risk(const estar::Grid & grid,
 		      const estar::Algorithm & algo,

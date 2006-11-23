@@ -163,7 +163,8 @@ namespace gfx {
   
   
   void draw_grid_value(const Grid & grid, const Algorithm & algo,
-		       const ColorScheme * colorscheme)
+		       const ColorScheme * colorscheme,
+		       bool auto_scale_value)
   {
     if( ! colorscheme)
       return;
@@ -182,8 +183,12 @@ namespace gfx {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	const double vv(minval(get(value, grid.GetVertex(ix, iy)), delta));
-	colorscheme->Set(vv / delta);
+	if(auto_scale_value){
+	  const double vv(minval(get(value, grid.GetVertex(ix, iy)), delta));
+	  colorscheme->Set(vv / delta);
+	}
+	else
+	  colorscheme->Set(get(value, grid.GetVertex(ix, iy)));
 	double xc, yc;
 	tie(xc, yc) = pfunc(ix, iy);
 	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
@@ -368,11 +373,13 @@ namespace gfx {
   
   
   void draw_grid_value(const Facade & facade,
-		       const ColorScheme * colorscheme)
+		       const ColorScheme * colorscheme,
+		       bool auto_scale_value)
   {
     if( ! colorscheme)
       return;
-    draw_grid_value(facade.GetGrid(), facade.GetAlgorithm(), colorscheme);
+    draw_grid_value(facade.GetGrid(), facade.GetAlgorithm(),
+		    colorscheme, auto_scale_value);
   }
   
 
