@@ -179,6 +179,7 @@ namespace estar {
     double cy(robot_y);
     size_t ii;
     for(ii = 0; ii < maxsteps; ++ii){
+      const double value(facade.GetValue(ix, iy));
       double dx, dy, gx, gy;
       const int res(compute_stable_scaled_gradient(grid, ix, iy, stepsize,
 						   gx, gy, dx, dy));
@@ -187,12 +188,14 @@ namespace estar {
 				    cy * facade.scale,
 				    gx / facade.scale,
 				    gy / facade.scale,
+				    value,
 				    false));
       else
 	trace.push_back(carrot_item(cx * facade.scale,
 				    cy * facade.scale,
 				    dx / stepsize,
 				    dy / stepsize,
+				    value,
 				    true));
       cx -= dx;
       cy -= dy;
@@ -201,6 +204,10 @@ namespace estar {
       
       if(sqrt(square(robot_x - cx) + square(robot_y - cy)) >= distance){
 	PDEBUG("... >= distance");
+	break;
+      }
+      if(value <= stepsize){
+	PDEBUG("... value <= distance");
 	break;
       }
       
@@ -217,12 +224,14 @@ namespace estar {
 				    cy * facade.scale,
 				    gx / facade.scale,
 				    gy / facade.scale,
+				    facade.GetValue(ix, iy),
 				    false));
       else
 	trace.push_back(carrot_item(cx * facade.scale,
 				    cy * facade.scale,
 				    dx / stepsize,
 				    dy / stepsize,
+				    facade.GetValue(ix, iy),
 				    true));
     }
     

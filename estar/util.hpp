@@ -123,12 +123,13 @@ namespace estar {
      trace_carrot().
   */
   struct carrot_item {
-    carrot_item(double x, double y, double gx, double gy, bool dgn)
-      : cx(x), cy(y), gradx(gx), grady(gy), degenerate(dgn) {}
+    carrot_item(double x, double y, double gx, double gy, double val, bool dgn)
+      : cx(x), cy(y), gradx(gx), grady(gy), value(val), degenerate(dgn) {}
     double cx;			/**< carrot x-coordinate */
     double cy;			/**< carrot y-coordinate */
     double gradx;		/**< gradient at carrot, x-component */
     double grady;		/**< gradient at carrot, y-component */
+    double value;		/**< navigation function value */
     bool degenerate;		/**< degenerate gradient (used heuristic) */
   };
   
