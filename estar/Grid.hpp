@@ -92,6 +92,15 @@ namespace estar {
     size_t GetIndex(size_t ix, size_t iy) const
     { return ix + xsize * iy; }
     
+    /** The gradient is computed with an upwind formula. It does not
+	take into account neither the grid resolution nor the grid
+	frame. This requires information not available within the Grid
+	instance.
+
+	\todo This would be a good place for "ridge detection", to be
+	used in trace_carrot(). Check how many clients depend on this
+	before adding it though.
+    */
     bool ComputeGradient(size_t ix, size_t iy,
 			 double & gradx, double & grady) const;
     

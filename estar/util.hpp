@@ -98,6 +98,49 @@ namespace estar {
   
   
   /**
+     This is now implemented as a wrapper around trace_carrot().
+     
+     \note The carrot is computed in the grid frame of reference.
+     
+     \return
+       0 on success<br>
+       1 if distance wasn't reached after maxstep iterations
+      -1 if the robot is outside the grid<br>
+      -2 if the grid is a hexgrid (not implemented yet)
+      -3 trace_carrot() succeeded but the trace is emtpy (probably a bug)
+  */
+  int compute_carrot(const Facade & facade,
+		     double robot_x, double robot_y,
+		     double distance, double stepsize,
+		     size_t maxsteps,
+		     double & carrot_x, double & carrot_y,
+		     std::vector<std::pair<double, double> > * trace);
+  
+  
+  /**
+     An element of the 'trace' of the steepest gradient from a given
+     start position, used (pcked into a vector) as out-parameter for
+     trace_carrot().
+  */
+  struct carrot_item {
+    carrot_item(double x, double y, double gx, double gy, bool dgn)
+      : cx(x), cy(y), gradx(gx), grady(gy), degenerate(dgn) {}
+    double cx;			/**< carrot x-coordinate */
+    double cy;			/**< carrot y-coordinate */
+    double gradx;		/**< gradient at carrot, x-component */
+    double grady;		/**< gradient at carrot, y-component */
+    bool degenerate;		/**< degenerate gradient (used heuristic) */
+  };
+  
+  typedef std::vector<carrot_item> carrot_trace;
+  
+  
+  /**
+     Like (the original) compute_carrot(), but leaves a more richly
+     informed trace.
+     
+     \note The trace is computed in the grid frame of reference.
+     
      \return
        0 on success<br>
        1 if distance wasn't reached after maxstep iterations
@@ -110,12 +153,11 @@ namespace estar {
       obstacle. In such a case, one direction should be chosen at
       "random"!
   */
-  int compute_carrot(const Facade & facade,
-		     double robot_x, double robot_y,
-		     double distance, double stepsize,
-		     size_t maxsteps,
-		     double & carrot_x, double & carrot_y,
-		     std::vector<std::pair<double, double> > * trace);
+  int trace_carrot(const Facade & facade,
+		   double robot_x, double robot_y,
+		   double distance, double stepsize,
+		   size_t maxsteps,
+		   carrot_trace & trace);
   
 }
 

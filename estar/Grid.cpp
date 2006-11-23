@@ -164,7 +164,7 @@ namespace estar {
 	     have_x ? "TRUE" : "FALSE", have_y ? "TRUE" : "FALSE");
     return have_x && have_y;
     
-#else // UPWIND_GRADIENT
+#else // ! UPWIND_GRADIENT
     
     const double baseval(get(value_map, GetVertex(ix, iy)));
     gradx = 0;

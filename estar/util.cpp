@@ -38,7 +38,7 @@
 #endif
 
 
-using std::make_pair;
+using namespace std;
 
 
 namespace estar {
@@ -77,7 +77,74 @@ namespace estar {
 		     double distance, double stepsize,
 		     size_t maxsteps,
 		     double & carrot_x, double & carrot_y,
-		     std::vector<std::pair<double, double> > * trace)
+		     vector<pair<double, double> > * trace)
+  {
+    carrot_trace gtrace;
+    const int res(trace_carrot(facade, robot_x, robot_y, distance, stepsize,
+			       maxsteps, gtrace));
+    if(0 > res)
+      return res;
+    if(gtrace.empty())
+      return -3;
+    carrot_x = gtrace.back().cx;
+    carrot_y = gtrace.back().cy;
+    if(0 == trace)
+      return res;
+    trace->clear();
+    for(size_t ii(0); ii < gtrace.size(); ++ii)
+      trace->push_back(make_pair(gtrace[ii].cx, gtrace[ii].cy));
+    return res;
+  }
+  
+  
+  // maybe one day make it accessible from outside... but some
+  // unstated preconditions!
+  static int compute_stable_scaled_gradient(const Grid & grid,
+					    size_t ix, size_t iy,
+					    double stepsize,
+					    /** only valid if return 0 */
+					    double & gx,
+					    /** only valid if return 0 */
+					    double & gy,
+					    /** always valid */
+					    double & dx,
+					    /** always valid */
+					    double & dy)
+  {
+    dx = 0;
+    dy = 0;
+    gx = 0;			// redundant with Grid::ComputeGradient()
+    gy = 0;			// but prudent about future changes
+    const bool ok(grid.ComputeGradient(ix, iy, gx, gy));
+    bool heur(false);
+    if(ok){
+      const double alpha(stepsize / (sqrt(square(gx) + square(gy))));
+      if(alpha < epsilon)
+	heur = true;
+      else{
+	dx = gx * alpha;
+	dy = gy * alpha;
+      }
+    }
+    if(heur || ( ! ok)){
+      if(gx > 0)      dx =   stepsize / 2;
+      else if(gx < 0) dx = - stepsize / 2;
+      if(gy > 0)      dy =   stepsize / 2;
+      else if(gy < 0) dy = - stepsize / 2;
+    }
+    if( ! ok)
+      return 1;
+    if(heur)
+      return 2;
+    return 0;
+  }
+  
+  
+  int trace_carrot(const Facade & facade,
+		   double robot_x, double robot_y,
+		   double distance, double stepsize,
+		   size_t maxsteps,
+		   carrot_trace & trace)
   {
     PDEBUG("(%g   %g)   d: %g   s: %g   N: %lu\n",
 	   robot_x, robot_y, distance, stepsize, maxsteps);
@@ -107,51 +174,63 @@ namespace estar {
     const size_t max_ix(grid.GetXSize() - 1);
     const size_t max_iy(grid.GetYSize() - 1);
     
-    carrot_x = robot_x;
-    carrot_y = robot_y;
+    trace.clear();
+    double cx(robot_x);		// carrot
+    double cy(robot_y);
     size_t ii;
     for(ii = 0; ii < maxsteps; ++ii){
-      double gx, gy;
-      const bool ok(grid.ComputeGradient(ix, iy, gx, gy));
-      bool heur(false);
-      if(ok){
-	const double scale(stepsize / (sqrt(square(gx) + square(gy))));
-	if(scale < epsilon)
-	  heur = true;
-	else{
-	  carrot_x -= gx * scale;
-	  carrot_y -= gy * scale;
-	}
-      }
-      if(heur || ( ! ok)){
-	if(gx > 0)      carrot_x -= stepsize / 2;
-	else if(gx < 0) carrot_x += stepsize / 2;
-	if(gy > 0)      carrot_y -= stepsize / 2;
-	else if(gy < 0) carrot_y += stepsize / 2;
-      }
-      ix = boundval<size_t>(0, static_cast<size_t>(rint(carrot_x)), max_ix);
-      iy = boundval<size_t>(0, static_cast<size_t>(rint(carrot_y)), max_iy);
+      double dx, dy, gx, gy;
+      const int res(compute_stable_scaled_gradient(grid, ix, iy, stepsize,
+						   gx, gy, dx, dy));
+      if(0 == res)
+	trace.push_back(carrot_item(cx * facade.scale,
+				    cy * facade.scale,
+				    gx / facade.scale,
+				    gy / facade.scale,
+				    false));
+      else
+	trace.push_back(carrot_item(cx * facade.scale,
+				    cy * facade.scale,
+				    dx / stepsize,
+				    dy / stepsize,
+				    true));
+      cx -= dx;
+      cy -= dy;
       PDEBUG("(%g   %g) ==> (%g   %g)%s\n",
-	     gx, gy, carrot_x, carrot_y,
-	     (heur || ( ! ok)) ? "[heuristic]" : "");
+	     dx, dy, cx, cy, (heur || ( ! ok)) ? "[heuristic]" : "");
       
-      if(0 != trace)
-	trace->push_back(make_pair(carrot_x * facade.scale,
-				   carrot_y * facade.scale));
-      
-      if(sqrt(square(robot_x-carrot_x)+square(robot_y-carrot_y)) >= distance){
+      if(sqrt(square(robot_x - cx) + square(robot_y - cy)) >= distance){
 	PDEBUG("... >= distance");
 	break;
       }
+      
+      ix = boundval<size_t>(0, static_cast<size_t>(rint(cx)), max_ix);
+      iy = boundval<size_t>(0, static_cast<size_t>(rint(cy)), max_iy);
     }
-    carrot_x *= facade.scale;
-    carrot_y *= facade.scale;
+    // add final point to the trace
+    {
+      double dx, dy, gx, gy;
+      const int res(compute_stable_scaled_gradient(grid, ix, iy, stepsize,
+						   gx, gy, dx, dy));
+      if(0 == res)
+	trace.push_back(carrot_item(cx * facade.scale,
+				    cy * facade.scale,
+				    gx / facade.scale,
+				    gy / facade.scale,
+				    false));
+      else
+	trace.push_back(carrot_item(cx * facade.scale,
+				    cy * facade.scale,
+				    dx / stepsize,
+				    dy / stepsize,
+				    true));
+    }
     
     if(ii >= maxsteps){
       PDEBUG("WARNING (ii >= maxsteps)\n");
       return 1;
     }
-    PDEBUG("success: %g   %g\n", carrot_x, carrot_y);
+    PDEBUG("success: %g   %g\n", cx * facade.scale, cy * facade.scale);
     return 0;
   }
   
