@@ -179,17 +179,11 @@ subdirs:
 	- mkdir estar gfx pnf bin
 	echo "subdirs created `date`" > subdirs
 
-install:: $(LIB)
+install: $(LIB) estar.pc $(HEADERS) $(GLUTHEADERS)
 	$(MKINSTALLDIRS) $(LIBDIR)
 	$(LIBTOOL) --mode=install $(INSTALL) $(LIB) $(LIBDIR)
-	echo "installed `date`" > install
-
-install:: estar.pc
 	$(MKINSTALLDIRS) $(LIBDIR)/pkgconfig
 	$(INSTALL) estar.pc $(LIBDIR)/pkgconfig
-	echo "installed `date`" > install
-
-install:: $(HEADERS) $(GLUTHEADERS)
 	for header in $(HEADERS) $(GLUTHEADERS); do \
 	  subdir=`dirname $$header`; \
 	  $(MKINSTALLDIRS) $(INCLUDEDIR)/$$subdir; \
