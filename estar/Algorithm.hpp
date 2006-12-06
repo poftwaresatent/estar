@@ -55,6 +55,10 @@ namespace estar {
 	then has a reasonable meta? */
     void RemoveGoal(vertex_t vertex);
     
+    /** \todo PLEASE TEST ME! And: How to make sure that the vertex
+	then has a reasonable meta? */
+    void RemoveAllGoals();
+    
     bool IsGoal(vertex_t vertex) const;
 
     void SetMeta(vertex_t vertex, double meta, const Kernel & kernel);

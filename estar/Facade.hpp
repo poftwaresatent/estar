@@ -61,6 +61,10 @@ namespace estar {
 			   int connect_diagonal,
 			   FILE * dbgstream);
     
+    static Facade * CreateDefault(size_t xsize,
+				  size_t ysize,
+				  double scale);
+    
     double GetFreespaceMeta() const;
     double GetObstacleMeta() const;
     double GetValue(size_t ix, size_t iy) const;
@@ -68,6 +72,7 @@ namespace estar {
     void SetMeta(size_t ix, size_t iy, double meta);
     void AddGoal(size_t ix, size_t iy, double value);
     void RemoveGoal(size_t ix, size_t iy);
+    void RemoveAllGoals();
     bool IsGoal(size_t ix, size_t iy) const;
     
     bool HaveWork() const;

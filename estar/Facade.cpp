@@ -92,6 +92,18 @@ namespace estar {
   }
   
   
+  Facade * Facade::
+  CreateDefault(size_t xsize,
+		size_t ysize,
+		double scale)
+  {
+    Algorithm * algo(new Algorithm());
+    Grid * grid(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
+    Kernel * kernel(new LSMKernel(*grid, scale));
+    return new Facade(algo, grid, kernel, scale);
+  }
+  
+  
   double Facade::
   GetFreespaceMeta()
     const
@@ -142,6 +154,13 @@ namespace estar {
   RemoveGoal(size_t ix, size_t iy)
   {
     m_algo->RemoveGoal(m_grid->GetVertex(ix, iy));
+  }
+
+
+  void Facade::
+  RemoveAllGoals()
+  {
+    m_algo->RemoveAllGoals();
   }
   
   

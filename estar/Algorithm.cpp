@@ -198,6 +198,18 @@ namespace estar {
   }
   
   
+  void Algorithm::
+  RemoveAllGoals()
+  {
+    if(m_goalset.empty())
+      return;
+    for(goalset_t::iterator ig(m_goalset.begin()); ig != m_goalset.end(); ++ig)
+      put(m_flag, *ig, NONE);
+    m_goalset.clear();
+    m_pending_reset = true;
+  }
+  
+  
   bool Algorithm::
   IsGoal(vertex_t vertex)
     const
