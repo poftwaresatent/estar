@@ -186,11 +186,6 @@ namespace pnf {
     boost::scoped_ptr<estar::array<double> > m_risk;
     double m_max_risk;
     
-    /** \todo do something like this in estar::Facade API */
-    static void DoAddGoal(estar::Facade & facade, const estar::Region & goal);
-    static void DoRemoveGoal(estar::Facade & facade,
-			     const estar::Region & goal);
-    
     bool CompIndices(double x, double y, size_t & ix, size_t & iy) const;
     estar::Facade * GetObjdist(size_t id, FILE * verbose_stream) const;
 

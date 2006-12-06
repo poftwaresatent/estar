@@ -198,9 +198,6 @@ namespace pnf {
     else
       io->second = obj;
     
-    // do this in MapEnvdist() to keep goal out of obstacles:
-    //   DoAddGoal(*obj->dist, *obj->region);
-    
     return true;
   }
   
@@ -228,9 +225,6 @@ namespace pnf {
     BOOST_ASSERT( dist );
     const double robot_radius(r + half_diagonal);
     m_robot.reset(new Robot(robot_radius, v, region, dist, xsize, ysize));
-    
-    // do this in MapEnvdist() to keep goal out of obstacles:
-    //   DoAddGoal(*m_robot->dist, *m_robot->region);
     
     return true;
   }
@@ -289,7 +283,7 @@ namespace pnf {
 	else
 	  robalgo.SetMeta(robgrid.GetVertex(iv), obstacle, robkernel);
       // set robot goal, this will skip obstacles
-      DoAddGoal(*m_robot->dist, *m_robot->region);
+      m_robot->dist->AddGoal(*m_robot->region);
     }
     
     { // Object obstacles:
@@ -305,7 +299,7 @@ namespace pnf {
 	  else
 	    objalgo.SetMeta(objgrid.GetVertex(iv), obstacle, objkernel);
 	// set object goal, this will skip obstacles
-	DoAddGoal(objdist, *io->second->region);
+	objdist.AddGoal(*io->second->region);
       }
     }
   }
@@ -567,7 +561,7 @@ namespace pnf {
     
     // this is a bit of a hack that depend on the exact call order
     BOOST_ASSERT( m_goal );
-    DoAddGoal(*m_pnf, *m_goal);
+    m_pnf->AddGoal(*m_goal);
   }
   
   
@@ -636,15 +630,13 @@ namespace pnf {
   SetGoal(double x, double y, double r)
   {
     if(m_goal)
-      DoRemoveGoal(*m_pnf, *m_goal);
+      m_pnf->RemoveGoal(*m_goal);
     scoped_ptr<Region> goal(new Region(r, resolution, x, y, xsize, ysize));
     if(goal->GetArea().empty()){
       PDEBUG("WARNING: empty goal area, treated like invalid goal!\n");
       m_goal.reset();
       return false;
     }
-    // do this in ComputeRisk() to keep goal out of obstacles:
-    //    DoAddGoal(*m_pnf, *goal);
     m_goal.swap(goal);
     return true;
   }
@@ -856,26 +848,6 @@ namespace pnf {
       return false;
     iy = static_cast<size_t>(rint(y / resolution));
     return iy < ysize;
-  }
-
-
-  void Flow::
-  DoAddGoal(Facade & facade, const Region & goal)
-  {
-    const double obstacle(facade.GetObstacleMeta());
-    for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
-	in != goal.GetArea().end(); ++in)
-      if(facade.GetMeta(in->x, in->y) != obstacle)
-	facade.AddGoal(in->x, in->y, in->r);
-  }
-  
-  
-  void Flow::
-  DoRemoveGoal(Facade & facade, const Region & goal)
-  {
-    for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
-	in != goal.GetArea().end(); ++in)
-      facade.RemoveGoal(in->x, in->y);
   }
   
 }

@@ -34,6 +34,7 @@ namespace estar {
   class Algorithm;
   class Grid;
   class Kernel;
+  class Region;
 
   
   /**
@@ -70,8 +71,21 @@ namespace estar {
     double GetValue(size_t ix, size_t iy) const;
     double GetMeta(size_t ix, size_t iy) const;
     void SetMeta(size_t ix, size_t iy, double meta);
+    
+    /**
+       \note Unlike AddGoal(const Region &), obstacle vertices are not
+       ignored.
+    */
     void AddGoal(size_t ix, size_t iy, double value);
+    
+    /**
+       \note Ignores obstacles [vertices with meta equal to
+       GetObstacleMeta()].
+    */
+    void AddGoal(const Region & goal);
+    
     void RemoveGoal(size_t ix, size_t iy);
+    void RemoveGoal(const Region & goal);
     void RemoveAllGoals();
     bool IsGoal(size_t ix, size_t iy) const;
     

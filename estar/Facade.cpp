@@ -25,6 +25,7 @@
 #include "AlphaKernel.hpp"
 #include "LSMKernel.hpp"
 #include "dump.hpp"
+#include "Region.hpp"
 
 
 #ifdef DEBUG
@@ -151,12 +152,35 @@ namespace estar {
   
   
   void Facade::
+  AddGoal(const Region & goal)
+  {
+    const double obstacle(m_kernel->obstacle_meta);
+    const meta_map_t & meta_map(m_algo->GetMetaMap());
+    for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
+	in != goal.GetArea().end(); ++in){
+      const vertex_t vertex(m_grid->GetVertex(in->x, in->y));
+      if(get(meta_map, vertex) != obstacle)
+	m_algo->AddGoal(vertex, in->r);
+    }
+  }
+  
+  
+  void Facade::
   RemoveGoal(size_t ix, size_t iy)
   {
     m_algo->RemoveGoal(m_grid->GetVertex(ix, iy));
   }
 
 
+  void Facade::
+  RemoveGoal(const Region & goal)
+  {
+    for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
+	in != goal.GetArea().end(); ++in)
+      m_algo->RemoveGoal(m_grid->GetVertex(in->x, in->y));
+  }
+  
+  
   void Facade::
   RemoveAllGoals()
   {
