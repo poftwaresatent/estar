@@ -96,6 +96,8 @@ namespace estar {
 	take into account neither the grid resolution nor the grid
 	frame. This requires information not available within the Grid
 	instance.
+	
+	\return true if we got upwind-components for both x and y.
 
 	\todo This would be a good place for "ridge detection", to be
 	used in trace_carrot(). Check how many clients depend on this
