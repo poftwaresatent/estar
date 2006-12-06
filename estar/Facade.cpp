@@ -145,6 +145,13 @@ namespace estar {
   
   
   void Facade::
+  InitMeta(size_t ix, size_t iy, double meta)
+  {
+    m_algo->InitMeta(m_grid->GetVertex(ix, iy), meta);
+  }
+  
+  
+  void Facade::
   AddGoal(size_t ix, size_t iy, double value)
   {
     m_algo->AddGoal(m_grid->GetVertex(ix, iy), value);

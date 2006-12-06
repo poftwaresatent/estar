@@ -73,6 +73,12 @@ namespace estar {
     void SetMeta(size_t ix, size_t iy, double meta);
     
     /**
+       ONLY during initialization! Contrary to SetMeta(), it doesn't
+       trigger any replanning.
+    */
+    void InitMeta(size_t ix, size_t iy, double meta);
+    
+    /**
        \note Unlike AddGoal(const Region &), obstacle vertices are not
        ignored.
     */
