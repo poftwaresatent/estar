@@ -93,6 +93,8 @@ namespace estar {
   void dump_queue(const Algorithm & algo, const Grid * grid, size_t limit,
 		  FILE * stream);
   
+  void dump_queue(const Facade & facade, size_t limit, FILE * stream);
+  
   
   void dump_grid(const Grid & grid, FILE * stream);
   void dump_grid_range(const Grid & grid,

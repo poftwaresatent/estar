@@ -183,6 +183,12 @@ namespace estar {
   }
   
   
+  void dump_queue(const Facade & facade, size_t limit, FILE * stream)
+  {
+    dump_queue(facade.GetAlgorithm(), &facade.GetGrid(), limit, stream);
+  }
+  
+  
   static void linesep(const Grid & grid, FILE * stream,
 		      size_t ix0, size_t ix1,
 		      const char * prefix, const char * high)
