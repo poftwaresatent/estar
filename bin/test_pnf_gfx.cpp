@@ -21,7 +21,6 @@
 #include <pnf/Flow.hpp>
 #include <pnf/BufferZone.hpp>
 #include <pnf/PNFRiskMap.hpp>
-#include <pnf/RobotShape.hpp>
 #include <gfx/Viewport.hpp>
 #include <gfx/MetaMousehandler.hpp>
 #include <gfx/wrap_glu.hpp>
@@ -35,6 +34,7 @@
 #include <estar/Facade.hpp>
 #include <estar/check.hpp>
 #include <estar/dump.hpp>
+#include <estar/Region.hpp>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <fstream>
@@ -1146,7 +1146,7 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
   }
   glPopMatrix();
   if(plotreg && m_flow){
-    const pnf::Region * goal(m_flow->GetGoal());
+    const Region * goal(m_flow->GetGoal());
     if(goal)
       draw_region(*goal, goal_r, goal_g, goal_b);
   }
@@ -1162,7 +1162,7 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
   }
   glPopMatrix();
   if(plotreg && m_flow){
-    const pnf::Region * robot(m_flow->GetRobot());
+    const Region * robot(m_flow->GetRobot());
     if(robot)
       draw_region(*robot, robot_r, robot_g, robot_b);
   }
@@ -1178,7 +1178,7 @@ void draw_setup(double wall_r, double wall_g, double wall_b,
     gluDisk(wrap_glu_quadric_instance(), rad, rad, 36, 1);
     glPopMatrix();
     if(plotreg && m_flow){
-      const pnf::Region * region(m_flow->GetRegion(m_config->dynobj[io].id));
+      const Region * region(m_flow->GetRegion(m_config->dynobj[io].id));
       if(region)
 	draw_region(*region, object_r, object_g, object_b);
     }
