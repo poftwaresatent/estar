@@ -65,10 +65,11 @@ CXXSRCS=        estar/Algorithm.cpp \
 		estar/Queue.cpp \
 		estar/Upwind.cpp \
 		estar/util.cpp \
+		estar/Sprite.cpp \
+		estar/Region.cpp \
 		pnf/BufferZone.cpp \
 		pnf/Flow.cpp \
 		pnf/PNFRiskMap.cpp \
-		pnf/RobotShape.cpp \
                 bin/Getopt.cpp
 
 #@glut@ expands to GLUT or NOGLUT depending on configure script
@@ -95,11 +96,12 @@ HEADERS=        estar/Algorithm.hpp \
 		estar/RiskMap.hpp \
 		estar/Upwind.hpp \
 		estar/util.hpp \
+		estar/Sprite.hpp \
+		estar/Region.hpp \
 		pnf/BufferZone.hpp \
 		pnf/Flow.hpp \
 		pnf/pnf_cooc.h \
 		pnf/PNFRiskMap.hpp \
-		pnf/RobotShape.hpp \
                 bin/Getopt.hpp
 
 @glut@HEADERS=  gfx/MetaMousehandler.hpp \
@@ -120,7 +122,7 @@ BIN_CXXSRC=     bin/test_pnf_riskmap.cpp \
 		bin/test_dbg_opt.cpp \
 		bin/test_fake_os.cpp \
 		bin/test_estar_queue.cpp \
-		bin/test_pnf_shape.cpp
+		bin/test_shape.cpp
 BIN_CXXOBJS=    $(BIN_CXXSRC:%.cpp=%.o)
 
 @glut@BIN_SRC=  bin/test_pnf_gfx.cpp \

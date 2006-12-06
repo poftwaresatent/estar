@@ -27,6 +27,7 @@
 #include <estar/Kernel.hpp>
 #include <estar/Facade.hpp>
 #include <estar/Upwind.hpp>
+#include <estar/Region.hpp>
 #include <boost/shared_ptr.hpp>
 
 
@@ -538,4 +539,16 @@ namespace gfx {
 	   grid.xsize, grid.ysize, x0, y0, x1, y1);
   }
   
+  
+  void draw_region(const estar::Region & region,
+		   double red, double green, double blue)
+  {
+    glColor3d(red, green, blue);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1);
+    const Region::indexlist_t & area(region.GetArea());
+    for(size_t ia(0); ia < area.size(); ++ia)
+      glRectd(area[ia].x, area[ia].y, area[ia].x + 1, area[ia].y + 1);
+  }
+
 }

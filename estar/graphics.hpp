@@ -33,6 +33,7 @@ namespace estar {
   class Algorithm;
   class RiskMap;
   class Kernel;
+  class Region;
   
 }
 
@@ -116,6 +117,9 @@ namespace gfx {
   
   void get_grid_bbox(const estar::Facade & facade,
 		     double & x0, double & y0, double & x1, double & y1);
+  
+  void draw_region(const estar::Region & region,
+		   double red, double green, double blue);
   
 }
 

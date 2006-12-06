@@ -24,7 +24,6 @@
 
 #include "Flow.hpp"
 #include "pnf_cooc.h"
-#include "RobotShape.hpp"
 #include "BufferZone.hpp"
 #include <estar/RiskMap.hpp>
 #include <estar/numeric.hpp>
@@ -33,6 +32,7 @@
 #include <estar/Grid.hpp>
 #include <estar/Kernel.hpp>
 #include <estar/dump.hpp>
+#include <estar/Region.hpp>
 #include <iostream>
 #include <cmath>
 
@@ -56,8 +56,8 @@
 #include <boost/assert.hpp>
 
 
-using pnf::Region;
-using pnf::Sprite;
+using estar::Region;
+using estar::Sprite;
 using estar::Facade;
 using estar::square;
 using estar::minval;

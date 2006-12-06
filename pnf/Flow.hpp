@@ -36,6 +36,8 @@
 namespace estar {
   class Facade;
   class RiskMap;
+  class Sprite;
+  class Region;
 }
 
 
@@ -48,8 +50,6 @@ namespace local {
 namespace pnf {
   
   
-  class Sprite;
-  class Region;
   class BufferZone;
   
 
@@ -125,13 +125,13 @@ namespace pnf {
     { return GetObjdist(id, 0); }
     
     /** \return 0 if invalid id */
-    const pnf::Region * GetRegion(size_t id) const;
+    const estar::Region * GetRegion(size_t id) const;
     
     /** \return 0 if invalid */
-    const pnf::Region * GetGoal() const { return m_goal.get(); }
+    const estar::Region * GetGoal() const { return m_goal.get(); }
     
     /** \return 0 if invalid */
-    const pnf::Region * GetRobot() const;
+    const estar::Region * GetRobot() const;
     
     /** \return 0 if no robot defined */
     const estar::Facade * GetRobdist() const;
@@ -177,7 +177,7 @@ namespace pnf {
     boost::scoped_ptr<local::Robot>   m_robot;
     objectmap_t                       m_object;
     boost::scoped_ptr<estar::Facade>  m_pnf;
-    boost::scoped_ptr<Region>         m_goal;
+    boost::scoped_ptr<estar::Region>  m_goal;
     
     boost::scoped_ptr<estar::array<double> > m_env_cooc;
     double m_max_env_cooc;
@@ -187,8 +187,9 @@ namespace pnf {
     double m_max_risk;
     
     /** \todo do something like this in estar::Facade API */
-    static void DoAddGoal(estar::Facade & facade, const Region & goal);
-    static void DoRemoveGoal(estar::Facade & facade, const Region & goal);
+    static void DoAddGoal(estar::Facade & facade, const estar::Region & goal);
+    static void DoRemoveGoal(estar::Facade & facade,
+			     const estar::Region & goal);
     
     bool CompIndices(double x, double y, size_t & ix, size_t & iy) const;
     estar::Facade * GetObjdist(size_t id, FILE * verbose_stream) const;
