@@ -111,6 +111,7 @@ namespace estar {
     const double rhs(get(m_rhs, vertex));
 
     if(get(m_value, vertex) > rhs){
+      PDEBUG("vertex gets lowered, propagate to all neighbors\n");
       put(m_value, vertex, rhs);
       m_last_computed = make_pair(vertex, rhs);
       adjacency_it in, nend;
@@ -120,6 +121,7 @@ namespace estar {
     }
     
     else if(get(m_value, vertex) < rhs){
+      PDEBUG("vertex gets raised, propagate to (some) neighbors\n");
       put(m_value, vertex, infinity);
       m_last_computed = make_pair(vertex, rhs);
       
