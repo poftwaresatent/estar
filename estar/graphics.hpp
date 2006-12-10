@@ -109,6 +109,10 @@ namespace gfx {
 			double red, double green, double blue,
 			double linewidth);
   
+  void draw_grid_upwind(const estar::Facade & facade,
+			double red, double green, double blue,
+			double linewidth);
+  
   void draw_grid_connect(const estar::Grid & grid,
 			 const estar::Algorithm & algo,
 			 double red, double green, double blue,

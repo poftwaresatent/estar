@@ -455,6 +455,15 @@ namespace gfx {
   }
   
   
+  void draw_grid_upwind(const estar::Facade & facade,
+			double red, double green, double blue,
+			double linewidth)
+  {
+    draw_grid_upwind(facade.GetGrid(), facade.GetAlgorithm(),
+		     red, green, blue, linewidth);
+  }
+  
+  
   void draw_grid_upwind(const Grid & grid,
 			const Algorithm & algo,
 			double red, double green, double blue,
