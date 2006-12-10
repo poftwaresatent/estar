@@ -102,6 +102,8 @@ namespace gfx {
   void draw_grid_queue(const estar::Grid & grid,
 		       const estar::Algorithm & algo);
   
+  void draw_grid_queue(const estar::Facade & facade);
+  
   void draw_grid_upwind(const estar::Grid & grid,
 			const estar::Algorithm & algo,
 			double red, double green, double blue,

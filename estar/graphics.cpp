@@ -137,7 +137,8 @@ namespace gfx {
   
   static pair<double, double> p_cartesian(double ix, double iy)
   {
-    return make_pair(ix + 0.5, iy + 0.5);
+    //    return make_pair(ix + 0.5, iy + 0.5);
+    return make_pair(ix, iy);
   }
   
   static pair<double, double> p_hexgrid(double ix, double iy)
@@ -448,6 +449,12 @@ namespace gfx {
   }
   
   
+  void draw_grid_queue(const estar::Facade & facade)
+  {
+    draw_grid_queue(facade.GetGrid(), facade.GetAlgorithm());
+  }
+  
+  
   void draw_grid_upwind(const Grid & grid,
 			const Algorithm & algo,
 			double red, double green, double blue,
@@ -508,7 +515,7 @@ namespace gfx {
   void get_grid_bbox(const estar::Facade & facade,
 		     double & x0, double & y0, double & x1, double & y1)
   {
-    get_grid_bbox(facade.GetGrid(), x0, y0, x1, y1);
+    get_grid_bbox(facade.GetGrid() , x0, y0, x1, y1);
   }
   
   
@@ -518,10 +525,14 @@ namespace gfx {
     switch(grid.connect){
     case FOUR_CONNECTED:
     case EIGHT_CONNECTED:
-      x0 = 0;
-      y0 = 0;
-      x1 = grid.xsize;
-      y1 = grid.ysize;
+//       x0 = 0;
+//       y0 = 0;
+//       x1 = grid.xsize;
+//       y1 = grid.ysize;
+      x0 = -0.5;
+      y0 = -0.5;
+      x1 = grid.xsize - 0.5;
+      y1 = grid.ysize - 0.5;
       break;
     case HEX_GRID:
       x0 = 0;
