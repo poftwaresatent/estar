@@ -22,8 +22,6 @@
 #include <estar/util.hpp>
 
 
-namespace local {
-  
 #ifdef DEBUG
 # define ESTAR_UPWIND_DEBUG
 #else
@@ -38,14 +36,12 @@ namespace local {
 #  define PVDEBUG PDEBUG_OFF
 # endif
 # include <sstream>
-  typedef std::ostringstream debugstream;
+namespace local { typedef std::ostringstream debugstream; }
 #else
 # define PDEBUG PDEBUG_OFF
 # define PVDEBUG PDEBUG_OFF
-  typedef estar::fake_os debugstream;
+namespace local { typedef estar::fake_os debugstream; }
 #endif
-  
-}
 
 using namespace local;
 

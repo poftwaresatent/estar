@@ -24,8 +24,6 @@
 #include <estar/util.hpp>
 
 
-namespace local {
-  
 #ifdef DEBUG
 # define ESTAR_ALPHA_KERNEL_DEBUG
 #else
@@ -35,13 +33,11 @@ namespace local {
 #ifdef ESTAR_ALPHA_KERNEL_DEBUG
 # define PDEBUG PDEBUG_OUT
 # include <sstream>
-  typedef std::ostringstream debugstream;
+namespace local { typedef std::ostringstream debugstream; }
 #else
 # define PDEBUG PDEBUG_OFF
-  typedef estar::fake_os debugstream;
+namespace local { typedef estar::fake_os debugstream; }
 #endif
-
-}
 
 using namespace local;
 

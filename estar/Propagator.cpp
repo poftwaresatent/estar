@@ -22,8 +22,6 @@
 #include "Upwind.hpp"
 #include <estar/util.hpp>
 
-
-namespace local {
   
 #ifdef DEBUG
 # define ESTAR_PROPAGATOR_DEBUG
@@ -34,13 +32,12 @@ namespace local {
 #ifdef ESTAR_PROPAGATOR_DEBUG
 # define PDEBUG PDEBUG_OUT
 # include <sstream>
-  typedef std::ostringstream debugstream;
+namespace local { typedef std::ostringstream debugstream; }
 #else
 # define PDEBUG PDEBUG_OFF
-  typedef estar::fake_os debugstream;
+namespace local { typedef estar::fake_os debugstream; }
 #endif
-  
-}
+
 
 using namespace local;
 using std::make_pair;

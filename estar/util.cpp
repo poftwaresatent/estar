@@ -200,7 +200,7 @@ namespace estar {
       cx -= dx;
       cy -= dy;
       PDEBUG("(%g   %g) ==> (%g   %g)%s\n",
-	     dx, dy, cx, cy, (heur || ( ! ok)) ? "[heuristic]" : "");
+	     dx, dy, cx, cy, (0 != res) ? "[heuristic]" : "");
       
       if(sqrt(square(robot_x - cx) + square(robot_y - cy)) >= distance){
 	PDEBUG("... >= distance");
