@@ -35,9 +35,9 @@ LTCC=		$(LIBTOOL) --mode=compile $(CC)
 LTCXX=		$(LIBTOOL) --mode=compile $(CXX)
 LTLD=		$(LIBTOOL) --mode=link $(CXX)
 
-CPPFLAGS=       @CPPFLAGS@ @BOOST_CPPFLAGS@ -I$(top_srcdir)
-CFLAGS=         @CFLAGS@ @BOOST_CPPFLAGS@ $(CPPFLAGS)
-CXXFLAGS=       @CXXFLAGS@ @BOOST_CPPFLAGS@ $(CPPFLAGS)
+CPPFLAGS=       -I$(top_srcdir) @CPPFLAGS@
+CFLAGS=         $(CPPFLAGS) @CFLAGS@
+CXXFLAGS=       $(CPPFLAGS) @CXXFLAGS@
 
 #@glut@ expands to GLUT or NOGLUT depending on configure script
 @glut@LIBS=     @GFXLIBS@
