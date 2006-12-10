@@ -26,7 +26,7 @@
 using std::make_pair;
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_QUEUE_DEBUG
 #else
 # undef ESTAR_QUEUE_DEBUG

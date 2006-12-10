@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_UTIL_DEBUG
 #else
 # undef ESTAR_UTIL_DEBUG

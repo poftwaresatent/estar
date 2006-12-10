@@ -23,7 +23,7 @@
 #include <estar/util.hpp>
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_GRID_DEBUG
 #else
 # undef ESTAR_GRID_DEBUG

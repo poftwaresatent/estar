@@ -31,7 +31,7 @@
 #include <boost/shared_ptr.hpp>
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_GRAPHICS_DEBUG
 #else
 # undef ESTAR_GRAPHICS_DEBUG

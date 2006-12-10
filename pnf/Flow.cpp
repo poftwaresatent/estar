@@ -37,12 +37,12 @@
 #include <cmath>
 
 // tmp manual override
-#define DEBUG
-#ifdef DEBUG
+#define ESTAR_DEBUG
+#ifdef ESTAR_DEBUG
 # define PNF_FLOW_DEBUG
-#else // DEBUG
+#else // ESTAR_DEBUG
 # undef PNF_FLOW_DEBUG
-#endif // DEBUG
+#endif // ESTAR_DEBUG
 
 #ifdef PNF_FLOW_DEBUG
 # define PDEBUG PDEBUG_OUT

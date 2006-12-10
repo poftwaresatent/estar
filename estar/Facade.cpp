@@ -28,7 +28,7 @@
 #include "Region.hpp"
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_FACADE_DEBUG
 #else
 # undef ESTAR_FACADE_DEBUG

@@ -3436,7 +3436,7 @@ CFLAGS="-Wall -pipe"
 
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then
-  enableval=$enable_debug;  CPPFLAGS="-DDEBUG"
+  enableval=$enable_debug;  CPPFLAGS="-DESTAR_DEBUG"
     CFLAGS="$CFLAGS -g -O0"
 else
    CPPFLAGS=""

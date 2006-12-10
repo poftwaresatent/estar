@@ -2,8 +2,7 @@
 
 #include <estar/util.hpp>
 
-#undef DEBUG
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # include <sstream>
 using std::ostringstream;
 # define PDEBUG PDEBUG_OUT
@@ -13,11 +12,11 @@ using std::ostringstream;
 
 int main(int argc, char ** argv)
 {
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
   ostringstream dbg;
-#else // DEBUG
+#else // ! ESTAR_DEBUG
   estar::fake_os dbg;
-#endif // DEBUG
+#endif // ESTAR_DEBUG
   
   dbg << "a debug message with number " << 42 << " and some blah";
   PDEBUG("here comes the debug string \"%s\"\n", dbg.str().c_str());

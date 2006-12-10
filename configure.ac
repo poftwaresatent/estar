@@ -12,7 +12,7 @@ CFLAGS="-Wall -pipe"
 
 AC_ARG_ENABLE(debug,
   AC_HELP_STRING([--enable-debug], [GCC options -g -O0 (else -O3)]),
-  [ CPPFLAGS="-DDEBUG"
+  [ CPPFLAGS="-DESTAR_DEBUG"
     CFLAGS="$CFLAGS -g -O0" ],
   [ CPPFLAGS=""
     CFLAGS="$CFLAGS -O3" ])

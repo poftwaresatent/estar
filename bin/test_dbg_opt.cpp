@@ -3,8 +3,8 @@
 #include <estar/util.hpp>
 #include <iostream>
 
-#undef DEBUG
-#ifdef DEBUG
+#undef ESTAR_DEBUG
+#ifdef ESTAR_DEBUG
 # define PDEBUG PDEBUG_OUT
 #else
 # define PDEBUG PDEBUG_OFF
@@ -12,9 +12,9 @@
 
 static int side_effect(int foo)
 {
-#ifndef DEBUG
-  PDEBUG_OUT("Dang, side_effect() called even though DEBUG not defined!\n");
-#endif // DEBUG
+#ifndef ESTAR_DEBUG
+  PDEBUG_OUT("Dang, side_effect() even though ESTAR_DEBUG not defined!\n");
+#endif // ESTAR_DEBUG
   return foo;
 }
 

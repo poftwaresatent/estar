@@ -32,7 +32,7 @@ using std::cerr;
 using std::make_pair;
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_ALGORITHM_DEBUG
 #else
 # undef ESTAR_ALGORITHM_DEBUG

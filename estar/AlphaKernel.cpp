@@ -24,7 +24,7 @@
 #include <estar/util.hpp>
 
 
-#ifdef DEBUG
+#ifdef ESTAR_DEBUG
 # define ESTAR_ALPHA_KERNEL_DEBUG
 #else
 # undef ESTAR_ALPHA_KERNEL_DEBUG
