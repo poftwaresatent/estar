@@ -112,8 +112,8 @@ namespace estar {
     const double val(get(m_value, vertex));
     
     if(absval(val - rhs) <= slack){
-      PDEBUG_OUT("vertex is slack   v: %g   rhs: %g   delta: %g   slack: %g",
-		 val, rhs, val - rhs, slack);
+      PDEBUG("vertex is slack   v: %g   rhs: %g   delta: %g   slack: %g\n",
+	     val, rhs, val - rhs, slack);
       m_last_computed = make_pair(vertex, rhs);
     }
     
