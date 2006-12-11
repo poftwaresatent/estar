@@ -1,5 +1,5 @@
 AC_REVISION($Id$)
-AC_INIT(libestar,0.0-pre)
+AC_INIT(estar, 0.1pre, estar-devel AT lists DOT sourceforge DOT net)
 AC_PREREQ(2.57)
 AC_CANONICAL_HOST
 
