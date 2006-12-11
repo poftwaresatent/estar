@@ -49,7 +49,7 @@ BUILDING
 
  Better: Use subversion to check out (or update) a working copy!
 
- $ svn co https://svn.sourceforge.net/svnroot/estar/trunk/estar
+ $ svn co https://estar.svn.sourceforge.net/svnroot/estar/trunk/estar
  $ cd estar
  $ mkdir build
  $ cd build

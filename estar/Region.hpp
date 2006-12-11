@@ -59,7 +59,7 @@ namespace estar {
     /** Create a region instance by creating a circular sprite. */
     Region(/** radius of the disk */
 	   double radius,
-	   /** grid resolution (to know scale the disk to grid cell units) */
+	   /** grid resolution (to scale the disk to grid cell units) */
 	   double scale,
 	   /** x-coordinate of the disk center */
 	   double x0,
