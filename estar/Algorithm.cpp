@@ -97,7 +97,7 @@ namespace estar {
   
   
   void Algorithm::
-  ComputeOne(const Kernel & kernel)
+  ComputeOne(const Kernel & kernel, double slack)
   {
     if(m_pending_reset){
       Reset();
@@ -109,9 +109,17 @@ namespace estar {
     
     const vertex_t vertex(m_queue.Pop(m_flag));
     const double rhs(get(m_rhs, vertex));
-
-    if(get(m_value, vertex) > rhs){
-      PDEBUG("vertex gets lowered, propagate to all neighbors\n");
+    const double val(get(m_value, vertex));
+    
+    if(absval(val - rhs) <= slack){
+      PDEBUG_OUT("vertex is slack   v: %g   rhs: %g   delta: %g   slack: %g",
+		 val, rhs, val - rhs, slack);
+      m_last_computed = make_pair(vertex, rhs);
+    }
+    
+    else if(val > rhs){
+      PDEBUG("vertex gets lowered   v: %g   rhs: %g   delta: %g\n",
+	     val, rhs, val - rhs);
       put(m_value, vertex, rhs);
       m_last_computed = make_pair(vertex, rhs);
       adjacency_it in, nend;
@@ -120,18 +128,21 @@ namespace estar {
 	UpdateVertex(*in, kernel);
     }
     
-    else if(get(m_value, vertex) < rhs){
-      PDEBUG("vertex gets raised, propagate to (some) neighbors\n");
+    else{
+      PDEBUG("vertex gets raised   v: %g rhs: %g   delta: %g\n",
+	     val, rhs, rhs - val);
       put(m_value, vertex, infinity);
       m_last_computed = make_pair(vertex, rhs);
       
 #define RE_PROPAGATE_LAST
+//#undef RE_PROPAGATE_LAST
 #ifndef RE_PROPAGATE_LAST
       PDEBUG("variant: update raised node before others\n");
       UpdateVertex(vertex, kernel);
 #endif // ! RE_PROPAGATE_LAST
       
 #define RAISE_DOWNWIND_ONLY
+//#undef RAISE_DOWNWIND_ONLY
 #ifdef RAISE_DOWNWIND_ONLY
       PDEBUG("variant: expand only downwind neighbors after raise\n");
       // IMPORTANT: Get a copy, because m_upwind is modified inside
@@ -152,11 +163,6 @@ namespace estar {
       PDEBUG("variant: update raised node after others\n");
       UpdateVertex(vertex, kernel);
 #endif // RE_PROPAGATE_LAST
-    }
-    
-    else{ // might happen due to goal tweaking (?)
-      PDEBUG_OUT("yes, this actually happens!");
-      m_last_computed = make_pair(vertex, rhs);
     }
   }
   

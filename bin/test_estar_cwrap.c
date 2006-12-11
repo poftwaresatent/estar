@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
       estar_destroy(handle);
       return 0;
     }
-    estar_compute_one(handle);
+    estar_compute_one(handle, 0.5);
   }
   estar_dump_grid(handle, stdout);
   
@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
       estar_destroy(handle);
       return 0;
     }
-    estar_compute_one(handle);
+    estar_compute_one(handle, 0.5);
   }
   estar_dump_grid(handle, stdout);
   

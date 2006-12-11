@@ -127,7 +127,7 @@ int main(int argc, char ** argv)
       if(cmd == "s")
 	skip_input = true;
     }
-    algo.ComputeOne(kernel);
+    algo.ComputeOne(kernel, 0.5);
   }
   if( ! skip_output)
     dump_grid(grid, stdout);
@@ -157,7 +157,7 @@ int main(int argc, char ** argv)
       if(cmd == "s")
 	skip_input = true;
     }
-    algo.ComputeOne(kernel);
+    algo.ComputeOne(kernel, 0.5);
   }
   if( ! skip_output)
     dump_grid(grid, stdout);

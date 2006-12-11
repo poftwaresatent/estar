@@ -214,7 +214,7 @@ namespace estar {
   void Facade::
   ComputeOne()
   {
-    m_algo->ComputeOne(*(m_kernel));
+    m_algo->ComputeOne(*(m_kernel), scale / 2);
   }
   
   

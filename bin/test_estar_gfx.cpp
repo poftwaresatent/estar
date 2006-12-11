@@ -120,7 +120,7 @@ int main(int argc, char ** argv)
     if( ! result_os)
       cout << "hint: enable writing to an output file to see results.\n";
     while(m_algo->HaveWork()){
-      m_algo->ComputeOne(*m_kernel);
+      m_algo->ComputeOne(*m_kernel, 0.5);
       if(m_algo->GetStep() % 50 == 0){
 	cerr << ".";
 	if(m_algo->GetStep() % 2500 == 0)
@@ -295,7 +295,7 @@ void timer(int handle)
     
     if( ! finish){
       if(m_algo->HaveWork()){
-	m_algo->ComputeOne(*m_kernel);
+	m_algo->ComputeOne(*m_kernel, 0.5);
 #ifdef GFX_DEBUG
 	m_algo->DumpQueue(cout);
 	m_grid->Dump(stdout);
@@ -304,7 +304,7 @@ void timer(int handle)
     }
     else{
       while(m_algo->HaveWork()){
-	m_algo->ComputeOne(*m_kernel);
+	m_algo->ComputeOne(*m_kernel, 0.5);
 #ifdef GFX_DEBUG
 	m_algo->DumpQueue(cout);
 	m_grid->Dump(stdout);

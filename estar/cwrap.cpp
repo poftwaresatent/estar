@@ -236,12 +236,12 @@ int estar_have_work(int handle)
 }
 
 
-int estar_compute_one(int handle)
+int estar_compute_one(int handle, double slack)
 {
   handle_map_t::iterator ih(handle_map.find(handle));
   if(handle_map.end() == ih)
     return -1;
-  ih->second->algo->ComputeOne(*(ih->second->kernel));
+  ih->second->algo->ComputeOne(*(ih->second->kernel), slack);
   return 0;
 }
 

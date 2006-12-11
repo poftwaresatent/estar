@@ -68,7 +68,7 @@ namespace estar {
     void InitMeta(vertex_t vertex, double meta);
     void InitAllMeta(double meta);
     
-    void ComputeOne(const Kernel & kernel);
+    void ComputeOne(const Kernel & kernel, double slack);
     bool HaveWork() const;
     
     const cspace_t &       GetCSpace() const      { return m_cspace; }

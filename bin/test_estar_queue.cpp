@@ -189,7 +189,7 @@ int main(int argc, char ** argv)
     }
 
     if(algo.HaveWork())
-      algo.ComputeOne(*kernel);
+      algo.ComputeOne(*kernel, 0.5);
     else
       cout << "nothing left to do\n";
   }

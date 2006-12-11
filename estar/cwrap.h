@@ -111,7 +111,7 @@ extern "C" {
   /** \return
       <ul><li> -1: invalid handle </li>
           <li>  0: success </li></ul> */
-  int estar_compute_one(int handle);
+  int estar_compute_one(int handle, double slack);
   
   /** \return
       <ul><li> -1: invalid handle </li>
