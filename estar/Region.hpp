@@ -45,11 +45,30 @@ namespace estar {
     const double x0;
     const double y0;
     
+    /** Create a region instance by translating an existing sprite. */
     Region(boost::shared_ptr<Sprite> sprite,
-	   double x0, double y0, ssize_t xsize, ssize_t ysize);
+	   /** x-coordinate of where the sprite's center should be located */
+	   double x0,
+	   /** y-coordinate of where the sprite's center should be located */
+	   double y0,
+	   /** x-dimension of the underlying grid */
+	   ssize_t xsize,
+	   /** y-dimension of the underlying grid */
+	   ssize_t ysize);
     
-    Region(double radius, double scale,
-	   double x0, double y0, ssize_t xsize, ssize_t ysize);
+    /** Create a region instance by creating a circular sprite. */
+    Region(/** radius of the disk */
+	   double radius,
+	   /** grid resolution (to know scale the disk to grid cell units) */
+	   double scale,
+	   /** x-coordinate of the disk center */
+	   double x0,
+	   /** y-coordinate of the disk center */
+	   double y0,
+	   /** x-dimension of the underlying grid */
+	   ssize_t xsize,
+	   /** y-dimension of the underlying grid */
+	   ssize_t ysize);
     
     const Sprite & GetSprite() const { return * m_sprite; }
     const indexlist_t & GetBorder() const { return m_border; }
