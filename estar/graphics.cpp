@@ -374,6 +374,30 @@ namespace gfx {
   }
   
   
+  void draw_grid_obstacles(const Facade & facade,
+			   double red, double green, double blue)
+  {
+    const Grid & grid(facade.GetGrid());
+    const Algorithm & algo(facade.GetAlgorithm());
+    const Kernel & kernel(facade.GetKernel());
+    
+    pfunc_t pfunc(get_pfunc(grid));
+    const size_t xsize(grid.GetXSize());
+    const size_t ysize(grid.GetYSize());
+    const meta_map_t & meta(algo.GetMetaMap());
+    
+    glColor3d(red, green, blue);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    for(size_t ix(0); ix < xsize; ++ix)
+      for(size_t iy(0); iy < ysize; ++iy)
+	if(get(meta, grid.GetVertex(ix, iy)) == kernel.obstacle_meta){
+	  double xc, yc;
+	  tie(xc, yc) = pfunc(ix, iy);
+	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+	}
+  }
+  
+  
   void draw_grid_value(const Facade & facade,
 		       const ColorScheme * colorscheme,
 		       bool auto_scale_value)

@@ -82,6 +82,9 @@ namespace gfx {
   void draw_grid_meta(const estar::Facade & facade,
 		      const ColorScheme * colorscheme);
   
+  void draw_grid_obstacles(const estar::Facade & facade,
+			   double red, double green, double blue);
+  
   void draw_array(const estar::array<double> & grid,
 		  size_t x0, size_t y0, size_t x1, size_t y1,
 		  double lower, double upper,
