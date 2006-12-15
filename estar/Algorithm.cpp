@@ -51,7 +51,9 @@ namespace estar {
   Algorithm::
   Algorithm():
     m_step(0),
-    m_last_computed(make_pair<vertex_t, double>(0, -1)),
+    m_last_computed_value(-1),
+    m_last_computed_vertex(0),
+    m_last_popped_key(-1),
     m_pending_reset(false)
   {
     m_value    = get(value_p(),    m_cspace);
@@ -107,6 +109,7 @@ namespace estar {
       return;
     ++m_step;
     
+    const double popped_key(m_queue.Get().begin()->first);
     const vertex_t vertex(m_queue.Pop(m_flag));
     const double rhs(get(m_rhs, vertex));
     const double val(get(m_value, vertex));
@@ -114,14 +117,17 @@ namespace estar {
     if(absval(val - rhs) <= slack){
       PDEBUG("vertex is slack   v: %g   rhs: %g   delta: %g   slack: %g\n",
 	     val, rhs, val - rhs, slack);
-      m_last_computed = make_pair(vertex, rhs);
+      return;
     }
     
-    else if(val > rhs){
+    m_last_computed_value = rhs;
+    m_last_computed_vertex = vertex;
+    m_last_popped_key = popped_key;
+    
+    if(val > rhs){
       PDEBUG("vertex gets lowered   v: %g   rhs: %g   delta: %g\n",
 	     val, rhs, val - rhs);
       put(m_value, vertex, rhs);
-      m_last_computed = make_pair(vertex, rhs);
       adjacency_it in, nend;
       tie(in, nend) = adjacent_vertices(vertex, m_cspace);
       for(/**/; in != nend; ++in)
@@ -132,7 +138,6 @@ namespace estar {
       PDEBUG("vertex gets raised   v: %g rhs: %g   delta: %g\n",
 	     val, rhs, rhs - val);
       put(m_value, vertex, infinity);
-      m_last_computed = make_pair(vertex, rhs);
       
 #define RE_PROPAGATE_LAST
 //#undef RE_PROPAGATE_LAST
@@ -239,22 +244,6 @@ namespace estar {
     vertex_it iv, vend;
     for(tie(iv, vend) = vertices(m_cspace); iv != vend; ++iv)
       put(m_meta, *iv, meta);
-  }
-  
-  
-  double Algorithm::
-  GetLastComputedValue()
-    const
-  {
-    return m_last_computed.second;
-  }
-  
-  
-  vertex_t Algorithm::
-  GetLastComputedVertex()
-    const
-  {
-    return m_last_computed.first;
   }
   
   

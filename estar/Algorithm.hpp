@@ -82,9 +82,10 @@ namespace estar {
 
     Queue & GetQueue() { return m_queue; }
     
-    size_t GetStep() const { return m_step; }
-    double GetLastComputedValue() const;
-    vertex_t GetLastComputedVertex() const;
+    size_t GetStep()                 const { return m_step; }
+    double GetLastComputedValue()    const { return m_last_computed_value; }
+    vertex_t GetLastComputedVertex() const { return m_last_computed_vertex; }
+    double GetLastPoppedKey()        const { return m_last_popped_key; }
     
     
   private:
@@ -110,7 +111,9 @@ namespace estar {
     vertexid_map_t m_vertexid;
     
     size_t m_step;
-    std::pair<vertex_t, double> m_last_computed;
+    double   m_last_computed_value;
+    vertex_t m_last_computed_vertex;
+    double   m_last_popped_key;
     
     bool m_pending_reset;
   };
