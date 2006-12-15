@@ -27,7 +27,7 @@
 #include "util.hpp"
 #include <iostream>
 
-#ifdef ESTAR_DEBUG
+#ifdef ESTAR_VERBOSE_DEBUG
 # define PDEBUG PDEBUG_OUT
 #else // ! ESTAR_DEBUG
 # define PDEBUG PDEBUG_OFF

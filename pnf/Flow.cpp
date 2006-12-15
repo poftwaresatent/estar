@@ -36,9 +36,7 @@
 #include <iostream>
 #include <cmath>
 
-// tmp manual override
-#define ESTAR_DEBUG
-#ifdef ESTAR_DEBUG
+#ifdef ESTAR_VERBOSE_DEBUG
 # define PNF_FLOW_DEBUG
 #else // ESTAR_DEBUG
 # undef PNF_FLOW_DEBUG

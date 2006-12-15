@@ -30,7 +30,7 @@
 using namespace boost;
 using namespace std;
 
-#ifdef ESTAR_DEBUG
+#ifdef ESTAR_VERBOSE_DEBUG
 # define PDEBUG PDEBUG_OUT
 #else // ! ESTAR_DEBUG
 # define PDEBUG PDEBUG_OFF

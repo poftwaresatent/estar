@@ -28,7 +28,7 @@
 #include "Region.hpp"
 
 
-#ifdef ESTAR_DEBUG
+#ifdef ESTAR_VERBOSE_DEBUG
 # define ESTAR_FACADE_DEBUG
 #else
 # undef ESTAR_FACADE_DEBUG
@@ -214,7 +214,7 @@ namespace estar {
   void Facade::
   ComputeOne()
   {
-    m_algo->ComputeOne(*(m_kernel), scale / 2);
+    m_algo->ComputeOne(*(m_kernel), scale / 100);
   }
   
   

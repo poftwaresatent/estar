@@ -22,7 +22,7 @@
 #include <estar/util.hpp>
 
 
-#ifdef ESTAR_DEBUG
+#ifdef ESTAR_VERBOSE_DEBUG
 # define ESTAR_UPWIND_DEBUG
 #else
 # undef ESTAR_UPWIND_DEBUG

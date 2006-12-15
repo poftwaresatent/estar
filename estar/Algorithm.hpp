@@ -88,6 +88,7 @@ namespace estar {
     
     
   private:
+    friend class Smart;
     typedef std::set<vertex_t> goalset_t;
     
     

@@ -28,7 +28,7 @@
 using boost::tie;
 
 
-#ifdef ESTAR_DEBUG
+#ifdef ESTAR_VERBOSE_DEBUG
 # define ESTAR_DEBUG_LSM_KERNEL
 #else
 # undef ESTAR_DEBUG_LSM_KERNEL
