@@ -220,6 +220,7 @@ namespace estar {
       put(m_flag, *ig, NONE);
     m_goalset.clear();
     m_pending_reset = true;
+		Reset();
   }
   
   
