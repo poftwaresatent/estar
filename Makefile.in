@@ -142,7 +142,7 @@ incsym:
 	test -d $(top_builddir)/include || mkdir -p $(top_builddir)/include
 	test -L $(top_builddir)/include/estar || ln -s $(srcdir)/estar $(top_builddir)/include/estar
 	test -L $(top_builddir)/include/gfx || ln -s $(srcdir)/gfx $(top_builddir)/include/gfx
-	test -L $(top_builddir)/include/pnfg || ln -s $(srcdir)/pnf $(top_builddir)/include/pnf
+	test -L $(top_builddir)/include/pnf || ln -s $(srcdir)/pnf $(top_builddir)/include/pnf
 
 lib: $(LIB)
 
