@@ -14,9 +14,9 @@
 
 prefix=		@prefix@
 exec_prefix=	@exec_prefix@
-top_builddir=	.
-top_srcdir=	@top_srcdir@
-srcdir=		@srcdir@
+top_builddir=	@abs_top_builddir@
+top_srcdir=	@abs_top_srcdir@
+srcdir=		@abs_srcdir@
 
 BINDIR=		@bindir@
 LIBDIR=		@libdir@
@@ -35,7 +35,7 @@ LTCC=		$(LIBTOOL) --mode=compile $(CC)
 LTCXX=		$(LIBTOOL) --mode=compile $(CXX)
 LTLD=		$(LIBTOOL) --mode=link $(CXX)
 
-CPPFLAGS=       -I$(top_srcdir) @CPPFLAGS@
+CPPFLAGS=       -I$(top_builddir)/include @CPPFLAGS@
 CFLAGS=         $(CPPFLAGS) @CFLAGS@
 CXXFLAGS=       $(CPPFLAGS) @CXXFLAGS@
 
@@ -133,10 +133,16 @@ BIN_OBJS=       $(BIN_CSRC:%.c=%.o) \
                 $(BIN_CXXSRC:%.cpp=%.o) \
                 $(GLUTBIN_SRC:%.cpp=%.o)
 
-VPATH=		@srcdir@
+VPATH=		$(srcdir)
 
 
-all: lib binaries
+all: incsym lib binaries
+
+incsym:
+	test -d $(top_builddir)/include || mkdir -p $(top_builddir)/include
+	test -L $(top_builddir)/include/estar || ln -s $(srcdir)/estar $(top_builddir)/include/estar
+	test -L $(top_builddir)/include/gfx || ln -s $(srcdir)/gfx $(top_builddir)/include/gfx
+	test -L $(top_builddir)/include/pnfg || ln -s $(srcdir)/pnf $(top_builddir)/include/pnf
 
 lib: $(LIB)
 
@@ -219,7 +225,7 @@ depend:
 	for source in $(CXXSRCS) $(CSRCS) $(GLUTSRCS); \
 	  do \
 	    subdir=`dirname $$source`; \
-	    $(CC) -MM $(CPPFLAGS) $(top_srcdir)/$$source \
+	    $(CC) -MM $(CPPFLAGS) $(srcdir)/$$source \
 	      | $(AWK) -v subdir=$$subdir \
 	'{if($$0~/^[^ ]/){sub(/o:/,"lo:"); print subdir "/" $$0} else print}' \
 	     >> Makefile.depend; \
@@ -227,7 +233,7 @@ depend:
 	for source in $(BIN_CSRC) $(BIN_CXXSRC) $(GLUTBIN_SRC); \
 	  do \
 	    subdir=`dirname $$source`; \
-	    $(CC) -MM $(CPPFLAGS) $(top_srcdir)/$$source \
+	    $(CC) -MM $(CPPFLAGS) $(srcdir)/$$source \
 	      | $(AWK) -v subdir=$$subdir \
 	        '{if($$0~/^[^ ]/){print subdir "/" $$0} else print}' \
 	     >> Makefile.depend; \
