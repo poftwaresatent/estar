@@ -35,7 +35,8 @@ LTCC=		$(LIBTOOL) --mode=compile $(CC)
 LTCXX=		$(LIBTOOL) --mode=compile $(CXX)
 LTLD=		$(LIBTOOL) --mode=link $(CXX)
 
-CPPFLAGS=       -I$(top_builddir)/include @CPPFLAGS@
+###CPPFLAGS=       -I$(top_builddir)/include @CPPFLAGS@
+CPPFLAGS=       @CPPFLAGS@
 CFLAGS=         $(CPPFLAGS) @CFLAGS@
 CXXFLAGS=       $(CPPFLAGS) @CXXFLAGS@
 
