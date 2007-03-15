@@ -45,6 +45,10 @@ AC_CHECK_HEADER([boost/shared_ptr.hpp], [], [
 CPPFLAGS="$oldCPPFLAGS"
 
 AC_DISABLE_STATIC
+case $host_os in
+  darwin*) AC_DISABLE_SHARED;;
+  *)       AC_DISABLE_STATIC;;
+esac
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_AWK
