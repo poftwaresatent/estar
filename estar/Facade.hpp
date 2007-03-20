@@ -52,6 +52,23 @@ namespace estar {
     Facade(Algorithm * algo, Grid * grid, Kernel * kernel, double scale);
     
   public:
+    /** useful for deciding whether a client has to keep propagating */
+    typedef enum {
+      /** the provided node (index) is outside of the grid */
+      OUT_OF_GRID,
+      /** the node is upwind (globally consistent, usable, your best friend) */
+      UPWIND,
+      /** the node is downwind, it's value might change during propagation */
+      DOWNWIND,
+      /** the node is on the wavefront, all bets are off */
+      WAVEFRONT,
+      /** the node is in a goal region */
+      GOAL,
+      /** the node is in an obstacle */
+      OBSTACLE
+    } node_status_t;
+    
+    
     const size_t xsize, ysize;
     const double scale;
     
@@ -97,6 +114,7 @@ namespace estar {
     
     bool HaveWork() const;
     void ComputeOne();
+    node_status_t GetStatus(size_t ix, size_t iy) const;
     
     void DumpGrid(FILE * stream) const;
     void DumpQueue(FILE * stream, size_t limit) const;

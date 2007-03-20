@@ -246,4 +246,30 @@ namespace estar {
 	    this, m_algo.get(), m_grid.get(), m_kernel.get());
   }
   
+  
+  Facade::node_status_t Facade::
+  GetStatus(size_t ix, size_t iy) const
+  {
+    if((ix >= m_grid->xsize) || (iy >= m_grid->ysize))
+      return OUT_OF_GRID;
+    const vertex_t vertex(m_grid->GetVertex(ix, iy));
+    const flag_t flag(get(m_algo->GetFlagMap(), vertex));
+    if(estar::GOAL == flag)
+      return GOAL;
+    if((OPEN == flag) || (OPNG == flag))
+      return WAVEFRONT;
+    // could be paranoid and assert (NONE == flag) here
+    if(get(m_algo->GetMetaMap(), vertex) == m_kernel->obstacle_meta)
+      return OBSTACLE;
+    const queue_t & queue(m_algo->GetQueue().Get());
+    if(queue.empty())
+      return UPWIND;
+    const double value(get(m_algo->GetValueMap(), vertex));
+    if(value < queue.begin()->first)
+      return UPWIND;
+    if(value >= queue.rbegin()->first)
+      return DOWNWIND;
+    return WAVEFRONT;
+  }
+  
 } // namespace estar
