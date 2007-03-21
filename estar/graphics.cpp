@@ -595,4 +595,31 @@ namespace gfx {
       glRectd(area[ia].x, area[ia].y, area[ia].x + 1, area[ia].y + 1);
   }
 
+
+  void draw_grid_status(const estar::Facade & facade)
+  {
+    const Grid & grid(facade.GetGrid());
+    pfunc_t pfunc(get_pfunc(grid));
+    const size_t xsize(grid.GetXSize());
+    const size_t ysize(grid.GetYSize());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    for(size_t ix(0); ix < xsize; ++ix)
+      for(size_t iy(0); iy < ysize; ++iy){
+	const Facade::node_status_t nstat(facade.GetStatus(ix, iy));
+	switch(nstat){
+	case Facade::UPWIND:    glColor3d(0, 0,   1); break;
+	case Facade::DOWNWIND:  glColor3d(1, 0.5, 0); break;
+	case Facade::WAVEFRONT: glColor3d(1, 0,   0); break;
+	case Facade::GOAL:      glColor3d(0, 1,   0); break;
+	case Facade::OBSTACLE:  glColor3d(1, 0,   1); break;
+	case Facade::OUT_OF_GRID:
+	default:
+	  continue;
+	}
+	double xc, yc;
+	tie(xc, yc) = pfunc(ix, iy);
+	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+      }
+  }
+  
 }

@@ -121,6 +121,8 @@ namespace gfx {
 			 double red, double green, double blue,
 			 double linewidth);
   
+  void draw_grid_status(const estar::Facade & facade);
+  
   void get_grid_bbox(const estar::Grid & grid,
 		     double & x0, double & y0, double & x1, double & y1);
   
