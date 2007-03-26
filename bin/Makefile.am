@@ -1,0 +1,51 @@
+CPPFLAGS= @ESTAR_CPPFLAGS@
+CFLAGS=   $(CPPFLAGS) @ESTAR_CFLAGS@
+CXXFLAGS= $(CPPFLAGS) @ESTAR_CXXFLAGS@
+LDFLAGS=  @ESTAR_LDFLAGS@
+
+if ENABLE_GFX
+  GFX_PROGS=  test_estar_gfx test_pnf_gfx
+  GFX_LIBADD= ../gfx/libgfx.la @GFXLIBS@
+endif
+
+bin_PROGRAMS= test_dbg_opt \
+              test_estar \
+              test_estar_cwrap \
+              test_estar_queue \
+              test_fake_os \
+              test_pnf_cooc \
+              test_pnf_cooc3d \
+              test_pnf_riskmap \
+              test_shape \
+              $(GFX_PROGS)
+
+test_dbg_opt_SOURCES=     test_dbg_opt.cpp
+test_dbg_opt_LDADD=       ../libestar.la
+test_estar_SOURCES=       test_estar.cpp
+test_estar_LDADD=         ../libestar.la
+test_estar_cwrap_SOURCES= test_estar_cwrap.c
+test_estar_cwrap_LDADD=   ../libestar.la -lstdc++
+test_estar_queue_SOURCES= test_estar_queue.cpp
+test_estar_queue_LDADD=   ../libestar.la
+test_fake_os_SOURCES=     test_fake_os.cpp
+test_fake_os_LDADD=       ../libestar.la
+test_pnf_cooc_SOURCES=    test_pnf_cooc.cpp
+test_pnf_cooc_LDADD=       ../libestar.la
+test_pnf_cooc3d_SOURCES=  test_pnf_cooc3d.cpp
+test_pnf_cooc3d_LDADD=    ../libestar.la
+test_pnf_riskmap_SOURCES= test_pnf_riskmap.cpp
+test_pnf_riskmap_LDADD=   ../libestar.la
+test_shape_SOURCES=       test_shape.cpp
+test_shape_LDADD=         ../libestar.la
+
+if ENABLE_GFX
+  test_estar_gfx_SOURCES= test_estar_gfx.cpp Getopt.cpp
+  test_estar_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
+  test_pnf_gfx_SOURCES=   test_pnf_gfx.cpp
+  test_pnf_gfx_LDADD=     ../libestar.la $(GFX_LIBADD)
+endif
+
+dist_bin_SCRIPTS= plot_pnf.sh
+
+../libestar.la:
+	$(MAKE) -C .. libs

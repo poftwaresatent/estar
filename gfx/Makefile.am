@@ -1,0 +1,21 @@
+CPPFLAGS= @ESTAR_CPPFLAGS@
+CFLAGS=   $(CPPFLAGS) @ESTAR_CFLAGS@
+CXXFLAGS= $(CPPFLAGS) @ESTAR_CXXFLAGS@
+LDFLAGS=  @ESTAR_LDFLAGS@
+
+noinst_LTLIBRARIES= libgfx.la
+
+libgfx_la_SOURCES=  MetaMousehandler.cpp \
+                    Subwindow.cpp \
+                    Viewport.cpp \
+                    wrap_glu.cpp
+
+include_HEADERS=    MetaMousehandler.hpp \
+                    Mousehandler.hpp \
+                    Subwindow.hpp \
+                    Viewport.hpp \
+                    wrap_gl.hpp \
+                    wrap_glu.hpp \
+                    wrap_glut.hpp
+
+includedir=         @includedir@/gfx
