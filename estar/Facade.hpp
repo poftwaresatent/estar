@@ -115,6 +115,9 @@ namespace estar {
     bool HaveWork() const;
     void ComputeOne();
     node_status_t GetStatus(size_t ix, size_t iy) const;
+    
+    /** \return false only if the queue is empty (all nodes are
+	already locally consistent) */
     bool GetLowestInconsistentValue(double & value) const;
     
     void DumpGrid(FILE * stream) const;
