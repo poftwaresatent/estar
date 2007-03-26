@@ -272,4 +272,15 @@ namespace estar {
     return WAVEFRONT;
   }
   
+  
+  bool Facade::
+  GetLowestInconsistentValue(double & value) const
+  {
+    const queue_t & queue(m_algo->GetQueue().Get());
+    if(queue.empty())
+      return false;
+    value = queue.begin()->first;
+    return true;
+  }
+  
 } // namespace estar

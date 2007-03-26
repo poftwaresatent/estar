@@ -115,6 +115,7 @@ namespace estar {
     bool HaveWork() const;
     void ComputeOne();
     node_status_t GetStatus(size_t ix, size_t iy) const;
+    bool GetLowestInconsistentValue(double & value) const;
     
     void DumpGrid(FILE * stream) const;
     void DumpQueue(FILE * stream, size_t limit) const;
