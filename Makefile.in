@@ -214,6 +214,36 @@ libestar_la_SOURCES =
 libestar_la_LIBADD = estar/libestarsub.la pnf/libpnf.la $(GFX_LIB)
 SRCDIR = @abs_top_srcdir@
 BUILDDIR = @abs_top_builddir@
+EXTRA_DIST = ABOUT \
+                     LICENSE.BSD \
+                     LICENSE.GPL \
+                     bootstrap-buildsystem.sh \
+                     build-stage.sh \
+                     doxylogo.png \
+                     footer.html \
+                     mainpage.dox \
+                     estar/cwrap.h \
+                     bin/Getopt.hpp \
+                     misc/example-testqorder-hex.log \
+                     misc/example-testqorder-hex.results \
+                     misc/grid-hex-small.txt \
+                     misc/grid-nhp-1.txt \
+                     misc/grid-nhp-2.txt \
+                     misc/grid-nhp-3.txt \
+                     misc/grid-nhp-4.txt \
+                     misc/grid-small.txt \
+                     misc/pnf-dynamic-impulse.pnf \
+                     misc/pnf-setup-iros06-a.pnf \
+                     misc/pnf-setup-iros06-b.pnf \
+                     misc/pnf-setup-iros06-buffered-b.pnf \
+                     misc/pnf-setup-iros06-c.pnf \
+                     misc/pnf-setup-iros06-d.pnf \
+                     misc/pnf-setup-iros06-e.pnf \
+                     misc/pnf-setup-iros06-f.pnf \
+                     misc/pnf-setup-star06-a.pnf \
+                     misc/pnf-setup-star06-b.pnf \
+                     misc/pnf-static-impulse.pnf
+
 BUILT_SOURCES = incsym
 all: $(BUILT_SOURCES) config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -442,7 +472,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/.
+	$(mkdir_p) $(distdir)/. $(distdir)/bin $(distdir)/estar $(distdir)/misc
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
