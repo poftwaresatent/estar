@@ -70,13 +70,21 @@ namespace estar {
     const ssize_t xmax(xsize - 1);
     const ssize_t ymax(ysize - 1);
     const ssize_t
-      ix0(boundval(0, static_cast<ssize_t>(rint((x0-radius)/scale)), xmax));
+      ix0(boundval(static_cast<ssize_t>(0),
+		   static_cast<ssize_t>(rint((x0-radius)/scale)),
+		   xmax));
     const ssize_t
-      iy0(boundval(0, static_cast<ssize_t>(rint((y0-radius)/scale)), ymax));
+      iy0(boundval(static_cast<ssize_t>(0),
+		   static_cast<ssize_t>(rint((y0-radius)/scale)),
+		   ymax));
     const ssize_t
-      ix1(boundval(0, static_cast<ssize_t>(rint((x0+radius)/scale)), xmax));
+      ix1(boundval(static_cast<ssize_t>(0),
+		   static_cast<ssize_t>(rint((x0+radius)/scale)),
+		   xmax));
     const ssize_t
-      iy1(boundval(0, static_cast<ssize_t>(rint((y0+radius)/scale)), ymax));
+      iy1(boundval(static_cast<ssize_t>(0),
+		   static_cast<ssize_t>(rint((y0+radius)/scale)),
+		   ymax));
     for(ssize_t ix(ix0); ix <= ix1; ++ix)
       for(ssize_t iy(iy0); iy <= iy1; ++iy){
 	const double dr(sqrt(square(ix*scale-x0) + square(iy*scale-y0)));
