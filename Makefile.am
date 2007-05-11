@@ -26,3 +26,6 @@ incsym:
 	test -L $(BUILDDIR)/include/pnf || ln -s $(SRCDIR)/pnf $(BUILDDIR)/include/pnf
 
 libs: $(lib_LTLIBRARIES)
+
+doc:
+	doxygen Doxyfile
