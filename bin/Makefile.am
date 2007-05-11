@@ -45,7 +45,7 @@ if ENABLE_GFX
   test_pnf_gfx_LDADD=     ../libestar.la $(GFX_LIBADD)
 endif
 
-dist_bin_SCRIPTS= plot_pnf.sh
+dist_bin_SCRIPTS= plot_pnf.sh pnf_3d_riskplot.sh
 
 ../libestar.la:
 	$(MAKE) -C .. libs
