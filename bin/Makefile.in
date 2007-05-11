@@ -256,7 +256,7 @@ test_fake_os_SOURCES = test_fake_os.cpp
 test_fake_os_LDADD = ../libestar.la
 test_pnf_cooc_SOURCES = test_pnf_cooc.cpp
 test_pnf_cooc_LDADD = ../libestar.la
-test_pnf_cooc3d_SOURCES = test_pnf_cooc3d.cpp
+test_pnf_cooc3d_SOURCES = test_pnf_cooc3d.c
 test_pnf_cooc3d_LDADD = ../libestar.la
 test_pnf_riskmap_SOURCES = test_pnf_riskmap.cpp
 test_pnf_riskmap_LDADD = ../libestar.la
@@ -351,7 +351,7 @@ test_pnf_cooc$(EXEEXT): $(test_pnf_cooc_OBJECTS) $(test_pnf_cooc_DEPENDENCIES)
 	$(CXXLINK) $(test_pnf_cooc_LDFLAGS) $(test_pnf_cooc_OBJECTS) $(test_pnf_cooc_LDADD) $(LIBS)
 test_pnf_cooc3d$(EXEEXT): $(test_pnf_cooc3d_OBJECTS) $(test_pnf_cooc3d_DEPENDENCIES) 
 	@rm -f test_pnf_cooc3d$(EXEEXT)
-	$(CXXLINK) $(test_pnf_cooc3d_LDFLAGS) $(test_pnf_cooc3d_OBJECTS) $(test_pnf_cooc3d_LDADD) $(LIBS)
+	$(LINK) $(test_pnf_cooc3d_LDFLAGS) $(test_pnf_cooc3d_OBJECTS) $(test_pnf_cooc3d_LDADD) $(LIBS)
 test_pnf_gfx$(EXEEXT): $(test_pnf_gfx_OBJECTS) $(test_pnf_gfx_DEPENDENCIES) 
 	@rm -f test_pnf_gfx$(EXEEXT)
 	$(CXXLINK) $(test_pnf_gfx_LDFLAGS) $(test_pnf_gfx_OBJECTS) $(test_pnf_gfx_LDADD) $(LIBS)
