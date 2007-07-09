@@ -155,6 +155,7 @@ namespace estar {
     robot_x /= facade.scale;
     robot_y /= facade.scale;
     distance /= facade.scale;
+    const double unscaled_stepsize(stepsize);
     stepsize /= facade.scale;
     PDEBUG("scaled: (%g   %g)   d: %g   s: %g\n",
 	   robot_x, robot_y, distance, stepsize);
@@ -206,8 +207,8 @@ namespace estar {
 	PDEBUG("... >= distance");
 	break;
       }
-      if(value <= stepsize){
-	PDEBUG("... value <= distance");
+      if(value <= unscaled_stepsize){
+	PDEBUG("... value <= unscaled_stepsize");
 	break;
       }
       
