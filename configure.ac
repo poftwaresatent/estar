@@ -1,5 +1,5 @@
 AC_REVISION($Id$)
-AC_INIT(estar, 0.1pre, estar-devel AT lists DOT sourceforge DOT net)
+AC_INIT([estar],[0.2pre],[estar-devel AT lists DOT sourceforge DOT net])
 AC_PREREQ(2.57)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CANONICAL_HOST
@@ -11,7 +11,7 @@ AC_PROG_CXX
 ESTAR_CFLAGS="-Wall -pipe"
 
 AC_ARG_ENABLE(debug,
-  AC_HELP_STRING([--enable-debug], [GCC options -g -O0 (else -O3)]),
+  AS_HELP_STRING([--enable-debug], [GCC options -g -O0 (else -O3)]),
   [ ESTAR_CPPFLAGS="-DESTAR_DEBUG"
     ESTAR_CFLAGS="$ESTAR_CFLAGS -g -O0" ],
   [ ESTAR_CPPFLAGS=""
@@ -36,7 +36,7 @@ esac
 AC_SUBST(GFXLIBS)
 
 AC_ARG_WITH(boost,
-  AC_HELP_STRING([--with-boost=PATH], [specify boost install dir]),
+  AS_HELP_STRING([--with-boost=PATH], [specify boost install dir]),
   [ if test "x$withval" != "x" ; then
       ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -I${withval}/include -I${withval}"
       ESTAR_LDFLAGS="-L${withval}/lib -I${withval} $ESTAR_LDFLAGS"

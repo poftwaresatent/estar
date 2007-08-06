@@ -41,8 +41,8 @@ host_triplet = @host@
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Doxyfile.in \
 	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in $(srcdir)/estar.pc.in \
-	$(top_srcdir)/configure TODO config.guess config.sub depcomp \
-	install-sh ltmain.sh missing mkinstalldirs
+	$(top_srcdir)/configure ChangeLog TODO config.guess config.sub \
+	depcomp install-sh ltmain.sh missing mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -217,6 +217,7 @@ BUILDDIR = @abs_top_builddir@
 EXTRA_DIST = ABOUT \
                      LICENSE.BSD \
                      LICENSE.GPL \
+                     CHANGELOG \
                      bootstrap-buildsystem.sh \
                      build-stage.sh \
                      doxylogo.png \
@@ -729,6 +730,9 @@ libs: $(lib_LTLIBRARIES)
 
 doc:
 	doxygen Doxyfile
+
+ChangeLog:
+	echo ChangeLog hack
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

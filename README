@@ -32,6 +32,9 @@ PREREQUISITES
 
  * Boost Graph Library and smart pointers (http://www.boost.org/).
  * An OpenGL implementation (currently works for Linux and OS X).
+   [This is sort of optional, the configure script tries to guess if
+   you have OpenGL, but it has never been really tested on a system
+   without it.]
  * Doxygen (optional, http://www.doxygen.org/).
 
 
@@ -56,6 +59,11 @@ BUILDING
  $ ../configure
  $ make
  $ su -c 'make install'
+
+If you want to try it out in a "staged" install (the source
+directory), you can use the build-stage.sh script which builds and
+installs under estar-X.Y/stage. However, it requires GNU Automake /
+Autoconf / Libtool.
 
 
 DOCUMENTATION

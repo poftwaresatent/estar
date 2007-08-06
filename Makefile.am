@@ -20,6 +20,7 @@ BUILDDIR=            @abs_top_builddir@
 EXTRA_DIST=          ABOUT \
                      LICENSE.BSD \
                      LICENSE.GPL \
+                     CHANGELOG \
                      bootstrap-buildsystem.sh \
                      build-stage.sh \
                      doxylogo.png \
@@ -59,3 +60,6 @@ libs: $(lib_LTLIBRARIES)
 
 doc:
 	doxygen Doxyfile
+
+ChangeLog:
+	echo ChangeLog hack
