@@ -3,9 +3,9 @@ CFLAGS=   @ESTAR_CFLAGS@
 CXXFLAGS= @ESTAR_CXXFLAGS@
 LDFLAGS=  @ESTAR_LDFLAGS@
 
-if ENABLE_GFX
+if ESTAR_ENABLE_GFX
   GFX_PROGS=  test_estar_gfx test_pnf_gfx
-  GFX_LIBADD= ../gfx/libgfx.la @GFXLIBS@
+  GFX_LIBADD= ../gfx/libgfx.la @ESTAR_GFXLIBS@
 endif
 
 bin_PROGRAMS= test_dbg_opt \
@@ -38,7 +38,7 @@ test_pnf_riskmap_LDADD=   ../libestar.la
 test_shape_SOURCES=       test_shape.cpp
 test_shape_LDADD=         ../libestar.la
 
-if ENABLE_GFX
+if ESTAR_ENABLE_GFX
   test_estar_gfx_SOURCES= test_estar_gfx.cpp Getopt.cpp
   test_estar_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
   test_pnf_gfx_SOURCES=   test_pnf_gfx.cpp

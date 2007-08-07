@@ -23,26 +23,23 @@ AC_ARG_ENABLE(pedantic,
   [ ESTAR_CFLAGS="$ESTAR_CFLAGS -pedantic" ],
   [ ESTAR_CFLAGS="$ESTAR_CFLAGS -Wall" ])
 
-dnl TODO rename GFXLIBS => ESTAR_GFXLIBS
-dnl             ENABLE_GFX => ESTAR_ENABLE_GFX
-
 case "$host_os" in
   linux*)  AC_MSG_NOTICE([detected Linux])
            ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -DLINUX"
-           GFXLIBS="-L/usr/X11R6/lib -lglut -lGLU -lGL -lXi -lXmu"
+           ESTAR_GFXLIBS="-L/usr/X11R6/lib -lglut -lGLU -lGL -lXi -lXmu"
            AC_CHECK_HEADER([GL/glut.h],
-             [ AM_CONDITIONAL([ENABLE_GFX], [true]) ],
-	     [ AM_CONDITIONAL([ENABLE_GFX], [false]) ]);;
+             [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [true]) ],
+	     [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [false]) ]);;
   darwin*) AC_MSG_NOTICE([detected OSX])
            ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -DOSX"
            ESTAR_CFLAGS="$ESTAR_CFLAGS -Wno-long-double"
-           GFXLIBS="-framework OpenGL -framework GLUT -lobjc"
+           ESTAR_GFXLIBS="-framework OpenGL -framework GLUT -lobjc"
            AC_CHECK_HEADER([GLUT/glut.h],
-             [ AM_CONDITIONAL([ENABLE_GFX], [true]) ],
-	     [ AM_CONDITIONAL([ENABLE_GFX], [false]) ]);;
+             [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [true]) ],
+	     [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [false]) ]);;
   *)       AC_MSG_ERROR([unknown host_os $host_os, update configure.ac]);;
 esac
-AC_SUBST(GFXLIBS)
+AC_SUBST(ESTAR_GFXLIBS)
 
 AC_ARG_WITH(boost,
   AS_HELP_STRING([--with-boost=PATH], [specify boost install dir]),
@@ -102,12 +99,12 @@ AC_OUTPUT
 
 AC_MSG_NOTICE([==================================================])
 AC_MSG_NOTICE([Configuration Summary:])
-if test -z "$ENABLE_GFX_TRUE"; then
-  AC_MSG_NOTICE([  ENABLE_GFX: true - graphical components will be built])
-  AC_MSG_NOTICE([  GFXLIBS: $GFXLIBS])
+if test -z "$ESTAR_ENABLE_GFX_TRUE"; then
+  AC_MSG_NOTICE([  ESTAR_ENABLE_GFX: true - graphical components will be built])
+  AC_MSG_NOTICE([  ESTAR_GFXLIBS: $ESTAR_GFXLIBS])
 else
-  AC_MSG_NOTICE([  ENABLE_GFX: false - skip graphical components])
-  AC_MSG_NOTICE([  GFXLIBS: $GFXLIBS])
+  AC_MSG_NOTICE([  ESTAR_ENABLE_GFX: false - skip graphical components])
+  AC_MSG_NOTICE([  ESTAR_GFXLIBS: $ESTAR_GFXLIBS])
 fi
 AC_MSG_NOTICE([  ESTAR_CPPFLAGS: $ESTAR_CPPFLAGS])
 AC_MSG_NOTICE([  ESTAR_CFLAGS: $ESTAR_CFLAGS])

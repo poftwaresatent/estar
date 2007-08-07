@@ -56,7 +56,7 @@ am__libestarsub_la_SOURCES_DIST = Algorithm.cpp AlphaKernel.cpp \
 	Propagator.cpp Queue.cpp Region.cpp Sprite.cpp Upwind.cpp \
 	base.cpp check.cpp cwrap.cpp dump.cpp numeric.cpp util.cpp \
 	graphics.cpp
-@ENABLE_GFX_TRUE@am__objects_1 = graphics.lo
+@ESTAR_ENABLE_GFX_TRUE@am__objects_1 = graphics.lo
 am_libestarsub_la_OBJECTS = Algorithm.lo AlphaKernel.lo Facade.lo \
 	Grid.lo Kernel.lo LSMKernel.lo NF1Kernel.lo Propagator.lo \
 	Queue.lo Region.lo Sprite.lo Upwind.lo base.lo check.lo \
@@ -117,16 +117,16 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
-ENABLE_GFX_FALSE = @ENABLE_GFX_FALSE@
-ENABLE_GFX_TRUE = @ENABLE_GFX_TRUE@
 ESTAR_CFLAGS = @ESTAR_CFLAGS@
 ESTAR_CPPFLAGS = @ESTAR_CPPFLAGS@
 ESTAR_CXXFLAGS = @ESTAR_CXXFLAGS@
+ESTAR_ENABLE_GFX_FALSE = @ESTAR_ENABLE_GFX_FALSE@
+ESTAR_ENABLE_GFX_TRUE = @ESTAR_ENABLE_GFX_TRUE@
+ESTAR_GFXLIBS = @ESTAR_GFXLIBS@
 ESTAR_LDFLAGS = @ESTAR_LDFLAGS@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
-GFXLIBS = @GFXLIBS@
 GREP = @GREP@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -199,8 +199,8 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-@ENABLE_GFX_TRUE@GFX_SRC = graphics.cpp
-@ENABLE_GFX_TRUE@GFX_HDR = graphics.hpp
+@ESTAR_ENABLE_GFX_TRUE@GFX_SRC = graphics.cpp
+@ESTAR_ENABLE_GFX_TRUE@GFX_HDR = graphics.hpp
 noinst_LTLIBRARIES = libestarsub.la
 libestarsub_la_SOURCES = Algorithm.cpp \
                         AlphaKernel.cpp \

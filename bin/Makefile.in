@@ -54,8 +54,8 @@ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-@ENABLE_GFX_TRUE@am__EXEEXT_1 = test_estar_gfx$(EXEEXT) \
-@ENABLE_GFX_TRUE@	test_pnf_gfx$(EXEEXT)
+@ESTAR_ENABLE_GFX_TRUE@am__EXEEXT_1 = test_estar_gfx$(EXEEXT) \
+@ESTAR_ENABLE_GFX_TRUE@	test_pnf_gfx$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
@@ -69,12 +69,13 @@ am_test_estar_cwrap_OBJECTS = test_estar_cwrap.$(OBJEXT)
 test_estar_cwrap_OBJECTS = $(am_test_estar_cwrap_OBJECTS)
 test_estar_cwrap_DEPENDENCIES = ../libestar.la
 am__test_estar_gfx_SOURCES_DIST = test_estar_gfx.cpp Getopt.cpp
-@ENABLE_GFX_TRUE@am_test_estar_gfx_OBJECTS = test_estar_gfx.$(OBJEXT) \
-@ENABLE_GFX_TRUE@	Getopt.$(OBJEXT)
+@ESTAR_ENABLE_GFX_TRUE@am_test_estar_gfx_OBJECTS =  \
+@ESTAR_ENABLE_GFX_TRUE@	test_estar_gfx.$(OBJEXT) \
+@ESTAR_ENABLE_GFX_TRUE@	Getopt.$(OBJEXT)
 test_estar_gfx_OBJECTS = $(am_test_estar_gfx_OBJECTS)
-@ENABLE_GFX_TRUE@am__DEPENDENCIES_1 = ../gfx/libgfx.la
-@ENABLE_GFX_TRUE@test_estar_gfx_DEPENDENCIES = ../libestar.la \
-@ENABLE_GFX_TRUE@	$(am__DEPENDENCIES_1)
+@ESTAR_ENABLE_GFX_TRUE@am__DEPENDENCIES_1 = ../gfx/libgfx.la
+@ESTAR_ENABLE_GFX_TRUE@test_estar_gfx_DEPENDENCIES = ../libestar.la \
+@ESTAR_ENABLE_GFX_TRUE@	$(am__DEPENDENCIES_1)
 am_test_estar_queue_OBJECTS = test_estar_queue.$(OBJEXT)
 test_estar_queue_OBJECTS = $(am_test_estar_queue_OBJECTS)
 test_estar_queue_DEPENDENCIES = ../libestar.la
@@ -88,10 +89,11 @@ am_test_pnf_cooc3d_OBJECTS = test_pnf_cooc3d.$(OBJEXT)
 test_pnf_cooc3d_OBJECTS = $(am_test_pnf_cooc3d_OBJECTS)
 test_pnf_cooc3d_DEPENDENCIES = ../libestar.la
 am__test_pnf_gfx_SOURCES_DIST = test_pnf_gfx.cpp
-@ENABLE_GFX_TRUE@am_test_pnf_gfx_OBJECTS = test_pnf_gfx.$(OBJEXT)
+@ESTAR_ENABLE_GFX_TRUE@am_test_pnf_gfx_OBJECTS =  \
+@ESTAR_ENABLE_GFX_TRUE@	test_pnf_gfx.$(OBJEXT)
 test_pnf_gfx_OBJECTS = $(am_test_pnf_gfx_OBJECTS)
-@ENABLE_GFX_TRUE@test_pnf_gfx_DEPENDENCIES = ../libestar.la \
-@ENABLE_GFX_TRUE@	$(am__DEPENDENCIES_1)
+@ESTAR_ENABLE_GFX_TRUE@test_pnf_gfx_DEPENDENCIES = ../libestar.la \
+@ESTAR_ENABLE_GFX_TRUE@	$(am__DEPENDENCIES_1)
 am_test_pnf_riskmap_OBJECTS = test_pnf_riskmap.$(OBJEXT)
 test_pnf_riskmap_OBJECTS = $(am_test_pnf_riskmap_OBJECTS)
 test_pnf_riskmap_DEPENDENCIES = ../libestar.la
@@ -160,16 +162,16 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
-ENABLE_GFX_FALSE = @ENABLE_GFX_FALSE@
-ENABLE_GFX_TRUE = @ENABLE_GFX_TRUE@
 ESTAR_CFLAGS = @ESTAR_CFLAGS@
 ESTAR_CPPFLAGS = @ESTAR_CPPFLAGS@
 ESTAR_CXXFLAGS = @ESTAR_CXXFLAGS@
+ESTAR_ENABLE_GFX_FALSE = @ESTAR_ENABLE_GFX_FALSE@
+ESTAR_ENABLE_GFX_TRUE = @ESTAR_ENABLE_GFX_TRUE@
+ESTAR_GFXLIBS = @ESTAR_GFXLIBS@
 ESTAR_LDFLAGS = @ESTAR_LDFLAGS@
 EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
-GFXLIBS = @GFXLIBS@
 GREP = @GREP@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -242,8 +244,8 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-@ENABLE_GFX_TRUE@GFX_PROGS = test_estar_gfx test_pnf_gfx
-@ENABLE_GFX_TRUE@GFX_LIBADD = ../gfx/libgfx.la @GFXLIBS@
+@ESTAR_ENABLE_GFX_TRUE@GFX_PROGS = test_estar_gfx test_pnf_gfx
+@ESTAR_ENABLE_GFX_TRUE@GFX_LIBADD = ../gfx/libgfx.la @ESTAR_GFXLIBS@
 test_dbg_opt_SOURCES = test_dbg_opt.cpp
 test_dbg_opt_LDADD = ../libestar.la
 test_estar_SOURCES = test_estar.cpp
@@ -262,10 +264,10 @@ test_pnf_riskmap_SOURCES = test_pnf_riskmap.cpp
 test_pnf_riskmap_LDADD = ../libestar.la
 test_shape_SOURCES = test_shape.cpp
 test_shape_LDADD = ../libestar.la
-@ENABLE_GFX_TRUE@test_estar_gfx_SOURCES = test_estar_gfx.cpp Getopt.cpp
-@ENABLE_GFX_TRUE@test_estar_gfx_LDADD = ../libestar.la $(GFX_LIBADD)
-@ENABLE_GFX_TRUE@test_pnf_gfx_SOURCES = test_pnf_gfx.cpp
-@ENABLE_GFX_TRUE@test_pnf_gfx_LDADD = ../libestar.la $(GFX_LIBADD)
+@ESTAR_ENABLE_GFX_TRUE@test_estar_gfx_SOURCES = test_estar_gfx.cpp Getopt.cpp
+@ESTAR_ENABLE_GFX_TRUE@test_estar_gfx_LDADD = ../libestar.la $(GFX_LIBADD)
+@ESTAR_ENABLE_GFX_TRUE@test_pnf_gfx_SOURCES = test_pnf_gfx.cpp
+@ESTAR_ENABLE_GFX_TRUE@test_pnf_gfx_LDADD = ../libestar.la $(GFX_LIBADD)
 dist_bin_SCRIPTS = plot_pnf.sh pnf_3d_riskplot.sh
 all: all-am
 
