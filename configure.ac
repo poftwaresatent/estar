@@ -1,5 +1,6 @@
 AC_REVISION($Id$)
 AC_INIT([estar],[0.2pre],[estar-devel AT lists DOT sourceforge DOT net])
+AC_CONFIG_AUX_DIR([.])
 AC_PREREQ(2.57)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CANONICAL_HOST
