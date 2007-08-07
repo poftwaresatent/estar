@@ -17,14 +17,22 @@ AC_ARG_ENABLE(debug,
   [ ESTAR_CPPFLAGS=""
     ESTAR_CFLAGS="$ESTAR_CFLAGS -O3" ])
 
+AC_ARG_ENABLE(pedantic,
+  AS_HELP_STRING([--enable-pedantic], [GCC options -pedantic (else -Wall)]),
+  [ ESTAR_CFLAGS="$ESTAR_CFLAGS -pedantic" ],
+  [ ESTAR_CFLAGS="$ESTAR_CFLAGS -Wall" ])
+
+dnl TODO rename GFXLIBS => ESTAR_GFXLIBS
+dnl             ENABLE_GFX => ESTAR_ENABLE_GFX
+
 case "$host_os" in
-  linux*)  AC_MSG_RESULT([detected Linux])
+  linux*)  AC_MSG_NOTICE([detected Linux])
            ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -DLINUX"
            GFXLIBS="-L/usr/X11R6/lib -lglut -lGLU -lGL -lXi -lXmu"
            AC_CHECK_HEADER([GL/glut.h],
              [ AM_CONDITIONAL([ENABLE_GFX], [true]) ],
 	     [ AM_CONDITIONAL([ENABLE_GFX], [false]) ]);;
-  darwin*) AC_MSG_RESULT([detected OSX])
+  darwin*) AC_MSG_NOTICE([detected OSX])
            ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -DOSX"
            ESTAR_CFLAGS="$ESTAR_CFLAGS -Wno-long-double"
            GFXLIBS="-framework OpenGL -framework GLUT -lobjc"
@@ -39,12 +47,20 @@ AC_ARG_WITH(boost,
   AS_HELP_STRING([--with-boost=PATH], [specify boost install dir]),
   [ if test "x$withval" != "x" ; then
       ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -I${withval}/include -I${withval}"
-      ESTAR_LDFLAGS="-L${withval}/lib -I${withval} $ESTAR_LDFLAGS"
+      ESTAR_LDFLAGS="-L${withval}/lib $ESTAR_LDFLAGS"
     fi ], [])
 oldCPPFLAGS="$CPPFLAGS"
 test "$prefix" != "NONE" && CPPFLAGS="$ESTAR_CPPFLAGS -I$prefix/include"
 AC_CHECK_HEADER([boost/shared_ptr.hpp], [], [
-  AC_MSG_ERROR([cannot compile boost/shared_ptr.hpp (CPPFLAGS=$CPPFLAGS)])])
+  AC_MSG_NOTICE([failed to find boost smart pointer library:])
+  AC_MSG_NOTICE([  cannot compile boost/shared_ptr.hpp])
+  AC_MSG_NOTICE([  CPPFLAGS=$CPPFLAGS])
+  AC_MSG_ERROR([  specify boost library install path (--with-boost=PATH)]) ])
+AC_CHECK_HEADER([boost/graph/adjacency_list.hpp], [], [
+  AC_MSG_NOTICE([failed to find boost graph library:])
+  AC_MSG_NOTICE([  cannot compile boost/graph/adjacency_list.hpp])
+  AC_MSG_NOTICE([  CPPFLAGS=$CPPFLAGS])
+  AC_MSG_ERROR([  specify boost library install path (--with-boost=PATH)]) ])
 CPPFLAGS="$oldCPPFLAGS"
 
 AC_DISABLE_STATIC
@@ -82,3 +98,18 @@ AC_CONFIG_FILES([Makefile
 		 gfx/Makefile
 		 pnf/Makefile])
 AC_OUTPUT
+
+AC_MSG_NOTICE([==================================================])
+AC_MSG_NOTICE([Configuration Summary:])
+if test -z "$ENABLE_GFX_TRUE"; then
+  AC_MSG_NOTICE([  ENABLE_GFX: true - graphical components will be built])
+  AC_MSG_NOTICE([  GFXLIBS: $GFXLIBS])
+else
+  AC_MSG_NOTICE([  ENABLE_GFX: false - skip graphical components])
+  AC_MSG_NOTICE([  GFXLIBS: $GFXLIBS])
+fi
+AC_MSG_NOTICE([  ESTAR_CPPFLAGS: $ESTAR_CPPFLAGS])
+AC_MSG_NOTICE([  ESTAR_CFLAGS: $ESTAR_CFLAGS])
+AC_MSG_NOTICE([  ESTAR_CXXFLAGS: $ESTAR_CXXFLAGS])
+AC_MSG_NOTICE([  ESTAR_LDFLAGS: $ESTAR_LDFLAGS])
+AC_MSG_NOTICE([==================================================])
