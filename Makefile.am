@@ -62,4 +62,7 @@ doc:
 	doxygen Doxyfile
 
 ChangeLog:
-	echo ChangeLog hack
+	test -f Changelog || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > ChangeLog
+
+CHANGELOG:
+	test -f CHANGELOG || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > CHANGELOG
