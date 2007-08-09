@@ -732,7 +732,10 @@ doc:
 	doxygen Doxyfile
 
 ChangeLog:
-	echo ChangeLog hack
+	test -f Changelog || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > ChangeLog
+
+CHANGELOG:
+	test -f CHANGELOG || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > CHANGELOG
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
