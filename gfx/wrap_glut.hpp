@@ -25,12 +25,12 @@
 #ifndef GFX_WRAP_GLUT_HPP
 # define GFX_WRAP_GLUT_HPP
 
-# if defined( LINUX )
+# if defined( LINUX ) | defined( OPENBSD )
 #  include <GL/glut.h>
 # elif defined( OSX )
 #  include <GLUT/glut.h>
 # else
-#  error Define LINUX or OSX preprocessor symbol, or extend this header.
+#  error Define LINUX, OPENBSD or OSX symbol (or extend this header).
 # endif
 
 #endif // GFX_WRAP_GLUT_HPP

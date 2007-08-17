@@ -25,12 +25,12 @@
 #ifndef GFX_WRAP_GLU_HPP
 # define GFX_WRAP_GLU_HPP
 
-# if defined( LINUX )
+# if defined( LINUX ) | defined( OPENBSD )
 #  include <GL/glu.h>
 # elif defined( OSX )
 #  include <OpenGL/glu.h>
 # else
-#  error Define LINUX or OSX preprocessor symbol, or extend this header.
+#  error Define LINUX, OPENBSD, or OSX (or extend this header).
 # endif
 
 namespace gfx {
