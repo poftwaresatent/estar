@@ -21,7 +21,7 @@ VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
-top_builddir = ../..
+top_builddir = ..
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 INSTALL = @INSTALL@
 install_sh_DATA = $(install_sh) -c -m 644
@@ -37,24 +37,22 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-subdir = estar/gfx
+subdir = gfx
 DIST_COMMON = $(include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-mkinstalldirs = $(SHELL) $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/sunflower/config.h \
-	$(top_builddir)/nepumuk/config.h \
-	$(top_builddir)/estar/config.h
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libgfx_la_LIBADD =
 am_libgfx_la_OBJECTS = MetaMousehandler.lo Subwindow.lo Viewport.lo \
 	wrap_glu.lo
 libgfx_la_OBJECTS = $(am_libgfx_la_OBJECTS)
-DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)/sunflower -I$(top_builddir)/nepumuk -I$(top_builddir)/estar
+DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -84,12 +82,6 @@ AMDEP_FALSE = @AMDEP_FALSE@
 AMDEP_TRUE = @AMDEP_TRUE@
 AMTAR = @AMTAR@
 AR = @AR@
-ASL_CFLAGS = @ASL_CFLAGS@
-ASL_CPPFLAGS = @ASL_CPPFLAGS@
-ASL_CXXFLAGS = @ASL_CXXFLAGS@
-ASL_HAVE_ESTAR_FALSE = @ASL_HAVE_ESTAR_FALSE@
-ASL_HAVE_ESTAR_TRUE = @ASL_HAVE_ESTAR_TRUE@
-ASL_LDFLAGS = @ASL_LDFLAGS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -132,27 +124,6 @@ LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
-NPM_CFLAGS = @NPM_CFLAGS@
-NPM_CPPFLAGS = @NPM_CPPFLAGS@
-NPM_CXXFLAGS = @NPM_CXXFLAGS@
-NPM_ENABLE_QT_FALSE = @NPM_ENABLE_QT_FALSE@
-NPM_ENABLE_QT_TRUE = @NPM_ENABLE_QT_TRUE@
-NPM_ESTAR_CPPFLAGS = @NPM_ESTAR_CPPFLAGS@
-NPM_ESTAR_LDFLAGS = @NPM_ESTAR_LDFLAGS@
-NPM_GLUTLIBS = @NPM_GLUTLIBS@
-NPM_HAVE_ASL_FALSE = @NPM_HAVE_ASL_FALSE@
-NPM_HAVE_ASL_TRUE = @NPM_HAVE_ASL_TRUE@
-NPM_HAVE_ESTAR_FALSE = @NPM_HAVE_ESTAR_FALSE@
-NPM_HAVE_ESTAR_TRUE = @NPM_HAVE_ESTAR_TRUE@
-NPM_HAVE_GENOM_FALSE = @NPM_HAVE_GENOM_FALSE@
-NPM_HAVE_GENOM_TRUE = @NPM_HAVE_GENOM_TRUE@
-NPM_HAVE_XCF_FALSE = @NPM_HAVE_XCF_FALSE@
-NPM_HAVE_XCF_TRUE = @NPM_HAVE_XCF_TRUE@
-NPM_LDFLAGS = @NPM_LDFLAGS@
-NPM_SMARTFLOWER_FALSE = @NPM_SMARTFLOWER_FALSE@
-NPM_SMARTFLOWER_TRUE = @NPM_SMARTFLOWER_TRUE@
-NPM_XCF_CPPFLAGS = @NPM_XCF_CPPFLAGS@
-NPM_XCF_LDFLAGS = @NPM_XCF_LDFLAGS@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -163,14 +134,6 @@ PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
-SFL_CFLAGS = @SFL_CFLAGS@
-SFL_CPPFLAGS = @SFL_CPPFLAGS@
-SFL_CXXFLAGS = @SFL_CXXFLAGS@
-SFL_HAVE_ESTAR_FALSE = @SFL_HAVE_ESTAR_FALSE@
-SFL_HAVE_ESTAR_TRUE = @SFL_HAVE_ESTAR_TRUE@
-SFL_HAVE_ROBOX_FALSE = @SFL_HAVE_ROBOX_FALSE@
-SFL_HAVE_ROBOX_TRUE = @SFL_HAVE_ROBOX_TRUE@
-SFL_LDFLAGS = @SFL_LDFLAGS@
 SHELL = @SHELL@
 STRIP = @STRIP@
 VERSION = @VERSION@
@@ -244,9 +207,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  estar/gfx/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  gfx/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign  estar/gfx/Makefile
+	  $(AUTOMAKE) --foreign  gfx/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
