@@ -6,5 +6,6 @@ includedir=  @includedir@
 Name:        estar
 Description: E-star Interpolated Graph Replanner
 Version:     @PACKAGE_VERSION@
-Libs:        -L${libdir} @LIBS@
+URL:         http://estar.sourceforge.net/
+Libs:        -L${libdir} -lestar
 Cflags:      -I${includedir}

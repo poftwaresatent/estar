@@ -48,6 +48,9 @@ EXTRA_DIST=          ABOUT \
                      misc/pnf-setup-star06-b.pnf \
                      misc/pnf-static-impulse.pnf
 
+pkgconfig_DATA= estar.pc
+pkgconfigdir=   $(libdir)/pkgconfig
+
 BUILT_SOURCES=       incsym
 
 incsym:
