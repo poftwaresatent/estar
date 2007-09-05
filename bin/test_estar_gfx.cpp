@@ -27,6 +27,7 @@
 #include <estar/AlphaKernel.hpp>
 #include <estar/Grid.hpp>
 #include <estar/graphics.hpp>
+#include <estar/dump.hpp>
 #include <gfx/Viewport.hpp>
 #include <gfx/MetaMousehandler.hpp>
 #include <gfx/wrap_glut.hpp>
@@ -296,8 +297,8 @@ void timer(int handle)
       if(m_algo->HaveWork()){
 	m_algo->ComputeOne(*m_kernel, 0.5);
 #ifdef ESTAR_DEBUG
-	m_algo->DumpQueue(cout);
-	m_grid->Dump(stdout);
+	dump_queue(*m_algo, m_grid.get(), 0, stdout);
+	dump_grid(*m_grid, stdout);
 #endif // ESTAR_DEBUG
       }
     }
@@ -305,8 +306,8 @@ void timer(int handle)
       while(m_algo->HaveWork()){
 	m_algo->ComputeOne(*m_kernel, 0.5);
 #ifdef ESTAR_DEBUG
-	m_algo->DumpQueue(cout);
-	m_grid->Dump(stdout);
+	dump_queue(*m_algo, m_grid.get(), 0, stdout);
+	dump_grid(*m_grid, stdout);
 #endif // ESTAR_DEBUG
       }
       finish = false;
