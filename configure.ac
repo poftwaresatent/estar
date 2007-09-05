@@ -37,6 +37,20 @@ case "$host_os" in
            AC_CHECK_HEADER([GLUT/glut.h],
              [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [true]) ],
 	     [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [false]) ]);;
+  *openbsd*) AC_MSG_NOTICE([detected OpenBSD])
+             ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -DOPENBSD -I/usr/local/include -I/usr/X11R6/include"
+	     ESTAR_LDFLAGS="-lpthread $ESTAR_LDFLAGS -L/usr/local/lib -L/usr/X11R6/lib"
+             ESTAR_GFXLIBS="-L/usr/X11R6/lib -lX11 -lXi -lXmu -lglut -lGLU -lGL"
+             oldCPPFLAGS="$CPPFLAGS"
+             if test "$prefix" = "NONE"; then
+               CPPFLAGS="$ESTAR_CPPFLAGS"
+             else
+               CPPFLAGS="$ESTAR_CPPFLAGS -I$prefix/include"
+             fi
+             AC_CHECK_HEADER([GL/glut.h],
+               [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [true]) ],
+	       [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [false]) ])
+             CPPFLAGS="$oldCPPFLAGS";;
   *)       AC_MSG_ERROR([unknown host_os $host_os, update configure.ac]);;
 esac
 AC_SUBST(ESTAR_GFXLIBS)
