@@ -36,7 +36,8 @@
 #include <sstream>
 
 
-#define USE_DEPTH_BUFFER
+#undef USE_DEPTH_BUFFER
+#undef GFX_DEBUG
 
 
 using namespace estar;
@@ -295,19 +296,19 @@ void timer(int handle)
     if( ! finish){
       if(m_algo->HaveWork()){
 	m_algo->ComputeOne(*m_kernel, 0.5);
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
 	m_algo->DumpQueue(cout);
 	m_grid->Dump(stdout);
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
       }
     }
     else{
       while(m_algo->HaveWork()){
 	m_algo->ComputeOne(*m_kernel, 0.5);
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
 	m_algo->DumpQueue(cout);
 	m_grid->Dump(stdout);
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
       }
       finish = false;
       continuous = false;
@@ -498,29 +499,29 @@ void parse_grid(istream & is)
     for(size_t grid_ix(0), icol(0);
 	grid_ix < grid_xsize;
 	++grid_ix, ++icol){
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
       printf("  (%lu,%lu):", grid_ix, grid_iy);
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
       if(icol >= cost[iline].size()){
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
 	printf("xoxo:%4.2f", norisk_meta);
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
 	m_algo->InitMeta(m_grid->GetVertex(grid_ix, grid_iy), norisk_meta);
       }
       else{
 	const double meta(m_riskmap->CostToMeta(cost[iline][icol]));
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
 	printf("%4.2f:%4.2f", cost[iline][icol], meta);
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
 	m_algo->InitMeta(m_grid->GetVertex(grid_ix, grid_iy), meta);
       }
     }
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
     printf("\n");
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
   }
   
-#ifdef ESTAR_DEBUG
+#ifdef GFX_DEBUG
   printf("DONE parsing grid\n");
-#endif // ESTAR_DEBUG
+#endif // GFX_DEBUG
 }
