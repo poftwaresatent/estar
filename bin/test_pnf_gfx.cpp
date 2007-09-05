@@ -42,7 +42,11 @@
 
 
 #define USE_GL
-#undef USE_DEPTH_BUFFER
+
+#if defined(OPENBSD)
+# define USE_DEPTH_BUFFER
+#endif
+
 #define USE_DOUBLE_BUFFER
 
 
