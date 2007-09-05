@@ -36,9 +36,7 @@
 #include <sstream>
 
 
-#if defined(OPENBSD)
-# define USE_DEPTH_BUFFER
-#endif
+#undef USE_DEPTH_BUFFER
 
 
 using namespace estar;
@@ -151,6 +149,7 @@ void init_glut(int * argc, char ** argv,
   glutInit(argc, argv);
 #ifdef USE_DEPTH_BUFFER
   glutInitDisplayMode(GLUT_DEPTH | GLUT_RGBA | GLUT_DOUBLE);
+  glEnable(GL_DEPTH_TEST);
 #else
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
 #endif
@@ -174,7 +173,6 @@ void init_glut(int * argc, char ** argv,
 
 void draw()
 {
-  glEnable(GL_DEPTH_TEST);
   glClearColor(0.5, 0.5, 0.5, 0);
 #ifdef USE_DEPTH_BUFFER
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

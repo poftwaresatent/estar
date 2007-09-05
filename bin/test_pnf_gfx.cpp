@@ -42,11 +42,7 @@
 
 
 #define USE_GL
-
-#if defined(OPENBSD)
-# define USE_DEPTH_BUFFER
-#endif
-
+#undef USE_DEPTH_BUFFER
 #define USE_DOUBLE_BUFFER
 
 
@@ -232,6 +228,7 @@ void init_glut(int * argc, char ** argv,
 #else // ! USE_DEPTH_BUFFER
   unsigned int glmode(GLUT_RGB);
 #endif // USE_DEPTH_BUFFER
+
 #ifdef USE_DOUBLE_BUFFER
   glmode |= GLUT_DOUBLE;
 #endif // USE_DOUBLE_BUFFER
@@ -240,6 +237,10 @@ void init_glut(int * argc, char ** argv,
   glutInitDisplayMode(glmode);
   glutInitWindowPosition(0, 0);
   glutInitWindowSize(width, height);
+
+#ifdef USE_DEPTH_BUFFER
+  glEnable(GL_DEPTH_TEST);
+#endif // USE_DEPTH_BUFFER
   
   int handle(glutCreateWindow("ESTAR"));
   if(0 == handle){
@@ -258,7 +259,6 @@ void init_glut(int * argc, char ** argv,
 
 void draw()
 {
-  glEnable(GL_DEPTH_TEST);
   glClearColor(0.5, 0.5, 0.5, 0);
 #ifdef USE_DEPTH_BUFFER
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
