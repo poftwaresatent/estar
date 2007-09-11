@@ -91,9 +91,17 @@ namespace estar {
       return;
     }
     debugstream dbg;
+    // bugfix from Filip: calling RemoveEdge() directly can invalidate
+    // the iterator, so first store them in a temporary area
+    std::vector<vertex_t> vertices_to_delete(8); // allocate 'probably enough'
     for(set_t::iterator ifrom(ts.begin()); ifrom != ts.end(); ++ifrom){
       dbg << " " << *ifrom;
-      RemoveEdge(*ifrom, to);
+      vertices_to_delete.push_back(*ifrom);
+    }
+    for(std::vector<vertex_t>::iterator it(vertices_to_delete.begin());
+	it != vertices_to_delete.end();
+	++it){
+      RemoveEdge(*it, to);
     }
     PDEBUG("to: %lu from:%s\n", to, dbg.str().c_str());
   }

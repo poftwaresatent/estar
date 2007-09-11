@@ -38,7 +38,15 @@ namespace estar {
 
     bool HaveEdge(vertex_t from, vertex_t to) const;
     void AddEdge(vertex_t from, vertex_t to);
+
+    /** \note Beware when feeding vertices from iterators to this
+	function, as it modifies the underlying tree structures this
+	can wreak havoc. Use a temporary structure to collect the
+	vertices to be removed, then loop over the temporary data.
+    */
     void RemoveEdge(vertex_t from, vertex_t to);
+    
+    /** see also RemoveEdge() */
     void RemoveIncoming(vertex_t to);
     
     const map_t & GetMap() const { return m_from_to; }
