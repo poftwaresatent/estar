@@ -27,6 +27,7 @@
 
 
 #include <gfx/Subwindow.hpp>
+#include <boost/shared_ptr.hpp>
 #include <map>
 #include <limits>
 
@@ -62,7 +63,8 @@ namespace gfx {
     logical_point_t PaddedScreen2Real(screen_point_t pixel) const;
 
     /** \todo Migrate to superclass? */  
-    void SetMousehandler(button_t button, Mousehandler * mousehandler);
+    void SetMousehandler(button_t button,
+			 boost::shared_ptr<Mousehandler> mousehandler);
 
 
   protected:
@@ -70,10 +72,10 @@ namespace gfx {
     virtual void Click(int button, int state, screen_point_t mouse);
     virtual void Drag(screen_point_t mouse);
   
-    typedef std::map<button_t, Mousehandler *> handler_t;
+    typedef std::map<button_t, boost::shared_ptr<Mousehandler> > handler_t;
     handler_t m_handler;
-  
-  
+    
+    
   private:
     void CalculatePadding();
 

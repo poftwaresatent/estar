@@ -22,24 +22,11 @@
 #include "Grid.hpp"
 #include "Propagator.hpp"
 #include "numeric.hpp"
-#include <estar/util.hpp>
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
 using boost::tie;
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_DEBUG_LSM_KERNEL
-#else
-# undef ESTAR_DEBUG_LSM_KERNEL
-#endif
-
-#ifdef ESTAR_DEBUG_LSM_KERNEL
-# include <sstream>
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
 
 
 namespace estar {
@@ -47,9 +34,8 @@ namespace estar {
   
   LSMKernel::
   LSMKernel(const Grid & grid, double scale)
-    : Kernel(1, 0),
-      m_grid(grid),
-      m_scale(scale)
+    : Kernel(1, 0, scale),
+      m_grid(grid)
   {
   }
   
@@ -64,20 +50,16 @@ namespace estar {
   double LSMKernel::
   DoCompute(Propagator & propagator) const
   {
-#ifdef ESTAR_DEBUG_LSM_KERNEL
-    std::ostringstream dbg;
-#else
-    fake_os dbg;
-#endif
+    vdebugos dbg;
     
     const double target_meta(propagator.GetTargetMeta());
     if(target_meta <= epsilon){	// Check for obstacles (numeric stability)!
-      PDEBUG("OBSTACLE: target_meta == %g <= epsilon\n", target_meta);
+      PVDEBUG("OBSTACLE: target_meta == %g <= epsilon\n", target_meta);
       return infinity;
     }
     
     // radius of the LSM's geometric interpretation
-    const double radius(m_scale / target_meta);
+    const double radius(scale / target_meta);
     
     const_queue_it iq, qend;
     tie(iq, qend) = propagator.GetUpwindNeighbors();
@@ -107,8 +89,9 @@ namespace estar {
 	break;
     }
     if(iq == qend){
-      PDEBUG("NO SECONDARY, fb: %g + %g == %g%s\n",
-	     primary_value, radius, primary_value + radius, dbg.str().c_str());
+      PVDEBUG("NO SECONDARY, fb: %g + %g == %g%s\n",
+	      primary_value, radius, primary_value + radius,
+	      dbg.str().c_str());
       return primary_value + radius;
     }
     const const_queue_it secondary(iq);
@@ -119,10 +102,10 @@ namespace estar {
     // Check if we can interpolate. In terms of solving the quadratic
     // equation: Is there a real solution that satisfies T > T_C ?
     if(radius <= secondary_value - primary_value){
-      PDEBUG("INVALID SECONDARY %g <= %g - %g == %g fb: %g%s\n",
-	     radius, secondary_value, primary_value,
-	     secondary_value - primary_value, primary_value + radius,
-	     dbg.str().c_str());
+      PVDEBUG("INVALID SECONDARY %g <= %g - %g == %g fb: %g%s\n",
+	      radius, secondary_value, primary_value,
+	      secondary_value - primary_value, primary_value + radius,
+	      dbg.str().c_str());
       return primary_value + radius;
     }
     
@@ -137,7 +120,7 @@ namespace estar {
 		    - square(radius)) / 2);
     const double root(square(b) - 4 * c);
     
-    PDEBUG("SUCCESS %g%s\n", (b + sqrt(root)) / 2, dbg.str().c_str());
+    PVDEBUG("SUCCESS %g%s\n", (b + sqrt(root)) / 2, dbg.str().c_str());
 
     // "The math" ensures that root >= 0
     return (b + sqrt(root)) / 2;

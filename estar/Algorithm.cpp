@@ -21,7 +21,8 @@
 #include "Algorithm.hpp"
 #include "Kernel.hpp"
 #include "Propagator.hpp"
-#include <estar/util.hpp>
+#include "util.hpp"
+#include "pdebug.hpp"
 #include <boost/assert.hpp>
 #include <iostream>
 
@@ -30,19 +31,6 @@ using boost::vertex_index;
 using boost::tie;
 using std::cerr;
 using std::make_pair;
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_ALGORITHM_DEBUG
-#else
-# undef ESTAR_ALGORITHM_DEBUG
-#endif
-
-#ifdef ESTAR_ALGORITHM_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
 
 
 namespace estar {
@@ -88,9 +76,14 @@ namespace estar {
   }
   
   
+  /**
+     \todo Shouldn't we test using absval(old-new)<epsilon instead of
+     old==new?
+  */
   void Algorithm::
   SetMeta(vertex_t vertex, double meta, const Kernel & kernel)
   {
+    // if (absval(get(m_meta, vertex) - meta) > epsilon)
     if(get(m_meta, vertex) == meta)
       return;
     put(m_meta, vertex, meta);
@@ -115,8 +108,8 @@ namespace estar {
     const double val(get(m_value, vertex));
     
     if(absval(val - rhs) <= slack){
-      PDEBUG("vertex is slack   v: %g   rhs: %g   delta: %g   slack: %g\n",
-	     val, rhs, val - rhs, slack);
+      PVDEBUG("vertex is slack   v: %g   rhs: %g   delta: %g   slack: %g\n",
+	      val, rhs, val - rhs, slack);
       return;
     }
     
@@ -125,8 +118,8 @@ namespace estar {
     m_last_popped_key = popped_key;
     
     if(val > rhs){
-      PDEBUG("vertex gets lowered   v: %g   rhs: %g   delta: %g\n",
-	     val, rhs, val - rhs);
+      PVDEBUG("vertex gets lowered   v: %g   rhs: %g   delta: %g\n",
+	      val, rhs, val - rhs);
       put(m_value, vertex, rhs);
       adjacency_it in, nend;
       tie(in, nend) = adjacent_vertices(vertex, m_cspace);
@@ -135,21 +128,21 @@ namespace estar {
     }
     
     else{
-      PDEBUG("vertex gets raised   v: %g rhs: %g   delta: %g\n",
-	     val, rhs, rhs - val);
+      PVDEBUG("vertex gets raised   v: %g rhs: %g   delta: %g\n",
+	      val, rhs, rhs - val);
       put(m_value, vertex, infinity);
       
 #define RE_PROPAGATE_LAST
 //#undef RE_PROPAGATE_LAST
 #ifndef RE_PROPAGATE_LAST
-      PDEBUG("variant: update raised node before others\n");
+      PVDEBUG("variant: update raised node before others\n");
       UpdateVertex(vertex, kernel);
 #endif // ! RE_PROPAGATE_LAST
       
 #define RAISE_DOWNWIND_ONLY
 //#undef RAISE_DOWNWIND_ONLY
 #ifdef RAISE_DOWNWIND_ONLY
-      PDEBUG("variant: expand only downwind neighbors after raise\n");
+      PVDEBUG("variant: expand only downwind neighbors after raise\n");
       // IMPORTANT: Get a copy, because m_upwind is modified inside
       // the loop by UpdateVertex()!!!
       Upwind::set_t dwnbors(m_upwind.GetDownwind(vertex));
@@ -157,7 +150,7 @@ namespace estar {
 	  id != dwnbors.end(); ++id)
 	UpdateVertex(*id, kernel);
 #else // RAISE_DOWNWIND_ONLY
-      PDEBUG("variant: expand all neighbors after raise\n");
+      PVDEBUG("variant: expand all neighbors after raise\n");
       adjacency_it in, nend;
       tie(in, nend) = adjacent_vertices(vertex, m_cspace);
       for(/**/; in != nend; ++in)
@@ -165,7 +158,7 @@ namespace estar {
 #endif // RAISE_DOWNWIND_ONLY
       
 #ifdef RE_PROPAGATE_LAST
-      PDEBUG("variant: update raised node after others\n");
+      PVDEBUG("variant: update raised node after others\n");
       UpdateVertex(vertex, kernel);
 #endif // RE_PROPAGATE_LAST
     }
@@ -184,17 +177,17 @@ namespace estar {
   {
     const flag_t flag(get(m_flag, vertex));
     if((flag & GOAL) && (absval(get(m_rhs, vertex) - value) < epsilon)){
-      PDEBUG("no change");
+      PVDEBUG("no change");
       return;
     }
     put(m_rhs,   vertex, value);
     put(m_flag,  vertex, static_cast<flag_t>(flag | GOAL));
     m_goalset.insert(vertex);
     if(absval(get(m_value, vertex) - value) < epsilon){
-      PDEBUG("same value");
+      PVDEBUG("same value");
       return;
     }
-    PDEBUG("needs (re)queuing\n");
+    PVDEBUG("needs (re)queuing\n");
     put(m_value, vertex, infinity);
     m_queue.Requeue(vertex, m_flag, m_value, m_rhs);
   }
@@ -251,14 +244,20 @@ namespace estar {
   void Algorithm::
   Reset()
   {
+    // Note: obstacle information is not in the flag, but in the meta,
+    // which doesn't get touched here.
     m_queue.Clear();
     vertex_it iv, vend;
     tie(iv, vend) = vertices(m_cspace);
     for(/**/; iv != vend; ++iv){
+
+#warning Is it a waste of time to clear the upwind structure? Does it create or avoid inconsistencies?
       //clear_vertex(get(m_upwind_v, *iv), m_upwind);
+
       if(get(m_flag, *iv) & GOAL){
 	put(m_value, *iv, infinity);
 	put(m_flag,  *iv, GOAL);
+	
 	m_queue.Requeue(*iv, m_flag, m_value, m_rhs);
       }
       else{
@@ -275,7 +274,7 @@ namespace estar {
   {
     const flag_t flag(get(m_flag, vertex));
     if(flag & GOAL){
-      PDEBUG("i: %lu f: %s special goal handling\n", vertex, flag_name(flag));
+      PVDEBUG("i: %lu f: %s special goal handling\n", vertex, flag_name(flag));
       return;
     }
     else{
@@ -290,8 +289,8 @@ namespace estar {
       for(/**/; ibp != bpend; ++ibp)
 	m_upwind.AddEdge(*ibp, vertex);
       
-      PDEBUG("i: %lu f: %s v: %g rhs: %g\n",
-	     vertex, flag_name(flag), get(m_value, vertex), rhs);
+      PVDEBUG("i: %lu f: %s v: %g rhs: %g\n",
+	      vertex, flag_name(flag), get(m_value, vertex), rhs);
 
       m_queue.Requeue(vertex, m_flag, m_value, m_rhs);
     }

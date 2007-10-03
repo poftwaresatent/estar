@@ -1,22 +1,11 @@
 // g++ -Wall -I.. -o test_fake_os test_fake_os.cpp
 
-#include <estar/util.hpp>
-
-#ifdef ESTAR_DEBUG
-# include <sstream>
-using std::ostringstream;
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
+#include "../estar/util.hpp"
+#include "../estar/pdebug.hpp"
 
 int main(int argc, char ** argv)
 {
-#ifdef ESTAR_DEBUG
-  ostringstream dbg;
-#else // ! ESTAR_DEBUG
-  estar::fake_os dbg;
-#endif // ESTAR_DEBUG
+  estar::debugos dbg;
   
   dbg << "a debug message with number " << 42 << " and some blah";
   PDEBUG("here comes the debug string \"%s\"\n", dbg.str().c_str());

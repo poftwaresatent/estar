@@ -40,9 +40,10 @@ namespace estar {
   public:
     const double freespace_meta;
     const double obstacle_meta;
+    const double scale;
     
-    Kernel(double fsm, double obm)
-      : freespace_meta(fsm), obstacle_meta(obm) { }
+    Kernel(double fsm, double obm, double _scale)
+      : freespace_meta(fsm), obstacle_meta(obm), scale(_scale) { }
     
     virtual ~Kernel();
     

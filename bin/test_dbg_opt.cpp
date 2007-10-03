@@ -1,14 +1,8 @@
 // compile with g++ -Wall -I.. -o test_dbg_opt test_dbg_opt.cpp
 
-#include <estar/util.hpp>
+#include "../estar/util.hpp"
+#include "../estar/pdebug.hpp"
 #include <iostream>
-
-#undef ESTAR_DEBUG
-#ifdef ESTAR_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
 
 static int side_effect(int foo)
 {

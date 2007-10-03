@@ -22,7 +22,6 @@
 #include <pnf/BufferZone.hpp>
 #include <pnf/PNFRiskMap.hpp>
 #include <gfx/Viewport.hpp>
-#include <gfx/MetaMousehandler.hpp>
 #include <gfx/wrap_glu.hpp>
 #include <gfx/wrap_glut.hpp>
 #include <estar/util.hpp>

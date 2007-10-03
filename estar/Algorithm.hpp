@@ -59,6 +59,21 @@ namespace estar {
 	then has a reasonable meta? */
     void RemoveAllGoals();
     
+    /**
+       Reset the algorithm, preserving only goal information:
+       - clear the wavefront queue
+       - set all values to infinity
+       - set non-goal rhs values to infinity
+       - clear non-goal flags
+       - requeue goal cells (remember, their rhs values were
+         preserved, which will make the original goal values reappear
+         as soon as they have been popped off the queue and expanded)
+       
+       \note Automatically called from ComputeOne() if necessary (ie
+       after goal removal).
+    */
+    void Reset();
+    
     bool IsGoal(vertex_t vertex) const;
 
     void SetMeta(vertex_t vertex, double meta, const Kernel & kernel);
@@ -92,8 +107,6 @@ namespace estar {
     typedef std::set<vertex_t> goalset_t;
     
     
-    /** Used if m_pending_reset (ie after goal removal). */
-    void Reset();
     void UpdateVertex(vertex_t vertex, const Kernel & kernel);
     
     

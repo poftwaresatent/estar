@@ -19,23 +19,11 @@
 
 
 #include "util.hpp"
-#include "Facade.hpp"
+#include "pdebug.hpp"
+#include "FacadeReadInterface.hpp"
 #include "Grid.hpp"
 #include <signal.h>
 #include <stdlib.h>
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_UTIL_DEBUG
-#else
-# undef ESTAR_UTIL_DEBUG
-#endif
-
-#ifdef ESTAR_UTIL_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
 
 
 using namespace std;
@@ -72,7 +60,7 @@ namespace estar {
   }
 
 
-  int compute_carrot(const Facade & facade,
+  int compute_carrot(const FacadeReadInterface & facade,
 		     double robot_x, double robot_y,
 		     double distance, double stepsize,
 		     size_t maxsteps,
@@ -140,36 +128,37 @@ namespace estar {
   }
   
   
-  int trace_carrot(const Facade & facade,
+  int trace_carrot(const FacadeReadInterface & facade,
 		   double robot_x, double robot_y,
 		   double distance, double stepsize,
 		   size_t maxsteps,
 		   carrot_trace & trace)
   {
-    PDEBUG("(%g   %g)   d: %g   s: %g   N: %lu\n",
-	   robot_x, robot_y, distance, stepsize, maxsteps);
+    PVDEBUG("(%g   %g)   d: %g   s: %g   N: %lu\n",
+	    robot_x, robot_y, distance, stepsize, maxsteps);
     if((robot_x < 0) || (robot_y < 0)){
-      PDEBUG_ERR("FAIL (robot_x < 0) || (robot_y < 0)\n");
+      PDEBUG("FAIL (robot_x < 0) || (robot_y < 0)\n");
       return -1;
     }
-    robot_x /= facade.scale;
-    robot_y /= facade.scale;
-    distance /= facade.scale;
+    double const scale(facade.GetScale());
+    robot_x /= scale;
+    robot_y /= scale;
+    distance /= scale;
     const double unscaled_stepsize(stepsize);
-    stepsize /= facade.scale;
-    PDEBUG("scaled: (%g   %g)   d: %g   s: %g\n",
+    stepsize /= scale;
+    PVDEBUG("scaled: (%g   %g)   d: %g   s: %g\n",
 	   robot_x, robot_y, distance, stepsize);
     size_t ix(static_cast<size_t>(rint(robot_x)));
     size_t iy(static_cast<size_t>(rint(robot_y)));
-    if((ix >= facade.xsize) || (iy >= facade.ysize)){
-      PDEBUG("FAIL (ix >= facade.xsize) || (iy >= facade.ysize)\n");
+    if((ix >= facade.GetXSize()) || (iy >= facade.GetYSize())){
+      PDEBUG("FAIL (ix >= facade.GetXSize()) || (iy >= facade.GetYSize())\n");
       return -1;
     }
     
     const Grid & grid(facade.GetGrid());
     if((grid.connect != FOUR_CONNECTED)
        && (grid.connect != EIGHT_CONNECTED)){
-      PDEBUG_OUT("TODO: Implement carrot for hexgrids!\n");
+      PDEBUG("TODO: Implement carrot for hexgrids!\n");
       return -2;
     }
     const size_t max_ix(grid.GetXSize() - 1);
@@ -185,30 +174,30 @@ namespace estar {
       const int res(compute_stable_scaled_gradient(grid, ix, iy, stepsize,
 						   gx, gy, dx, dy));
       if(0 == res)
-	trace.push_back(carrot_item(cx * facade.scale,
-				    cy * facade.scale,
-				    gx / facade.scale,
-				    gy / facade.scale,
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
+				    gx / scale,
+				    gy / scale,
 				    value,
 				    false));
       else
-	trace.push_back(carrot_item(cx * facade.scale,
-				    cy * facade.scale,
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
 				    dx / stepsize,
 				    dy / stepsize,
 				    value,
 				    true));
       cx -= dx;
       cy -= dy;
-      PDEBUG("(%g   %g) ==> (%g   %g)%s\n",
-	     dx, dy, cx, cy, (0 != res) ? "[heuristic]" : "");
+      PVDEBUG("(%g   %g) ==> (%g   %g)%s\n",
+	      dx, dy, cx, cy, (0 != res) ? "[heuristic]" : "");
       
       if(sqrt(square(robot_x - cx) + square(robot_y - cy)) >= distance){
-	PDEBUG("... >= distance");
+	PVDEBUG("... >= distance");
 	break;
       }
       if(value <= unscaled_stepsize){
-	PDEBUG("... value <= unscaled_stepsize");
+	PVDEBUG("... value <= unscaled_stepsize");
 	break;
       }
       
@@ -221,15 +210,15 @@ namespace estar {
       const int res(compute_stable_scaled_gradient(grid, ix, iy, stepsize,
 						   gx, gy, dx, dy));
       if(0 == res)
-	trace.push_back(carrot_item(cx * facade.scale,
-				    cy * facade.scale,
-				    gx / facade.scale,
-				    gy / facade.scale,
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
+				    gx / scale,
+				    gy / scale,
 				    facade.GetValue(ix, iy),
 				    false));
       else
-	trace.push_back(carrot_item(cx * facade.scale,
-				    cy * facade.scale,
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
 				    dx / stepsize,
 				    dy / stepsize,
 				    facade.GetValue(ix, iy),
@@ -237,10 +226,10 @@ namespace estar {
     }
     
     if(ii >= maxsteps){
-      PDEBUG("WARNING (ii >= maxsteps)\n");
+      PVDEBUG("WARNING (ii >= maxsteps)\n");
       return 1;
     }
-    PDEBUG("success: %g   %g\n", cx * facade.scale, cy * facade.scale);
+    PVDEBUG("success: %g   %g\n", cx * scale, cy * scale);
     return 0;
   }
   

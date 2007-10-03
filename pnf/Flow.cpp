@@ -25,30 +25,17 @@
 #include "Flow.hpp"
 #include "pnf_cooc.h"
 #include "BufferZone.hpp"
-#include <estar/RiskMap.hpp>
-#include <estar/numeric.hpp>
-#include <estar/Facade.hpp>
-#include <estar/Algorithm.hpp>
-#include <estar/Grid.hpp>
-#include <estar/Kernel.hpp>
-#include <estar/dump.hpp>
-#include <estar/Region.hpp>
+#include "../estar/RiskMap.hpp"
+#include "../estar/numeric.hpp"
+#include "../estar/Facade.hpp"
+#include "../estar/Algorithm.hpp"
+#include "../estar/Grid.hpp"
+#include "../estar/Kernel.hpp"
+#include "../estar/dump.hpp"
+#include "../estar/Region.hpp"
+#include "../estar/pdebug.hpp"
 #include <iostream>
 #include <cmath>
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define PNF_FLOW_DEBUG
-#else // ESTAR_DEBUG
-# undef PNF_FLOW_DEBUG
-#endif // ESTAR_DEBUG
-
-#ifdef PNF_FLOW_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
-
-#define PVDEBUG PDEBUG_OFF
 
 #define BOOST_ENABLE_ASSERT_HANDLER
 #include <boost/assert.hpp>
@@ -446,28 +433,28 @@ namespace pnf {
   ComputeAllCooc(double static_buffer_factor,
 		 double static_buffer_degree)
   {
-    PDEBUG("f: %g   d: %g\n", static_buffer_factor, static_buffer_degree);
+    PVDEBUG("f: %g   d: %g\n", static_buffer_factor, static_buffer_degree);
     BOOST_ASSERT( m_robot );
     shared_ptr<BufferZone> buffer;
     if((0 < static_buffer_factor) && (0 < static_buffer_degree)){
       buffer.reset(new BufferZone(perform_convolution ? 0 : m_robot->radius,
 				  m_robot->radius * static_buffer_factor,
 				  static_buffer_degree));
-      PDEBUG("buffer (convolute: %s)   r: %g   b: %g   d: %g\n"
-	     "  example d = r * {0, 0.5, 1, 1.5, 2}\n"
-	     "  %g   %g   %g   %g   %g\n",
-	     perform_convolution ? "yes" : "no",
-	     perform_convolution ? 0 : m_robot->radius,
-	     m_robot->radius * static_buffer_factor,
-	     static_buffer_degree,
-	     buffer->DistanceToRisk(0),
-	     buffer->DistanceToRisk(m_robot->radius * 0.5),
-	     buffer->DistanceToRisk(m_robot->radius),
-	     buffer->DistanceToRisk(m_robot->radius * 1.5),
-	     buffer->DistanceToRisk(m_robot->radius * 2));
+      PVDEBUG("buffer (convolute: %s)   r: %g   b: %g   d: %g\n"
+	      "  example d = r * {0, 0.5, 1, 1.5, 2}\n"
+	      "  %g   %g   %g   %g   %g\n",
+	      perform_convolution ? "yes" : "no",
+	      perform_convolution ? 0 : m_robot->radius,
+	      m_robot->radius * static_buffer_factor,
+	      static_buffer_degree,
+	      buffer->DistanceToRisk(0),
+	      buffer->DistanceToRisk(m_robot->radius * 0.5),
+	      buffer->DistanceToRisk(m_robot->radius),
+	      buffer->DistanceToRisk(m_robot->radius * 1.5),
+	      buffer->DistanceToRisk(m_robot->radius * 2));
     }
     else
-      PDEBUG("static buffer factor and/or degree invalid ==> binary map\n");
+      PVDEBUG("static buffer factor and/or degree invalid ==> binary map\n");
     m_env_cooc.reset(new array<double>(xsize, ysize));
     m_max_env_cooc = 0;
     const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
@@ -631,7 +618,7 @@ namespace pnf {
       m_pnf->RemoveGoal(*m_goal);
     scoped_ptr<Region> goal(new Region(r, resolution, x, y, xsize, ysize));
     if(goal->GetArea().empty()){
-      PDEBUG("WARNING: empty goal area, treated like invalid goal!\n");
+      PVDEBUG("WARNING: empty goal area, treated like invalid goal!\n");
       m_goal.reset();
       return false;
     }

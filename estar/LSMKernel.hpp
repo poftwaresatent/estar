@@ -46,7 +46,6 @@ namespace estar {
     virtual double DoCompute(Propagator & propagator) const;
     
     const Grid & m_grid;
-    const double m_scale;
   };
   
   

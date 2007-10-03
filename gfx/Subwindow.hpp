@@ -82,7 +82,8 @@ namespace gfx {
   
     Subwindow(const std::string & name,
 	      logical_bbox_t lbbox,
-	      bool enable = true);
+	      bool enable = true,
+	      bool clickable = true);
     virtual ~Subwindow();
   
     static Subwindow * GetSubwindow(logical_point_t lpoint);
@@ -145,6 +146,7 @@ namespace gfx {
     screen_point_t m_ssize;
     screen_point_t m_winsize;
     bool m_enabled;
+    bool m_clickable;
     std::string m_name;
   };
 

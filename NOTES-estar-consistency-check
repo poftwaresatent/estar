@@ -1,0 +1,27 @@
+SUMMARY OF CHANGES-estar-consistency-check
+------------------------------------------
+
+* Split estar::Facade into two interfaces: read and write. The aim is
+  to provide another Facade implementation that compares different
+  Facades, and which will thus have several (possibly distinct)
+  readers and writers which we want to be able to use independently in
+  the existing code.
+
+* The new class ComparisonFacade will be used to compare dynamic
+  replanning with complete replanning (after reset). Will cook up some
+  graphics and statistics do help in analysing discrepancies.
+
+* Completely reworked Mousehandler, using the approach of splitting
+  estar::Facade into separate read and write interfaces. The two new
+  concrete Mousehandlers are ObstacleMousehandler and
+  GoalMousehandler.
+
+* Can now wrap a Facade around existing sets of Algorithm/Kernel/Grid
+
+* Added test_estar_replan_gfx which is a graphical tool for
+  visualizing differences between a "master" facade (which always gets
+  reset and replanned) and a "sample" facade (which uses dynamic
+  repairs of an existing navigation function)
+
+* Finally cleaned up that mess with PDEBUG() and related macros and
+  types. Outsourced to estar/pdebug.hpp, read the documentation there.

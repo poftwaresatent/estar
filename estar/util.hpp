@@ -23,36 +23,16 @@
 
 
 #include <boost/scoped_array.hpp>
-#include <string>
 #include <vector>
-#include <unistd.h>
-#include <stdio.h>
-
-
-#define PDEBUG_ERR(fmt, arg...) fprintf(stderr, "%s(): "fmt, __func__, ## arg)
-#define PDEBUG_OUT(fmt, arg...) fprintf(stdout, "%s(): "fmt, __func__, ## arg)
-#define PDEBUG_OFF(fmt, arg...)
-#undef  PDEBUG
+//#include <unistd.h>
 
 
 namespace estar {
   
   
-  class Facade;
+  class FacadeReadInterface;
   class Algorithm;
   class Grid;
-  
-
-  /** Utility for compile-time switchable debug messages. Can be used
-      like a std::ostream, but doesn't do anything except return an
-      empty string if requested to do so. Mimics std::ostringstream
-      actually. */
-  class fake_os {
-  public:
-    template<class Foo>
-    fake_os & operator << (const Foo &) { return * this; }
-    std::string str() const { return std::string(); }
-  };
 
 
   /**
@@ -109,7 +89,7 @@ namespace estar {
       -2 if the grid is a hexgrid (not implemented yet)
       -3 trace_carrot() succeeded but the trace is emtpy (probably a bug)
   */
-  int compute_carrot(const Facade & facade,
+  int compute_carrot(const FacadeReadInterface & facade,
 		     double robot_x, double robot_y,
 		     double distance, double stepsize,
 		     size_t maxsteps,
@@ -154,7 +134,7 @@ namespace estar {
       obstacle. In such a case, one direction should be chosen at
       "random"!
   */
-  int trace_carrot(const Facade & facade,
+  int trace_carrot(const FacadeReadInterface & facade,
 		   double robot_x, double robot_y,
 		   double distance, double stepsize,
 		   size_t maxsteps,

@@ -22,8 +22,10 @@
 #define ESTAR_FACADE_HPP
 
 
+#include <estar/FacadeWriteInterface.hpp>
+#include <estar/FacadeReadInterface.hpp>
 #include <estar/base.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <boost/shared_ptr.hpp>
 #include <string>
 #include <iosfwd>
 
@@ -31,9 +33,6 @@
 namespace estar {
   
   
-  class Algorithm;
-  class Grid;
-  class Kernel;
   class Region;
 
   
@@ -46,27 +45,21 @@ namespace estar {
      
      \todo Provide a way to "plug-in" existing instances, eg for user
      extensions.
+     
+     \note We are using multiple inheritance on two completely
+     abstract base classes, so we do not risk too many of the pitfalls
+     involved in multiple inheritance.
   */
-  class Facade {
-  private:
-    Facade(Algorithm * algo, Grid * grid, Kernel * kernel, double scale);
-    
+  class Facade
+    : public FacadeWriteInterface,
+      public FacadeReadInterface
+  {
   public:
-    /** useful for deciding whether a client has to keep propagating */
-    typedef enum {
-      /** the provided node (index) is outside of the grid */
-      OUT_OF_GRID,
-      /** the node is upwind (globally consistent, usable, your best friend) */
-      UPWIND,
-      /** the node is downwind, it's value might change during propagation */
-      DOWNWIND,
-      /** the node is on the wavefront, all bets are off */
-      WAVEFRONT,
-      /** the node is in a goal region */
-      GOAL,
-      /** the node is in an obstacle */
-      OBSTACLE
-    } node_status_t;
+    /**
+       \note This typedef keeps code intact that was written before
+       the FacadeWriteInterface/FacadeReadInterface split.
+    */
+    typedef FacadeReadInterface::node_status_t node_status_t;
     
     
     const size_t xsize, ysize;
@@ -83,59 +76,156 @@ namespace estar {
 				  size_t ysize,
 				  double scale);
     
-    double GetFreespaceMeta() const;
-    double GetObstacleMeta() const;
-    double GetValue(size_t ix, size_t iy) const;
-    double GetMeta(size_t ix, size_t iy) const;
-    void SetMeta(size_t ix, size_t iy, double meta);
-    
     /**
-       ONLY during initialization! Contrary to SetMeta(), it doesn't
-       trigger any replanning.
+       Create a Facade from existing instances of Algorithm, Grid, and
+       Kernel.
+       
+       \note Create() and CreateDefault() are much more convenient if
+       you're creating new objects anyway.
     */
-    void InitMeta(size_t ix, size_t iy, double meta);
+    Facade(boost::shared_ptr<Algorithm> algo,
+	   boost::shared_ptr<Grid> grid,
+	   boost::shared_ptr<Kernel> kernel);
+    
     
     /**
+       Implements FacadeReadInterface::GetXSize().
+    */
+    virtual size_t GetXSize() const { return xsize; }
+    
+    /**
+       Implements FacadeReadInterface::GetYSize().
+    */
+    virtual size_t GetYSize() const { return ysize; }
+    
+    /**
+       Implements FacadeReadInterface::GetScale().
+    */
+    virtual double GetScale() const { return scale; }
+    
+    /**
+       Implements FacadeReadInterface::GetFreespaceMeta().
+    */
+    virtual double GetFreespaceMeta() const;
+    
+    /**
+       Implements FacadeReadInterface::GetObstacleMeta().
+    */
+    virtual double GetObstacleMeta() const;
+    
+    /**
+       Implements FacadeReadInterface::GetValue().
+    */
+    virtual double GetValue(size_t ix, size_t iy) const;
+    
+    /**
+       Implements FacadeReadInterface::GetMeta().
+    */
+    virtual double GetMeta(size_t ix, size_t iy) const;
+    
+    /**
+       Implements FacadeWriteInterface::SetMeta().
+    */
+    virtual void SetMeta(size_t ix, size_t iy, double meta);
+    
+    /**
+       Implements FacadeWriteInterface::InitMeta().
+    */
+    virtual void InitMeta(size_t ix, size_t iy, double meta);
+    
+    /**
+       Implements FacadeWriteInterface::AddGoal().
+       
        \note Unlike AddGoal(const Region &), obstacle vertices are not
        ignored.
     */
-    void AddGoal(size_t ix, size_t iy, double value);
+    virtual void AddGoal(size_t ix, size_t iy, double value);
     
     /**
-       \note Ignores obstacles [vertices with meta equal to
-       GetObstacleMeta()].
+       An alternative to AddGoal(size_t, size_t, double) which ignores
+       obstacles [vertices with meta equal to GetObstacleMeta()].
+       
+       \note FacadeWriteInterface has no corresponding abstract method.
     */
     void AddGoal(const Region & goal);
     
+    /**
+       Revert a goal cell to normal status. Unless the cell happens to
+       be non-goal before calling this method, this sets a flag which
+       causes the next call to ComputeOne() to reinitialize the
+       navigation function and wavefront.
+    */
     void RemoveGoal(size_t ix, size_t iy);
+    
+    /**
+       Revert all cells in a goal region to normal status. Basically
+       just calls RemoveGoal(size_t, size_t) for all the cells in the
+       region.
+    */
     void RemoveGoal(const Region & goal);
-    void RemoveAllGoals();
-    bool IsGoal(size_t ix, size_t iy) const;
     
-    bool HaveWork() const;
-    void ComputeOne();
-    node_status_t GetStatus(size_t ix, size_t iy) const;
+    /**
+       Implements FacadeWriteInterface::RemoveAllGoals().
+    */
+    virtual void RemoveAllGoals();
     
-    /** \return false only if the queue is empty (all nodes are
-	already locally consistent) */
-    bool GetLowestInconsistentValue(double & value) const;
+    /**
+       Implements FacadeReadInterface::IsGoal().
+    */
+    virtual bool IsGoal(size_t ix, size_t iy) const;
+    
+    /**
+       Implements FacadeReadInterface::HaveWork().
+    */
+    virtual bool HaveWork() const;
+    
+    /**
+       Implements FacadeWriteInterface::ComputeOne().
+    */
+    virtual void ComputeOne();
+    
+    /**
+       Implements FacadeWriteInterface::Reset().
+    */
+    virtual void Reset();
+    
+    /**
+       Implements FacadeReadInterface::GetStatus().
+    */
+    virtual node_status_t GetStatus(size_t ix, size_t iy) const;
+    
+    /**
+       Implements FacadeReadInterface::GetLowestInconsistentValue().
+    */
+    virtual bool GetLowestInconsistentValue(double & value) const;
     
     void DumpGrid(FILE * stream) const;
     void DumpQueue(FILE * stream, size_t limit) const;
     void DumpPointers(FILE * stream) const;
     
-    const Algorithm   & GetAlgorithm() const { return * m_algo; }
-    const Grid        & GetGrid()      const { return * m_grid; }
-    const Kernel      & GetKernel()    const { return * m_kernel; }
+    /**
+       Implements FacadeReadInterface::GetAlgorithm().
+    */
+    virtual const Algorithm & GetAlgorithm() const { return * m_algo; }
+    
+    /**
+       Implements FacadeReadInterface::GetGrid().
+    */
+    virtual const Grid & GetGrid() const { return * m_grid; }
+    
+    /**
+       Implements FacadeReadInterface::GetKernel().
+    */
+    virtual const Kernel & GetKernel() const { return * m_kernel; }
     
     Algorithm & GetAlgorithm() { return * m_algo; }
     Kernel    & GetKernel()    { return * m_kernel; }
     
     
   private:
-    boost::scoped_ptr<Algorithm> m_algo;
-    boost::scoped_ptr<Grid> m_grid;
-    boost::scoped_ptr<Kernel> m_kernel;
+    boost::shared_ptr<Algorithm> m_algo;
+    boost::shared_ptr<Grid> m_grid;
+    boost::shared_ptr<Kernel> m_kernel;
   };
   
 } // namespace estar

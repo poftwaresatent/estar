@@ -21,34 +21,16 @@
 #include "AlphaKernel.hpp"
 #include "numeric.hpp"
 #include "Propagator.hpp"
-#include <estar/util.hpp>
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_ALPHA_KERNEL_DEBUG
-#else
-# undef ESTAR_ALPHA_KERNEL_DEBUG
-#endif
-
-#ifdef ESTAR_ALPHA_KERNEL_DEBUG
-# define PDEBUG PDEBUG_OUT
-# include <sstream>
-namespace local { typedef std::ostringstream debugstream; }
-#else
-# define PDEBUG PDEBUG_OFF
-namespace local { typedef estar::fake_os debugstream; }
-#endif
-
-using namespace local;
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
 namespace estar {
   
   
   AlphaKernel::
-  AlphaKernel(double _scale)
-    : Kernel(1, infinity),
-      scale(_scale),
+  AlphaKernel(double scale)
+    : Kernel(1, infinity, scale),
       alpha(2.0)
   {
   }
@@ -59,7 +41,7 @@ namespace estar {
   {
     const double meta(propagator.GetTargetMeta());
     if(meta == infinity){
-      PDEBUG("OBSTACLE\n", meta);
+      PVDEBUG("OBSTACLE\n", meta);
       return infinity;
     }
     const_queue_it iq, qend;
@@ -67,12 +49,12 @@ namespace estar {
     propagator.AddBackpointer(iq->second);
     const double v1(iq->first);
     const double tmax(v1 + alpha * scale * meta);
-    debugstream dbg;
+    vdebugos dbg;
     dbg << "\n  meta: " << meta	<< "   prim i: " << iq->second << " v: " << v1
 	<< "   tmax: " << tmax;
     ++iq;
     if(iq == qend){
-      PDEBUG("NO SECONDARY, fb: %g%s\n", tmax, dbg.str().c_str());
+      PVDEBUG("NO SECONDARY, fb: %g%s\n", tmax, dbg.str().c_str());
       return tmax;
     }
     const double v2(iq->first);
@@ -81,11 +63,11 @@ namespace estar {
 	<< "   tnonfb: " << tnonfb;
     if(tnonfb > tmax){
       dbg << " > tmax";
-      PDEBUG("INVALID secondary, fb: %g%s\n", tmax, dbg.str().c_str());
+      PVDEBUG("INVALID secondary, fb: %g%s\n", tmax, dbg.str().c_str());
       return tmax;
     }
     propagator.AddBackpointer(iq->second); // IMPORTANT!
-    PDEBUG("SUCCESS %g%s\n", tnonfb, dbg.str().c_str());
+    PVDEBUG("SUCCESS %g%s\n", tnonfb, dbg.str().c_str());
     return tnonfb;
   }
   

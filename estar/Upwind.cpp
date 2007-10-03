@@ -19,31 +19,8 @@
 
 
 #include "Upwind.hpp"
-#include <estar/util.hpp>
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_UPWIND_DEBUG
-#else
-# undef ESTAR_UPWIND_DEBUG
-#endif
-
-#ifdef ESTAR_UPWIND_DEBUG
-# define PDEBUG PDEBUG_OUT
-# ifdef VERBOSE_DEBUG
-#  define PVDEBUG PDEBUG_OUT
-# else
-#  define PVDEBUG PDEBUG_OFF
-# endif
-# include <sstream>
-namespace local { typedef std::ostringstream debugstream; }
-#else
-# define PDEBUG PDEBUG_OFF
-# define PVDEBUG PDEBUG_OFF
-namespace local { typedef estar::fake_os debugstream; }
-#endif
-
-using namespace local;
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
 namespace estar {
@@ -90,7 +67,7 @@ namespace estar {
       PDEBUG("to: %lu EMPTY\n", to);
       return;
     }
-    debugstream dbg;
+    debugos dbg;
     // bugfix from Filip: calling RemoveEdge() directly can invalidate
     // the iterator, so first store them in a temporary area
     std::vector<vertex_t> vertices_to_delete(8); // allocate 'probably enough'

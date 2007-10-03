@@ -19,31 +19,17 @@
 
 
 #include "graphics.hpp"
-#include <gfx/wrap_gl.hpp>
-#include <estar/RiskMap.hpp>
-#include <estar/Grid.hpp>
-#include <estar/numeric.hpp>
-#include <estar/Algorithm.hpp>
-#include <estar/Kernel.hpp>
-#include <estar/Facade.hpp>
-#include <estar/Upwind.hpp>
-#include <estar/Region.hpp>
+#include "RiskMap.hpp"
+#include "Grid.hpp"
+#include "numeric.hpp"
+#include "Algorithm.hpp"
+#include "Kernel.hpp"
+#include "FacadeReadInterface.hpp"
+#include "Upwind.hpp"
+#include "Region.hpp"
+#include "pdebug.hpp"
+#include "../gfx/wrap_gl.hpp"
 #include <boost/shared_ptr.hpp>
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_GRAPHICS_DEBUG
-#else
-# undef ESTAR_GRAPHICS_DEBUG
-#endif
-
-#ifdef ESTAR_GRAPHICS_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
-
-#define PVDEBUG PDEBUG_OFF
 
 
 using namespace estar;
@@ -174,7 +160,7 @@ namespace gfx {
     
     const double delta(algo.GetLastComputedValue());
     if(0 >= delta){
-      PDEBUG("0 >= delta == %g\n", delta);
+      PVDEBUG("0 >= delta == %g\n", delta);
       return;
     }
     
@@ -252,7 +238,7 @@ namespace gfx {
   }
   
   
-  void draw_trace(const Facade & facade,
+  void draw_trace(const FacadeReadInterface & facade,
 		  double robot_x, double robot_y, double goalradius,
 		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b)
@@ -261,13 +247,14 @@ namespace gfx {
       return;
     if((robot_x < 0) || (robot_y < 0))
       return;
-    const size_t ix(static_cast<size_t>(rint(robot_x / facade.scale)));
-    const size_t iy(static_cast<size_t>(rint(robot_y / facade.scale)));
-    if((ix >= facade.xsize) || (iy >= facade.ysize))
+    double const scale(facade.GetScale());
+    const size_t ix(static_cast<size_t>(rint(robot_x / scale)));
+    const size_t iy(static_cast<size_t>(rint(robot_y / scale)));
+    if((ix >= facade.GetXSize()) || (iy >= facade.GetYSize()))
       return;
     draw_trace(facade.GetGrid(), facade.GetAlgorithm(),
 	       ix, iy,
-	       facade.scale / 2, goalradius, colorscheme,
+	       scale / 2, goalradius, colorscheme,
 	       fail_r, fail_g, fail_b);
   }
   
@@ -288,7 +275,7 @@ namespace gfx {
       return;
     if((grid.connect != FOUR_CONNECTED)
        && (grid.connect != EIGHT_CONNECTED)){
-      PDEBUG_OUT("TODO: Implement tracing for hexgrids!\n");
+      PDEBUG("TODO: Implement tracing for hexgrids!\n");
       return;
     }
     
@@ -297,13 +284,13 @@ namespace gfx {
     const size_t max_iy(grid.GetYSize() - 1);
     const double startval(get(value, grid.GetVertex(robot_ix, robot_iy)));
     
-    PDEBUG("\n"
-	   "  robot: (%lu, %lu)\n"
-	   "  initial val: %2e\n"
-	   "  stepsize: %f\n"
-	   "  goalradius: %f\n",
-	   robot_ix, robot_iy, startval, stepsize,
-	   goalradius);
+    PVDEBUG("\n"
+	    "  robot: (%lu, %lu)\n"
+	    "  initial val: %2e\n"
+	    "  stepsize: %f\n"
+	    "  goalradius: %f\n",
+	    robot_ix, robot_iy, startval, stepsize,
+	    goalradius);
     
     typedef std::vector<struct trace_s> trace_t;
     trace_t trace;
@@ -364,7 +351,7 @@ namespace gfx {
   }
   
   
-  void draw_grid_meta(const Facade & facade,
+  void draw_grid_meta(const FacadeReadInterface & facade,
 		      const ColorScheme * colorscheme)
   {
     if( ! colorscheme)
@@ -374,7 +361,7 @@ namespace gfx {
   }
   
   
-  void draw_grid_obstacles(const Facade & facade,
+  void draw_grid_obstacles(const FacadeReadInterface & facade,
 			   double red, double green, double blue)
   {
     const Grid & grid(facade.GetGrid());
@@ -398,7 +385,7 @@ namespace gfx {
   }
   
   
-  void draw_grid_value(const Facade & facade,
+  void draw_grid_value(const FacadeReadInterface & facade,
 		       const ColorScheme * colorscheme,
 		       bool auto_scale_value)
   {
@@ -461,7 +448,7 @@ namespace gfx {
 	}
 	break;
       default:
-	PDEBUG("i: %d   f: %s\n", vertex, flag_name(get(flag, vertex)));
+	PVDEBUG("i: %d   f: %s\n", vertex, flag_name(get(flag, vertex)));
 	continue;
       }
       const GridNode & gn(grid.Vertex2Node(vertex));
@@ -473,13 +460,13 @@ namespace gfx {
   }
   
   
-  void draw_grid_queue(const estar::Facade & facade)
+  void draw_grid_queue(const estar::FacadeReadInterface & facade)
   {
     draw_grid_queue(facade.GetGrid(), facade.GetAlgorithm());
   }
   
   
-  void draw_grid_upwind(const estar::Facade & facade,
+  void draw_grid_upwind(const estar::FacadeReadInterface & facade,
 			double red, double green, double blue,
 			double linewidth)
   {
@@ -545,7 +532,7 @@ namespace gfx {
   }
   
   
-  void get_grid_bbox(const estar::Facade & facade,
+  void get_grid_bbox(const estar::FacadeReadInterface & facade,
 		     double & x0, double & y0, double & x1, double & y1)
   {
     get_grid_bbox(facade.GetGrid() , x0, y0, x1, y1);
@@ -577,10 +564,10 @@ namespace gfx {
       PDEBUG_ERR("ERROR: Invalid grid.connect %d\n", grid.connect);
       exit(EXIT_FAILURE);
     }
-    PDEBUG("%s size (%lu, %lu) bbox (%g, %g, %g, %g)\n",
-	   grid.connect == FOUR_CONNECTED
-	   ? "FOUR" : (grid.connect == EIGHT_CONNECTED ? "EIGHT" : "HEX"),
-	   grid.xsize, grid.ysize, x0, y0, x1, y1);
+    PVDEBUG("%s size (%lu, %lu) bbox (%g, %g, %g, %g)\n",
+	    grid.connect == FOUR_CONNECTED
+	    ? "FOUR" : (grid.connect == EIGHT_CONNECTED ? "EIGHT" : "HEX"),
+	    grid.xsize, grid.ysize, x0, y0, x1, y1);
   }
   
   
@@ -596,7 +583,7 @@ namespace gfx {
   }
 
 
-  void draw_grid_status(const estar::Facade & facade)
+  void draw_grid_status(const estar::FacadeReadInterface & facade)
   {
     const Grid & grid(facade.GetGrid());
     pfunc_t pfunc(get_pfunc(grid));
@@ -605,14 +592,15 @@ namespace gfx {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	const Facade::node_status_t nstat(facade.GetStatus(ix, iy));
+	const FacadeReadInterface::node_status_t
+	  nstat(facade.GetStatus(ix, iy));
 	switch(nstat){
-	case Facade::UPWIND:    glColor3d(0, 0,   1); break;
-	case Facade::DOWNWIND:  glColor3d(1, 0.5, 0); break;
-	case Facade::WAVEFRONT: glColor3d(1, 0,   0); break;
-	case Facade::GOAL:      glColor3d(0, 1,   0); break;
-	case Facade::OBSTACLE:  glColor3d(1, 0,   1); break;
-	case Facade::OUT_OF_GRID:
+	case FacadeReadInterface::UPWIND:    glColor3d(0, 0,   1); break;
+	case FacadeReadInterface::DOWNWIND:  glColor3d(1, 0.5, 0); break;
+	case FacadeReadInterface::WAVEFRONT: glColor3d(1, 0,   0); break;
+	case FacadeReadInterface::GOAL:      glColor3d(0, 1,   0); break;
+	case FacadeReadInterface::OBSTACLE:  glColor3d(1, 0,   1); break;
+	case FacadeReadInterface::OUT_OF_GRID:
 	default:
 	  continue;
 	}

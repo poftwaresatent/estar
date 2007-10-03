@@ -20,26 +20,10 @@
 
 #include "Propagator.hpp"
 #include "Upwind.hpp"
-#include <estar/util.hpp>
-
-  
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_PROPAGATOR_DEBUG
-#else
-# undef ESTAR_PROPAGATOR_DEBUG
-#endif
-  
-#ifdef ESTAR_PROPAGATOR_DEBUG
-# define PDEBUG PDEBUG_OUT
-# include <sstream>
-namespace local { typedef std::ostringstream debugstream; }
-#else
-# define PDEBUG PDEBUG_OFF
-namespace local { typedef estar::fake_os debugstream; }
-#endif
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
-using namespace local;
 using std::make_pair;
 
 
@@ -57,11 +41,11 @@ namespace estar {
       m_target_vertex(target)
   {    
     if(get(flag, target) & GOAL){
-      PDEBUG("target %lu is GOAL\n", target);
+      PVDEBUG("target %lu is GOAL\n", target);
       return;
     }
     
-    debugstream dbg;
+    vdebugos dbg;
     dbg << "\n ";
     for(/**/; neighbors.first != neighbors.second; ++neighbors.first){
       vertex_t nbor(*neighbors.first);
@@ -82,7 +66,7 @@ namespace estar {
       else
 	dbg << " " << nbor << " inf  ";
     }
-    PDEBUG("target %lu%s\n", target, dbg.str().c_str());
+    PVDEBUG("target %lu%s\n", target, dbg.str().c_str());
   }
   
   

@@ -4,12 +4,13 @@ CXXFLAGS= @ESTAR_CXXFLAGS@
 LDFLAGS=  @ESTAR_LDFLAGS@
 
 if ESTAR_ENABLE_GFX
-  GFX_PROGS=  test_estar_gfx test_pnf_gfx
+  GFX_PROGS=  test_estar_gfx test_estar_replan_gfx test_pnf_gfx
   GFX_LIBADD= ../gfx/libgfx.la @ESTAR_GFXLIBS@
 endif
 
 bin_PROGRAMS= test_dbg_opt \
               test_estar \
+              test_estar_replanner \
               test_estar_cwrap \
               test_estar_queue \
               test_fake_os \
@@ -23,6 +24,8 @@ test_dbg_opt_SOURCES=     test_dbg_opt.cpp
 test_dbg_opt_LDADD=       ../libestar.la
 test_estar_SOURCES=       test_estar.cpp
 test_estar_LDADD=         ../libestar.la
+test_estar_replanner_SOURCES= test_estar_replanner.cpp
+test_estar_replanner_LDADD=   ../libestar.la
 test_estar_cwrap_SOURCES= test_estar_cwrap.c
 test_estar_cwrap_LDADD=   ../libestar.la -lstdc++ -lm
 test_estar_queue_SOURCES= test_estar_queue.cpp
@@ -41,6 +44,8 @@ test_shape_LDADD=         ../libestar.la
 if ESTAR_ENABLE_GFX
   test_estar_gfx_SOURCES= test_estar_gfx.cpp Getopt.cpp
   test_estar_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
+  test_estar_replan_gfx_SOURCES= test_estar_replan_gfx.cpp Getopt.cpp
+  test_estar_replan_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
   test_pnf_gfx_SOURCES=   test_pnf_gfx.cpp
   test_pnf_gfx_LDADD=     ../libestar.la $(GFX_LIBADD)
 endif

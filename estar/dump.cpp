@@ -19,23 +19,11 @@
 
 
 #include "dump.hpp"
-#include "Facade.hpp"
+#include "FacadeReadInterface.hpp"
 #include "Algorithm.hpp"
 #include "Grid.hpp"
-#include <estar/util.hpp>
-
-
-#ifdef VERBOSE_DEBUG
-# define ESTAR_DUMP_DEBUG
-#else
-# undef ESTAR_DUMP_DEBUG
-#endif
-
-#ifdef ESTAR_DUMP_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
 namespace estar {
@@ -132,16 +120,22 @@ namespace estar {
   }
   
   
-  void dump_raw(const Facade & facade,
+  void dump_raw(const FacadeReadInterface & facade,
 		FILE * value_stream,
 		FILE * meta_stream)
   {
+    size_t const xsize(facade.GetXSize());
+    if (xsize < 1)
+      return;
+    size_t const ysize(facade.GetYSize());
+    if (ysize < 1)
+      return;    
     if(value_stream)
       dump_raw_value(facade.GetGrid(), facade.GetAlgorithm(),
-		     0, 0, facade.xsize-1, facade.ysize-1, -1, value_stream);
+		     0, 0, xsize - 1, ysize - 1, -1, value_stream);
     if(meta_stream)
       dump_raw_meta(facade.GetGrid(), facade.GetAlgorithm(),
-		    0, 0, facade.xsize-1, facade.ysize-1, meta_stream);  
+		    0, 0, xsize - 1, ysize - 1, meta_stream);  
   }
   
   
@@ -183,7 +177,8 @@ namespace estar {
   }
   
   
-  void dump_queue(const Facade & facade, size_t limit, FILE * stream)
+  void dump_queue(const FacadeReadInterface & facade, size_t limit,
+		  FILE * stream)
   {
     dump_queue(facade.GetAlgorithm(), &facade.GetGrid(), limit, stream);
   }
@@ -324,7 +319,7 @@ namespace estar {
 		       size_t ix0, size_t iy0, size_t ix1, size_t iy1,
 		       FILE * stream)
   {
-    PDEBUG("%lu   %lu   %lu   %lu\n", ix0, iy0, ix1, iy1);
+    PVDEBUG("%lu   %lu   %lu   %lu\n", ix0, iy0, ix1, iy1);
     const char * even("");
     const char * oddsep(grid.connect == HEX_GRID ? "+-----" : even);
     const char * oddpre(grid.connect == HEX_GRID ? "      " : even);
@@ -363,7 +358,7 @@ namespace estar {
   }
   
   
-  void dump_facade_range_highlight(const Facade & facade,
+  void dump_facade_range_highlight(const FacadeReadInterface & facade,
 				   size_t ix0, size_t iy0,
 				   size_t ix1, size_t iy1,
 				   size_t ixhigh, size_t iyhigh,
@@ -380,8 +375,8 @@ namespace estar {
 				 size_t ixhigh, size_t iyhigh,
 				 FILE * stream)
   {
-    PDEBUG("%lu   %lu   %lu   %lu   %lu   %lu\n",
-	   ix0, iy0, ix1, iy1, ixhigh, iyhigh);
+    PVDEBUG("%lu   %lu   %lu   %lu   %lu   %lu\n",
+	    ix0, iy0, ix1, iy1, ixhigh, iyhigh);
     fprintf(stream, " ");
     for(size_t ix(ix0); ix <= ix1; ++ix)
       if(ix == ixhigh) fprintf(stream, " ***********");

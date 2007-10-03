@@ -20,23 +20,11 @@
 
 #include "Queue.hpp"
 #include "numeric.hpp"
-#include <estar/util.hpp>
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
 using std::make_pair;
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_QUEUE_DEBUG
-#else
-# undef ESTAR_QUEUE_DEBUG
-#endif
-
-#ifdef ESTAR_QUEUE_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
 
 
 namespace estar {
@@ -58,7 +46,7 @@ namespace estar {
     m_queue.erase(iq);
     m_map.erase(vertex);
     put(flag_map, vertex, static_cast<flag_t>(get(flag_map, vertex) ^ OPEN));
-    PDEBUG("f: %s i: %lu\n", flag_name(get(flag_map, vertex)), vertex);
+    PVDEBUG("f: %s i: %lu\n", flag_name(get(flag_map, vertex)), vertex);
     return vertex;
   }
   
@@ -74,8 +62,8 @@ namespace estar {
     const flag_t flag(get(flag_map, vertex));
     
     if(absval(value - rhs) < epsilon){
-      PDEBUG("CONSISTENT f: %s i: %lu v: %g rhs: %g\n",
-	     flag_name(flag), vertex, value, rhs);
+      PVDEBUG("CONSISTENT f: %s i: %lu v: %g rhs: %g\n",
+	      flag_name(flag), vertex, value, rhs);
       if(flag & OPEN){
 	DoDequeue(vertex, m_queue.begin());
 	m_map.erase(vertex);
@@ -89,21 +77,21 @@ namespace estar {
       m_queue.insert(make_pair(key, vertex));
       m_map.insert(make_pair(vertex, key));
       put(flag_map, vertex, static_cast<flag_t>(flag | OPEN));
-      PDEBUG("ENQUEUE f: %s i: %lu v: %g rhs: %g\n",
-	     flag_name(flag), vertex, value, rhs);
+      PVDEBUG("ENQUEUE f: %s i: %lu v: %g rhs: %g\n",
+	      flag_name(flag), vertex, value, rhs);
       return;
     }
     
     queue_map_t::iterator im(m_map.find(vertex));
     BOOST_ASSERT( im != m_map.end() );
     if(absval(im->second - key) < epsilon){
-      PDEBUG("KEEP f: %s i: %lu v: %g rhs: %g (absval(%g) < %g)\n",
-	     flag_name(flag), vertex, value, rhs, im->second - key, epsilon);
+      PVDEBUG("KEEP f: %s i: %lu v: %g rhs: %g (absval(%g) < %g)\n",
+	      flag_name(flag), vertex, value, rhs, im->second - key, epsilon);
       return;
     }
     
-    PDEBUG("REQUEUE f: %s i: %lu v: %g rhs: %g\n",
-	   flag_name(flag), vertex, value, rhs);
+    PVDEBUG("REQUEUE f: %s i: %lu v: %g rhs: %g\n",
+	    flag_name(flag), vertex, value, rhs);
     DoDequeue(vertex, m_queue.find(im->second));
     m_queue.insert(make_pair(key, vertex));
     im->second = key;
@@ -126,7 +114,7 @@ namespace estar {
 	break;
     }
     if(iq == m_queue.end()){
-      PDEBUG("WARNING search again!\n");
+      PVDEBUG("WARNING search again!\n");
       for(iq = m_queue.begin(); iq != m_queue.end(); ++iq){
 	if(iq->second == vertex)
 	  break;

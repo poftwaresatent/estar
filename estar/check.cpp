@@ -21,7 +21,8 @@
 #include "check.hpp"
 #include "Algorithm.hpp"
 #include "Grid.hpp"
-#include <estar/util.hpp>
+#include "util.hpp"
+#include "pdebug.hpp"
 #include <map>
 #include <iostream>
 #include <sstream>
@@ -29,19 +30,6 @@
 
 using namespace boost;
 using namespace std;
-
-
-#ifdef VERBOSE_DEBUG
-# define ESTAR_CHECK_DEBUG
-#else
-# undef ESTAR_CHECK_DEBUG
-#endif
-
-#ifdef ESTAR_CHECK_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
 
 
 namespace estar {
@@ -59,7 +47,7 @@ namespace estar {
     const rhs_map_t & rhs(algo.GetRhsMap()); // check key
     std::map<vertex_t, double> queued_vs;	// check duplicates
     for(const_queue_it iq(queue.begin()); iq != queue.end(); ++iq){
-      PDEBUG("i: %lu   k: %g\n", iq->second, iq->first);
+      PVDEBUG("i: %lu   k: %g\n", iq->second, iq->first);
       if( ! (get(flag, iq->second) & OPEN)){
 	result = false;
 	err << prefix << "  lacking OPEN flag on i: " << iq->second;

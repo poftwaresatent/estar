@@ -29,7 +29,7 @@
 namespace estar {
   
   
-  class Facade;
+  class FacadeReadInterface;
   class Algorithm;
   class Grid;
   
@@ -84,7 +84,7 @@ namespace estar {
       same stream twice). Set a stream to NULL if you're not interested
       in that part of the dump. Uses -1 as infinity_replacement for
       dump_raw_value(). */
-  void dump_raw(const Facade & facade,
+  void dump_raw(const FacadeReadInterface & facade,
 		FILE * value_stream,
 		FILE * meta_stream);
   
@@ -93,7 +93,8 @@ namespace estar {
   void dump_queue(const Algorithm & algo, const Grid * grid, size_t limit,
 		  FILE * stream);
   
-  void dump_queue(const Facade & facade, size_t limit, FILE * stream);
+  void dump_queue(const FacadeReadInterface & facade, size_t limit,
+		  FILE * stream);
   
   
   void dump_grid(const Grid & grid, FILE * stream);
@@ -105,7 +106,7 @@ namespace estar {
 				 size_t ix1, size_t iy1,
 				 size_t ixhigh, size_t iyhigh,
 				 FILE * stream);
-  void dump_facade_range_highlight(const Facade & facade,
+  void dump_facade_range_highlight(const FacadeReadInterface & facade,
 				   size_t ix0, size_t iy0,
 				   size_t ix1, size_t iy1,
 				   size_t ixhigh, size_t iyhigh,

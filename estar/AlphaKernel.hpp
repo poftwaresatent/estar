@@ -37,7 +37,6 @@ namespace estar {
   class AlphaKernel:
     public Kernel {
   public:
-    const double scale;
     const double alpha;
     
     AlphaKernel(double scale);

@@ -28,8 +28,9 @@
 #include <estar/Grid.hpp>
 #include <estar/graphics.hpp>
 #include <estar/dump.hpp>
+#include <estar/Facade.hpp>
 #include <gfx/Viewport.hpp>
-#include <gfx/MetaMousehandler.hpp>
+#include <gfx/Mousehandler.hpp>
 #include <gfx/wrap_glut.hpp>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
@@ -101,7 +102,7 @@ static shared_ptr<Viewport> m_risk_view;
 static shared_ptr<Grid> m_grid;
 static shared_ptr<Algorithm> m_algo;
 static shared_ptr<Kernel> m_kernel;
-static shared_ptr<MetaMousehandler> m_mouse_meta;
+static shared_ptr<Mousehandler> m_mouse_meta;
 static size_t m_goal_ix, m_goal_iy;
 static map<vertex_t, double> m_goal;
 static size_t m_robot_ix, m_robot_iy;
@@ -134,10 +135,10 @@ int main(int argc, char ** argv)
     get_grid_bbox(*m_grid, x0, y0, x1, y1);
     static const bb_t realbbox(x0, y0, x1, y1);
     m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 0.5, 1)));
-    m_value_view->SetMousehandler(Viewport::LEFT, m_mouse_meta.get());
+    m_value_view->SetMousehandler(Viewport::LEFT, m_mouse_meta);
     m_value_view->Enable();
     m_risk_view.reset(new Viewport("risk", realbbox, bb_t(0.5, 0, 1, 1)));
-    m_risk_view->SetMousehandler(Viewport::LEFT, m_mouse_meta.get());
+    m_risk_view->SetMousehandler(Viewport::LEFT, m_mouse_meta);
     m_risk_view->Enable();
     run_glthread(0);
   }
@@ -360,7 +361,7 @@ void parse_options(int argc, char ** argv)
     exit(EXIT_FAILURE);
   }
   
-  m_algo = shared_ptr<Algorithm>(new Algorithm());
+  m_algo.reset(new Algorithm());
   ifstream is(argv[res]);
   if( ! is){
     cerr << "ERROR in parse_options(): Couldn't open \""
@@ -373,9 +374,10 @@ void parse_options(int argc, char ** argv)
       ig != m_goal.end(); ++ig)
     m_algo->AddGoal(ig->first, ig->second);
   
-  if( ! text_only)
-    m_mouse_meta.
-      reset(new MetaMousehandler(*m_algo, *m_grid, *m_kernel, 0, 1));
+  if( ! text_only) {
+    shared_ptr<Facade> facade(new Facade(m_algo, m_grid, m_kernel));
+    m_mouse_meta.reset(new ObstacleMousehandler(facade, facade));
+  }
   
   if(result_fname != ""){
     result_os.reset(new ofstream(result_fname.c_str()));

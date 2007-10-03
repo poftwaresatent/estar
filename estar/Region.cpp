@@ -25,16 +25,11 @@
 #include "Region.hpp"
 #include "numeric.hpp"
 #include "util.hpp"
+#include "pdebug.hpp"
 #include <iostream>
 
 using namespace boost;
 using namespace std;
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else // ! ESTAR_DEBUG
-# define PDEBUG PDEBUG_OFF
-#endif // ESTAR_DEBUG
 
 
 namespace estar {
@@ -98,21 +93,21 @@ namespace estar {
       const ssize_t xx0(static_cast<ssize_t>(rint(x0/scale)));
       const ssize_t yy0(static_cast<ssize_t>(rint(y0/scale)));
       if((xx0 >= 0) && (xx0 < xsize) && (yy0 >= 0) && (yy0 < ysize)){
-	PDEBUG("empty area, repairing with center index\n");
+	PVDEBUG("empty area, repairing with center index\n");
 	m_area.push_back(sindex(xx0, yy0, 0));
       }
       else
-	PDEBUG("WARNING: cannot repair empty area!\n");
+	PVDEBUG("WARNING: cannot repair empty area!\n");
     }
     if(m_border.empty()){
       const ssize_t xx0(static_cast<ssize_t>(rint(x0/scale)));
       const ssize_t yy0(static_cast<ssize_t>(rint(y0/scale)));
       if((xx0 >= 0) && (xx0 < xsize) && (yy0 >= 0) && (yy0 < ysize)){
-	PDEBUG("empty border, repairing with center index\n");
+	PVDEBUG("empty border, repairing with center index\n");
 	m_border.push_back(sindex(xx0, yy0, 0));
       }
       else
-	PDEBUG("WARNING: cannot repair empty border!\n");
+	PVDEBUG("WARNING: cannot repair empty border!\n");
     }
   }
 

@@ -31,7 +31,7 @@ namespace estar {
   
   NF1Kernel::
   NF1Kernel()
-    : Kernel(0, infinity)
+    : Kernel(0, infinity, 1)
   {
   }
   

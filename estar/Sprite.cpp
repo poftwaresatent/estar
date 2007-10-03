@@ -25,13 +25,9 @@
 #include "Sprite.hpp"
 #include "numeric.hpp"
 #include "util.hpp"
+#include "pdebug.hpp"
 #include <iostream>
 
-#ifdef ESTAR_VERBOSE_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else // ! ESTAR_DEBUG
-# define PDEBUG PDEBUG_OFF
-#endif // ESTAR_DEBUG
 
 using namespace std;
 
@@ -58,11 +54,11 @@ namespace estar {
       }
     }
     if(m_area.empty()){
-      PDEBUG("empty area, repairing with center index\n");
+      PVDEBUG("empty area, repairing with center index\n");
       m_area.push_back(sindex(0, 0, 0));
     }
     if(m_border.empty()){
-      PDEBUG("empty border, repairing with center index\n");
+      PVDEBUG("empty border, repairing with center index\n");
       m_border.push_back(sindex(0, 0, 0));
     }
   }

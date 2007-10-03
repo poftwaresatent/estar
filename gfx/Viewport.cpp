@@ -32,6 +32,7 @@
 using estar::absval;
 using estar::minval;
 using namespace std;
+using namespace boost;
 
 
 namespace gfx {
@@ -237,7 +238,7 @@ namespace gfx {
 
   void Viewport::
   SetMousehandler(button_t button,
-		  Mousehandler * mousehandler)
+		  shared_ptr<Mousehandler> mousehandler)
   {
     handler_t::iterator ih(m_handler.find(button));
     if(ih == m_handler.end())

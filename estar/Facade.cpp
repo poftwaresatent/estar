@@ -28,27 +28,19 @@
 #include "Region.hpp"
 
 
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_FACADE_DEBUG
-#else
-# undef ESTAR_FACADE_DEBUG
-#endif
-
-#ifdef ESTAR_FACADE_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
+using namespace boost;
 
   
 namespace estar {
   
   
   Facade::
-  Facade(Algorithm * algo, Grid * grid, Kernel * kernel, double _scale)
+  Facade(shared_ptr<Algorithm> algo,
+	 shared_ptr<Grid> grid,
+	 shared_ptr<Kernel> kernel)
     : xsize(grid->xsize),
       ysize(grid->ysize),
-      scale(_scale),
+      scale(kernel->scale),
       m_algo(algo),
       m_grid(grid),
       m_kernel(kernel)
@@ -64,32 +56,30 @@ namespace estar {
 	 int connect_diagonal,
 	 FILE * dbgstream)
   {
-    Algorithm * algo(new Algorithm());
-    Grid * grid;
-    if(connect_diagonal)
-      grid = new Grid(*algo, xsize, ysize, EIGHT_CONNECTED);
+    shared_ptr<Algorithm> algo(new Algorithm());
+    shared_ptr<Grid> grid;
+    if (connect_diagonal)
+      grid.reset(new Grid(*algo, xsize, ysize, EIGHT_CONNECTED));
     else
-      grid = new Grid(*algo, xsize, ysize, FOUR_CONNECTED);
-    Kernel * kernel(0);
-    if(kernel_name == "nf1")
-      kernel = new NF1Kernel();
-    else if(kernel_name == "alpha")
-      kernel = new AlphaKernel(scale);
-    else if(kernel_name == "lsm")
-      kernel = new LSMKernel(*grid, scale);
-    else{
+      grid.reset(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
+    shared_ptr<Kernel> kernel;
+    if (kernel_name == "nf1")
+      kernel.reset(new NF1Kernel());
+    else if (kernel_name == "alpha")
+      kernel.reset(new AlphaKernel(scale));
+    else if (kernel_name == "lsm")
+      kernel.reset(new LSMKernel(*grid, scale));
+    else {
       if(0 != dbgstream)
 	fprintf(dbgstream,
 		"ERROR in %s():\n"
 		"  invalid kernel_name \"%s\"\n"
 		"  known kernels: nf1, alpha, lsm\n",
 		__FUNCTION__, kernel_name.c_str());
-      delete grid;
-      delete algo;
       return 0;
     }
     
-    return new Facade(algo, grid, kernel, scale);
+    return new Facade(algo, grid, kernel);
   }
   
   
@@ -98,10 +88,10 @@ namespace estar {
 		size_t ysize,
 		double scale)
   {
-    Algorithm * algo(new Algorithm());
-    Grid * grid(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
-    Kernel * kernel(new LSMKernel(*grid, scale));
-    return new Facade(algo, grid, kernel, scale);
+    shared_ptr<Algorithm> algo(new Algorithm());
+    shared_ptr<Grid> grid(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
+    shared_ptr<Kernel> kernel(new LSMKernel(*grid, scale));
+    return new Facade(algo, grid, kernel);
   }
   
   
@@ -281,6 +271,13 @@ namespace estar {
       return false;
     value = queue.begin()->first;
     return true;
+  }
+  
+  
+  void Facade::
+  Reset()
+  {
+    m_algo->Reset();
   }
   
 } // namespace estar

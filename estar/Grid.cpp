@@ -20,20 +20,8 @@
 
 #include "Grid.hpp"
 #include "Algorithm.hpp"
-#include <estar/util.hpp>
-
-
-#ifdef ESTAR_VERBOSE_DEBUG
-# define ESTAR_GRID_DEBUG
-#else
-# undef ESTAR_GRID_DEBUG
-#endif
-
-#ifdef ESTAR_GRID_DEBUG
-# define PDEBUG PDEBUG_OUT
-#else
-# define PDEBUG PDEBUG_OFF
-#endif
+#include "util.hpp"
+#include "pdebug.hpp"
 
 
 namespace estar {
@@ -72,10 +60,10 @@ namespace estar {
     
     switch(connect){
     case FOUR_CONNECTED:
-      PDEBUG("four-connected grid\n");
+      PVDEBUG("four-connected grid\n");
       break;
     case EIGHT_CONNECTED:
-      PDEBUG("eight-connected grid\n");
+      PVDEBUG("eight-connected grid\n");
       for(size_t ix(0); ix < _xsize-1; ++ix)
 	for(size_t iy(0); iy < _ysize-1; ++iy){
 	  algo.AddNeighbor(GetVertex(ix  , iy  ), GetVertex(ix+1, iy+1));
@@ -83,7 +71,7 @@ namespace estar {
 	}
       break;
     case HEX_GRID:
-      PDEBUG("hex grid\n");
+      PVDEBUG("hex grid\n");
       for(size_t iy(0); iy < _ysize-1; iy += 2)
 	for(size_t ix(1); ix < _xsize; ++ix)
 	  algo.AddNeighbor(GetVertex(ix  , iy  ), GetVertex(ix-1, iy+1));
@@ -160,8 +148,8 @@ namespace estar {
     }
     
     if(( ! have_x) || ( ! have_y))
-      PDEBUG("WARNING: have_x = %s   have_y = %s\n",
-	     have_x ? "TRUE" : "FALSE", have_y ? "TRUE" : "FALSE");
+      PVDEBUG("WARNING: have_x = %s   have_y = %s\n",
+	      have_x ? "TRUE" : "FALSE", have_y ? "TRUE" : "FALSE");
     return have_x && have_y;
     
 #else // ! UPWIND_GRADIENT

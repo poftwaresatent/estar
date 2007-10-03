@@ -13,6 +13,7 @@ noinst_LTLIBRARIES=     libestarsub.la
 libestarsub_la_SOURCES= Algorithm.cpp \
                         AlphaKernel.cpp \
                         Facade.cpp \
+                        ComparisonFacade.cpp \
                         Grid.cpp \
                         Kernel.cpp \
                         LSMKernel.cpp \
@@ -32,7 +33,10 @@ libestarsub_la_SOURCES= Algorithm.cpp \
 
 include_HEADERS=        Algorithm.hpp \
                         AlphaKernel.hpp \
+                        FacadeWriteInterface.hpp \
+                        FacadeReadInterface.hpp \
                         Facade.hpp \
+                        ComparisonFacade.hpp \
                         Grid.hpp \
                         Kernel.hpp \
                         LSMKernel.hpp \

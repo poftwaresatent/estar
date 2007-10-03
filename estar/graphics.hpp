@@ -28,7 +28,7 @@
 
 namespace estar {
 
-  class Facade;
+  class FacadeReadInterface;
   class Grid;
   class Algorithm;
   class RiskMap;
@@ -65,7 +65,7 @@ namespace gfx {
 		       const ColorScheme * colorscheme,
 		       bool auto_scale_value);
   
-  void draw_grid_value(const estar::Facade & facade,
+  void draw_grid_value(const estar::FacadeReadInterface & facade,
 		       const ColorScheme * colorscheme,
 		       bool auto_scale_value);
   
@@ -79,10 +79,10 @@ namespace gfx {
 		      const estar::Kernel & kernel,
 		      const ColorScheme * colorscheme);
   
-  void draw_grid_meta(const estar::Facade & facade,
+  void draw_grid_meta(const estar::FacadeReadInterface & facade,
 		      const ColorScheme * colorscheme);
   
-  void draw_grid_obstacles(const estar::Facade & facade,
+  void draw_grid_obstacles(const estar::FacadeReadInterface & facade,
 			   double red, double green, double blue);
   
   void draw_array(const estar::array<double> & grid,
@@ -97,7 +97,7 @@ namespace gfx {
 		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b);
   
-  void draw_trace(const estar::Facade & facade,
+  void draw_trace(const estar::FacadeReadInterface & facade,
 		  double robot_x, double robot_y, double goalradius,
 		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b);
@@ -105,14 +105,14 @@ namespace gfx {
   void draw_grid_queue(const estar::Grid & grid,
 		       const estar::Algorithm & algo);
   
-  void draw_grid_queue(const estar::Facade & facade);
+  void draw_grid_queue(const estar::FacadeReadInterface & facade);
   
   void draw_grid_upwind(const estar::Grid & grid,
 			const estar::Algorithm & algo,
 			double red, double green, double blue,
 			double linewidth);
   
-  void draw_grid_upwind(const estar::Facade & facade,
+  void draw_grid_upwind(const estar::FacadeReadInterface & facade,
 			double red, double green, double blue,
 			double linewidth);
   
@@ -121,12 +121,12 @@ namespace gfx {
 			 double red, double green, double blue,
 			 double linewidth);
   
-  void draw_grid_status(const estar::Facade & facade);
+  void draw_grid_status(const estar::FacadeReadInterface & facade);
   
   void get_grid_bbox(const estar::Grid & grid,
 		     double & x0, double & y0, double & x1, double & y1);
   
-  void get_grid_bbox(const estar::Facade & facade,
+  void get_grid_bbox(const estar::FacadeReadInterface & facade,
 		     double & x0, double & y0, double & x1, double & y1);
   
   void draw_region(const estar::Region & region,

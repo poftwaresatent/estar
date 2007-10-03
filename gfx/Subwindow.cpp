@@ -24,6 +24,7 @@
 
 #include "Subwindow.hpp"
 #include "wrap_glut.hpp"
+#include "../estar/pdebug.hpp"
 #include <iostream>
 
 
@@ -40,22 +41,31 @@ namespace gfx {
   Subwindow::
   Subwindow(const string & name,
 	    logical_bbox_t lbbox,
-	    bool enable):
+	    bool enable,
+	    bool clickable):
     m_lbbox(lbbox),
     m_lsize(lbbox.x1 - lbbox.x0, lbbox.y1 - lbbox.y0),
     m_sbbox(0, 0, 1, 1),
     m_ssize(1, 1),
     m_winsize(1, 1),
     m_enabled(enable),
+    m_clickable(clickable),
     m_name(name)
   {
-    m_registry.insert(this);
+    PVDEBUG("%p\n  n: %s  x0: %g  y0: %g  x1: %g  y1: %g  en: %s  cl: %s\n",
+	    this, name.c_str(), lbbox.x0, lbbox.y0, lbbox.x1, lbbox.y1,
+	    (enable ? "true" : "false"),
+	    (clickable ? "true" : "false") );
+    if (clickable)
+      m_registry.insert(this);
   }
 
 
   Subwindow::
   ~Subwindow()
   {
+    // Do not check for m_clickable: it does not hurt and is more
+    // robust regarding future code changes.
     m_registry.erase(this);
   }
 
@@ -63,6 +73,9 @@ namespace gfx {
   Subwindow * Subwindow::
   GetSubwindow(logical_point_t lpoint)
   {
+    PVDEBUG("nsubwins: %i  x: %g\ty: %g\n",
+	    m_registry.size(), lpoint.x, lpoint.y);
+    
     for(registry_t::iterator is(m_registry.begin());
 	is != m_registry.end();
 	++is)
@@ -75,6 +88,9 @@ namespace gfx {
   Subwindow * Subwindow::
   GetSubwindow(screen_point_t spoint)
   {
+    PVDEBUG("nsubwins: %i  x: %d\ty: %d\n",
+	    m_registry.size(), spoint.x, spoint.y);
+    
     for(registry_t::iterator is(m_registry.begin());
 	is != m_registry.end();
 	++is)
@@ -112,8 +128,13 @@ namespace gfx {
 		int state,
 		screen_point_t mouse)
   {
+    PVDEBUG("b: %i  s: %i  mx: %i  my %i\n",
+	       button, state, mouse.x, mouse.y);
+    
     Root()->InvertYaxis(mouse);
     Subwindow * sw(GetSubwindow(mouse));
+    PVDEBUG("  subwindow: %p\n", sw);
+    
     if(sw == 0){
       m_lastclicked = 0;
       return;
@@ -187,7 +208,8 @@ namespace gfx {
     // disabled forever
     class Rootwin: public Subwindow {
     public:
-      Rootwin() throw(): Subwindow("__root", logical_bbox_t(0, 0, 1, 1)) {}
+      Rootwin() throw()
+	: Subwindow("__root", logical_bbox_t(0, 0, 1, 1), true, false) {}
       virtual void PushProjection() const throw(){}
       virtual void PopProjection() const throw(){}
     protected:

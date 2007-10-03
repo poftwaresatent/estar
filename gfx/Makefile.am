@@ -5,13 +5,12 @@ LDFLAGS=  @ESTAR_LDFLAGS@
 
 noinst_LTLIBRARIES= libgfx.la
 
-libgfx_la_SOURCES=  MetaMousehandler.cpp \
+libgfx_la_SOURCES=  Mousehandler.cpp \
                     Subwindow.cpp \
                     Viewport.cpp \
                     wrap_glu.cpp
 
-include_HEADERS=    MetaMousehandler.hpp \
-                    Mousehandler.hpp \
+include_HEADERS=    Mousehandler.hpp \
                     Subwindow.hpp \
                     Viewport.hpp \
                     wrap_gl.hpp \
