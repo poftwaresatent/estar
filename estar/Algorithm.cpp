@@ -204,6 +204,10 @@ namespace estar {
   }
   
   
+  /**
+     \todo Spurious Reset() at the end of the method? Added by Sascha
+     in rev 90, but should not be necessary.
+  */
   void Algorithm::
   RemoveAllGoals()
   {

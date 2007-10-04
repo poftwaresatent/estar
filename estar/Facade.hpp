@@ -39,12 +39,13 @@ namespace estar {
   /**
      High-level interface for E-star approach to smooth dynamic
      navigation functions. Hides the semantics for accessing the
-     underlying Algorithm, Grid, Kernel, and associated objects.
+     underlying Algorithm, Grid, Kernel, and associated objects. The
+     Facade is specialized for grid-based environment representations.
      
-     Use the Create() factory method to allocate a new Facade.
-     
-     \todo Provide a way to "plug-in" existing instances, eg for user
-     extensions.
+     The recommended way to create and initialize a new Facade is to
+     use one of the factory methods Create() or CreateDefault(). You
+     can also allocate and initialize separate Algorithm, Grid, and
+     Kernel objects and wrap a Facade around them.
      
      \note We are using multiple inheritance on two completely
      abstract base classes, so we do not risk too many of the pitfalls
@@ -62,19 +63,75 @@ namespace estar {
     typedef FacadeReadInterface::node_status_t node_status_t;
     
     
-    const size_t xsize, ysize;
-    const double scale;
+    const size_t xsize;	///< number of cells along X of the underlying grid
+    const size_t ysize;	///< number of cells along Y of the underlying grid
+    const double scale; ///< edge length of square cells in the grid
     
-    static Facade * Create(const std::string & kernel_name,
-			   size_t xsize,
-			   size_t ysize,
-			   double scale,
-			   int connect_diagonal,
-			   FILE * dbgstream);
     
-    static Facade * CreateDefault(size_t xsize,
-				  size_t ysize,
-				  double scale);
+    /**
+       Create a Facade and make it ready to be used. Most people can
+       call CreateDefault() instead. Typically, the first things you
+       will do with a freshly created Facade are:
+       
+       -# Initialize traversability information using
+          InitMeta(). However, once you have started propagating, you
+          should not use InitMeta() anymore. Use SetMeta() instead.
+       -# Set the goal(s) by calling AddGoal().
+       -# Repeatedly call ComputeOne(), HaveWork(), and/or GetStatus()
+          to compute the navigation function until you reach the robot
+          or until the whole grid has been propagated.
+       -# Use trace_carrot() (defined in util.hpp) to compute a path
+          to the goal; you can also use
+          compute_stable_scaled_gradient() or the more basic
+          Grid::ComputeGradient() to devise a control that, at each
+          timestep, requires just the "best" direction to the goal.
+       
+       These steps interweave quite easily with updates to the
+       traversability information, because SetMeta() will create
+       appropriate entries on the wavefront Queue. However, when
+       multi-threading you have to create your own mutexes and such
+       (for an example, see the asl-mcontrol code that is provided
+       with the estar-devkit project, available from
+       http://estar.sourceforge.net/).
+       
+       \return A fresh Facade instance, or null if something went
+       wrong, in which case a message will have been written to
+       dbgstream unless you set that to null.
+       
+       \note If you're wondering why we use FILE * instead of
+       std::ostream and int instead of bool: this makes it much easier
+       to implement a C-wrapper and does not cost the C++ programmer
+       too much.
+    */
+    static Facade *
+    Create(/** Name of the Kernel subclass to use. Currently accepts
+	       "nf1" for NF1Kernel, "alpha" for AlphaKernel, and "lsm"
+	       for LSMKernel. The latter is preferred. */
+	   const std::string & kernel_name,
+	   /** dimension along X of the grid */
+	   size_t xsize,
+	   /** dimension along Y of the grid */
+	   size_t ysize,
+	   /** size of the square grid cells */
+	   double scale,
+	   /** if true (non-zero), then the grid will be 8-connected,
+	       which might be appropriate in some cases. However, for
+	       the preferred LSMKernel, you should set this to zero in
+	       order to create a 4-connected grid. */
+	   int connect_diagonal,
+	   /** If non-null, error messages are written to this
+	       stream. This currently only happens when you specify an
+	       invalid kernel_name. */
+	   FILE * dbgstream);
+    
+    /** Like Create(), but doesn't give you a choice of Kernel (it's
+	always LSMKernel) or of diagonally connected cells (that's
+	always disabled). */
+    static Facade *
+    CreateDefault(size_t xsize,
+		  size_t ysize,
+		  double scale);
+    
     
     /**
        Create a Facade from existing instances of Algorithm, Grid, and
@@ -119,12 +176,14 @@ namespace estar {
     virtual double GetValue(size_t ix, size_t iy) const;
     
     /**
-       Implements FacadeReadInterface::GetMeta().
+       Implements FacadeReadInterface::GetMeta(). See also
+       Algorithm::SetMeta() for more details.
     */
     virtual double GetMeta(size_t ix, size_t iy) const;
     
     /**
-       Implements FacadeWriteInterface::SetMeta().
+       Implements FacadeWriteInterface::SetMeta(). See also
+       Algorithm::SetMeta() for more details.
     */
     virtual void SetMeta(size_t ix, size_t iy, double meta);
     
@@ -199,8 +258,29 @@ namespace estar {
     */
     virtual bool GetLowestInconsistentValue(double & value) const;
     
+    /**
+       Write the underlying Grid to a stream. Actually just calls
+       dump_grid() in dump.hpp, so if you want finer control have a
+       look at what else is offered there.
+    */
     void DumpGrid(FILE * stream) const;
-    void DumpQueue(FILE * stream, size_t limit) const;
+    
+    /**
+       Write the contents of the wavefront Queue to a stream. Actually
+       just calls dump_queue() in dump.hpp, look there for more
+       options.
+    */
+    void DumpQueue(FILE * stream,
+		   /** if >0 then output stops after that number of
+		       entries (the queue can get really long even in
+		       medium-sized grids) */
+		   size_t limit) const;
+    
+    /**
+       Write the addresses of the Algorithm, Grid, and Kernel
+       instances. This is mostly for debugging, for moments when
+       you're doubting that the right objects get called...
+    */
     void DumpPointers(FILE * stream) const;
     
     /**
@@ -218,8 +298,23 @@ namespace estar {
     */
     virtual const Kernel & GetKernel() const { return * m_kernel; }
     
+    /**
+       \return A non-const reference to the underlying Algorithm.
+
+       \note Should only be necessary if you're experimenting with new
+       things to put into Facade, so consider extending this class
+       once you're done.
+    */
     Algorithm & GetAlgorithm() { return * m_algo; }
-    Kernel    & GetKernel()    { return * m_kernel; }
+    
+    /**
+       \return A non-const reference to the underlying Kernel.
+
+       \note Should only be necessary if you're experimenting with new
+       things to put into Facade, so consider extending this class
+       once you're done.
+    */
+    Kernel & GetKernel() { return * m_kernel; }
     
     
   private:

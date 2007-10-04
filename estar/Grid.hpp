@@ -69,9 +69,7 @@ namespace estar {
     Grid(Algorithm & algo, size_t xsize, size_t ysize,
 	 connectedness_t connect);
     
-    /** \todo legacy */
     size_t GetXSize() const { return xsize; }
-    /** \todo legacy */
     size_t GetYSize() const { return ysize; }
     
     const GridNode & Vertex2Node(vertex_t vertex) const
