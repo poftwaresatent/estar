@@ -40,9 +40,9 @@ namespace estar {
   AddEdge(vertex_t from, vertex_t to)
   {
     if( ! HaveEdge(to, from))
-      PDEBUG("from: %lu to: %lu\n", from, to);
+      PVDEBUG("from: %lu to: %lu\n", from, to);
     else{
-      PDEBUG("from: %lu to: %lu REPLACE opposite edge\n", from, to);
+      PVDEBUG("from: %lu to: %lu REPLACE opposite edge\n", from, to);
       RemoveEdge(to, from);
     }
     m_from_to[from].insert(to);
@@ -64,7 +64,7 @@ namespace estar {
   {
     set_t & ts(m_to_from[to]);
     if(ts.empty()){
-      PDEBUG("to: %lu EMPTY\n", to);
+      PVDEBUG("to: %lu EMPTY\n", to);
       return;
     }
     debugos dbg;
@@ -80,7 +80,7 @@ namespace estar {
 	++it){
       RemoveEdge(*it, to);
     }
-    PDEBUG("to: %lu from:%s\n", to, dbg.str().c_str());
+    PVDEBUG("to: %lu from:%s\n", to, dbg.str().c_str());
   }
   
   
