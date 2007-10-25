@@ -121,6 +121,51 @@ namespace gfx {
   }
   
   
+  ColorCycle::
+  ColorCycle(const ColorScheme * scheme,
+	     double period,
+	     double width)
+    : m_scheme(scheme),
+      m_period(period),
+      m_width(width)
+  {
+    if (m_period < epsilon)
+      m_period = epsilon;
+    if (m_width > m_period / 3)
+      m_width = m_period / 3;
+    m_half_period = m_period / 2;
+    m_scaled_width = m_width / m_period;
+    m_scale = 1.0 / (1 - 2 * m_scaled_width);
+  }
+  
+  
+  void ColorCycle::
+  Set(double value) const
+  {
+    m_scheme->Set(ComputeMapping(value));
+  }
+  
+  
+  double ColorCycle::
+  ComputeMapping(double value) const
+  {
+    value = fmod(value, m_period);
+    if (value > m_half_period)
+      value = m_period - value;
+    value *= 2;
+    // here, value is rescaled to [0..1] mirrored around period/2,
+    // i.e. it's a periodic sawtooth with zeros at N*period and ones
+    // at (2N+1)*period/2
+    
+    value = (value - m_scaled_width) * m_scale;
+    if (value <= 0)
+      return 0;
+    if (value >= 1)
+      return 1;
+    return value;
+  }
+  
+  
   static pair<double, double> p_cartesian(double ix, double iy)
   {
     //    return make_pair(ix + 0.5, iy + 0.5);

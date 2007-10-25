@@ -60,6 +60,35 @@ namespace gfx {
   };
   
   
+  /** Maps a value from the navigation function into the range [0..1]
+      and forwards the choosing of the color to its registered
+      ColorScheme. The mapping is a 'flat-headed' saw-tooth function,
+      where users control the period of the saw-tooth and the width of
+      the flat sections. */
+  class ColorCycle
+    : public ColorScheme
+  {
+  public:
+    ColorCycle(const ColorScheme * scheme,
+	       /** the cycle repeats with this period (ensured to be
+		   >= epsilon) */
+	       double period,
+	       /** the mapped value stays 0 or 1 within 'width' of
+		   N*period ('width' is trunkated to period/3) */
+	       double width);
+    
+    /** Periodically map 'value' to [0..1] using ComputeMapping() and
+	forward to the registered scheme. */
+    virtual void Set(double value) const;
+    
+    double ComputeMapping(double value) const;
+    
+  protected:
+    const ColorScheme * m_scheme;
+    double m_period, m_width, m_half_period, m_scaled_width, m_scale;
+  };
+  
+  
   void draw_grid_value(const estar::Grid & grid,
 		       const estar::Algorithm & algo,
 		       const ColorScheme * colorscheme,
