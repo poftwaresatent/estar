@@ -197,31 +197,61 @@ namespace gfx {
   
   void draw_grid_value(const Grid & grid, const Algorithm & algo,
 		       const ColorScheme * colorscheme,
-		       bool auto_scale_value)
+ 		       bool auto_scale_value)
   {
     if( ! colorscheme)
       return;
     pfunc_t pfunc(get_pfunc(grid));
     
-    const double delta(algo.GetLastComputedValue());
-    if(0 >= delta){
-      PVDEBUG("0 >= delta == %g\n", delta);
-      return;
-    }
-    
     const size_t xsize(grid.GetXSize());
     const size_t ysize(grid.GetYSize());
     const value_map_t & value(algo.GetValueMap());
     
+    if (auto_scale_value) {
+      const double delta(algo.GetLastComputedValue());
+      if (0 >= delta) {
+	PVDEBUG("0 >= delta == %g\n", delta);
+	return;
+      }
+      
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      for(size_t ix(0); ix < xsize; ++ix)
+	for(size_t iy(0); iy < ysize; ++iy){
+	  const double vv(minval(get(value, grid.GetVertex(ix, iy)), delta));
+	  colorscheme->Set(vv / delta);
+	  double xc, yc;
+	  tie(xc, yc) = pfunc(ix, iy);
+	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+	}
+    }
+    else {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      for(size_t ix(0); ix < xsize; ++ix)
+	for(size_t iy(0); iy < ysize; ++iy){
+	  colorscheme->Set(get(value, grid.GetVertex(ix, iy)));
+	  double xc, yc;
+	  tie(xc, yc) = pfunc(ix, iy);
+	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+	}
+    }
+  }
+  
+  
+  void draw_grid_rhs(const Grid & grid, const Algorithm & algo,
+		     const ColorScheme * colorscheme)
+  {
+    if( ! colorscheme)
+      return;
+    pfunc_t pfunc(get_pfunc(grid));
+    
+    const size_t xsize(grid.GetXSize());
+    const size_t ysize(grid.GetYSize());
+    const rhs_map_t & rhs(algo.GetRhsMap());
+    
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	if(auto_scale_value){
-	  const double vv(minval(get(value, grid.GetVertex(ix, iy)), delta));
-	  colorscheme->Set(vv / delta);
-	}
-	else
-	  colorscheme->Set(get(value, grid.GetVertex(ix, iy)));
+	colorscheme->Set(get(rhs, grid.GetVertex(ix, iy)));
 	double xc, yc;
 	tie(xc, yc) = pfunc(ix, iy);
 	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
@@ -432,7 +462,7 @@ namespace gfx {
   
   void draw_grid_value(const FacadeReadInterface & facade,
 		       const ColorScheme * colorscheme,
-		       bool auto_scale_value)
+ 		       bool auto_scale_value)
   {
     if( ! colorscheme)
       return;
@@ -440,7 +470,16 @@ namespace gfx {
 		    colorscheme, auto_scale_value);
   }
   
-
+  
+  void draw_grid_rhs(const FacadeReadInterface & facade,
+		     const ColorScheme * colorscheme)
+  {
+    if( ! colorscheme)
+      return;
+    draw_grid_rhs(facade.GetGrid(), facade.GetAlgorithm(), colorscheme);
+  }
+  
+  
   void draw_array(const array<double> & grid,
 		  size_t x0, size_t y0, size_t x1, size_t y1,
 		  double lower, double upper,
@@ -474,21 +513,30 @@ namespace gfx {
     glLineWidth(1);
     for(const_queue_it iq(queue.begin()); iq != queue.end(); ++iq){
       const vertex_t vertex(iq->second);
-      double delta(0);
+      const double delta(get(rhs, vertex) - get(value, vertex));
+      double rim(0);
       switch(get(flag, vertex)){
       case OPEN:
-	if(get(rhs, vertex) > get(value, vertex))
+	if (absval(delta) < epsilon) { // same, shouldn't be queued
+	  rim = 0.2;
+	  glColor3d(1, 1, 0);
+	}
+	else if(delta > 0)	// rhs > value: "raise event"
 	  glColor3d(0, 1, 1);
-	else{
-	  delta = 0.1;
+	else {			// rhs < value: "lower event"
+	  rim = 0.1;
 	  glColor3d(1, 0, 1);
 	}
 	break;
       case OPNG:
-	if(get(rhs, vertex) > get(value, vertex))
+	if (absval(delta) < epsilon) {
+	  rim = 0.2;
+	  glColor3d(1, 1, 0.5);
+	}
+	else if (get(rhs, vertex) > get(value, vertex))
 	  glColor3d(0.5, 1, 1);
-	else{
-	  delta = 0.1;
+	else {
+	  rim = 0.1;
 	  glColor3d(1, 0.5, 1);
 	}
 	break;
@@ -499,8 +547,8 @@ namespace gfx {
       const GridNode & gn(grid.Vertex2Node(vertex));
       double xc, yc;
       tie(xc, yc) = pfunc(gn.ix, gn.iy);
-      glRectd(xc - 0.5 + delta, yc - 0.5 + delta,
-	      xc + 0.5 - delta, yc + 0.5 - delta);
+      glRectd(xc - 0.5 + rim, yc - 0.5 + rim,
+	      xc + 0.5 - rim, yc + 0.5 - rim);
     }
   }
   
