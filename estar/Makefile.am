@@ -52,6 +52,7 @@ include_HEADERS=        Algorithm.hpp \
                         dump.hpp \
                         numeric.hpp \
                         util.hpp \
+                        pdebug.hpp \
                         $(GFX_HDR)
 
 includedir=             @includedir@/estar
