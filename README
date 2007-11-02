@@ -1,22 +1,12 @@
 ==================================================
 E-star Interpolated Graph Replanner
-==================================================
-
-==================================================
-Copyrights and licenses on the source code:
-
- Copyright (C) 2004, 2005 Swiss Federal Institute of Technology, Lausanne
- Copyright (C) 2005, 2006 Roland Philippsen <roland dot philippsen at gmx net>
+--------------------------------------------------
+Some files are:
+ Copyright (C) 2004-2005 Swiss Federal Institute of Technology, Lausanne
+Some others are:
+ Copyright (C) 2005-2007 Roland Philippsen <roland dot philippsen at gmx net>
+All files are:
  Released under the GNU General Public License, see LICENSE.GPL
-
-Copyrights and licenses on the build system:
-
- Copyright (C) 1992-2004 Free Software Foundation, Inc.
- Copyright (C) 1991 Massachusetts Institute of Technology
- Released under the GNU General Public License, see LICENSE.GPL
-
- Copyright (C) 2005 CNRS/LAAS
- Relesed under a BSD license, see LICENSE.BSD
 ==================================================
 
 

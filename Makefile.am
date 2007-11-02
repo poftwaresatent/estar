@@ -18,7 +18,6 @@ SRCDIR=              @abs_top_srcdir@
 BUILDDIR=            @abs_top_builddir@
 
 EXTRA_DIST=          ABOUT \
-                     LICENSE.BSD \
                      LICENSE.GPL \
                      CHANGELOG \
                      bootstrap-buildsystem.sh \

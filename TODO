@@ -1,7 +1,0 @@
-URGENT:
-* code a "ridge detection" for estar::compute_carrot() or maybe inside
-  estar::Grid::ComputeGradient()
-
-not so urgent:
-* write a test for goal removals/additions
-* pnf/pnf_cooc could use some optimization and cleanup
