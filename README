@@ -10,6 +10,9 @@ All files are:
 ==================================================
 
 
+HOMEPAGE http://estar.sourceforge.net/
+
+
 DESCRIPTION
 
 The E* algorithm is a path planner for (mobile) robotics. Unlike A*,
@@ -17,10 +20,20 @@ which constrains movements to graph edges, it produces smooth
 trajectories by interpolating between edges. Like D*, it supports
 dynamic replanning after local path cost changes.
 
+If you want to give E* a try in simulation, try the E* "development
+kit" available for download and checkout from the project homepage.
+
 
 PREREQUISITES
 
- * Boost Graph Library and smart pointers (http://www.boost.org/).
+ * Boost Graph Library and smart pointers.
+   http://www.boost.org/
+ * If you build from SVN, you need GNU Automake, Autoconf, and
+   Libtool. If you're building from a release tarball, you don't need
+   this.
+   http://www.gnu.org/software/automake/
+   http://www.gnu.org/software/autoconf/
+   http://www.gnu.org/software/libtool/
  * An OpenGL implementation (currently works for Linux and OS X).
    [This is sort of optional, the configure script tries to guess if
    you have OpenGL, but it has never been really tested on a system
@@ -30,30 +43,36 @@ PREREQUISITES
 
 BUILDING
 
- From source tarball:
+From source tarball (the "-s" option is important if you do *not* have
+GNU Automake, Autoconf, and Libtool):
 
  $ tar xfvz estar-X.Y.tar.gz
  $ cd estar-X.Y
- $ mkdir build
- $ cd build
- $ ../configure
- $ make
- $ su -c 'make install'
+ $ ./build-stage.sh -s
 
- Better: Use subversion to check out (or update) a working copy!
+This will "install" it in the stage/ directory under your current
+working directory by default. You can also do a manual "configure /
+make / make install", or read the output of "/build-stage.sh -h".
+
+More cutting edge: Use subversion to check out (or update) a working copy!
 
  $ svn co https://estar.svn.sourceforge.net/svnroot/estar/trunk/estar
  $ cd estar
- $ mkdir build
- $ cd build
- $ ../configure
- $ make
- $ su -c 'make install'
+ $ ./build-stage.sh
 
-If you want to try it out in a "staged" install (the source
-directory), you can use the build-stage.sh script which builds and
-installs under estar-X.Y/stage. However, it requires GNU Automake /
-Autoconf / Libtool.
+Note that in any case, "./build-stage" will create a build/ directory,
+which you can then use for recompiling the project after modifications
+to the code. The GNU tools provide dependency tracking, and in most
+cases only a small portion of the code gets recompiled after a
+change. Also, in case of a working copy based on SVN, you can pass
+"-s" to subsequent calls to "./build-stage.sh" to avoid wasting time
+on recreating files that haven't changed.
+
+The build-stage script has some more tricks up its sleeve, check out
+its "--help" output. For example, to install E* on your system, say in
+/usr/local/estar, just do this:
+
+ $ ./build-stage.sh -p /usr/local/estar
 
 
 DOCUMENTATION
