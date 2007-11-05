@@ -19,57 +19,23 @@
 
 
 #include "Propagator.hpp"
-#include "Upwind.hpp"
-#include "util.hpp"
-#include "pdebug.hpp"
+//#include "util.hpp"
 
 
-using std::make_pair;
+using namespace std;
 
 
 namespace estar {
   
   
   Propagator::
-  Propagator(vertex_t target,
-	     std::pair<adjacency_it, adjacency_it> neighbors,
-	     const Upwind & upwind,
-	     const flag_map_t & flag,
-	     const value_map_t & value,
-	     const meta_map_t & meta)
-    : m_target_meta(get(meta, target)),
-      m_target_vertex(target)
-  {    
-    if(get(flag, target) & GOAL){
-      PVDEBUG("target %lu is GOAL\n", target);
-      return;
-    }
-    
-    vdebugos dbg;
-    dbg << "\n ";
-    for(/**/; neighbors.first != neighbors.second; ++neighbors.first){
-      vertex_t nbor(*neighbors.first);
-      if(upwind.HaveEdge(target, nbor)){
-#define DONT_CHECK_DOWNWIND
-#ifdef DONT_CHECK_DOWNWIND
-	dbg << " (" << nbor << " dw)";
-#else
-	dbg << " " << nbor << " downwind  ";
-	continue;
-#endif
-      }
-      const double nbor_value(get(value, nbor));
-      if(nbor_value < infinity){
-	dbg << " " << nbor << " VALID  ";
-	m_nbor.insert(make_pair(nbor_value, nbor));
-      }
-      else
-	dbg << " " << nbor << " inf  ";
-    }
-    PVDEBUG("target %lu%s\n", target, dbg.str().c_str());
+  Propagator(vertex_t target_vertex, double target_meta)
+    : m_target_vertex(target_vertex),
+      m_target_meta(target_meta)
+  {
   }
-  
-  
+
+
   double Propagator::
   GetTargetMeta() const
   {
@@ -118,6 +84,5 @@ namespace estar {
   {
     return m_target_vertex;
   }
-  
-  
+
 } // namespace estar

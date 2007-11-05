@@ -27,28 +27,31 @@
 #include <iostream>
 
 
-using boost::vertex_index;
-using boost::tie;
-using std::cerr;
-using std::make_pair;
+using namespace boost;
+using namespace std;
 
 
 namespace estar {
   
   
   Algorithm::
-  Algorithm():
-    m_step(0),
-    m_last_computed_value(-1),
-    m_last_computed_vertex(0),
-    m_last_popped_key(-1),
-    m_pending_reset(false)
+  Algorithm()
+    : m_step(0),
+      m_last_computed_value(-1),
+      m_last_computed_vertex(0),
+      m_last_popped_key(-1),
+      m_pending_reset(false)
   {
     m_value    = get(value_p(),    m_cspace);
     m_meta     = get(meta_p(),     m_cspace);
     m_rhs      = get(rhs_p(),      m_cspace);
-    m_flag     = get(flag_p(), m_cspace);
+    m_flag     = get(flag_p(),     m_cspace);
     m_vertexid = get(vertex_index, m_cspace);
+    
+    m_propfactory.
+      reset(new PropagatorFactory(m_queue, m_upwind, m_cspace,
+				  m_value, m_meta, m_rhs, m_flag,
+				  false, false, false));
   }
   
   
@@ -282,14 +285,13 @@ namespace estar {
       return;
     }
     else{
-      Propagator prop(vertex, adjacent_vertices(vertex, m_cspace),
-		      m_upwind, m_flag, m_value, m_meta);
-      const double rhs(kernel.Compute(prop));
+      scoped_ptr<Propagator> prop(m_propfactory->Create(vertex));
+      const double rhs(kernel.Compute(*prop));
       put(m_rhs, vertex, rhs);
 
       m_upwind.RemoveIncoming(vertex);
       Propagator::backpointer_it ibp, bpend;
-      tie(ibp, bpend) = prop.GetBackpointers();
+      tie(ibp, bpend) = prop->GetBackpointers();
       for(/**/; ibp != bpend; ++ibp)
 	m_upwind.AddEdge(*ibp, vertex);
       

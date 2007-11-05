@@ -26,6 +26,8 @@
 #include <estar/numeric.hpp>
 #include <estar/Queue.hpp>
 #include <estar/Upwind.hpp>
+#include <estar/PropagatorFactory.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <map>
 
 
@@ -216,19 +218,19 @@ namespace estar {
     bool HaveWork() const;
     
     /** Read-only access to the C-space graph. */
-    const cspace_t &       GetCSpace() const      { return m_cspace; }
+    const cspace_t & GetCSpace() const { return m_cspace; }
     
     /** Read-only access to the values of all C-space nodes. */
-    const value_map_t &    GetValueMap() const    { return m_value; }
+    const value_map_t & GetValueMap() const { return m_value; }
     
     /** Read-only access to the meta information of all C-space nodes. */
-    const meta_map_t &     GetMetaMap() const     { return m_meta; }
+    const meta_map_t & GetMetaMap() const { return m_meta; }
 
     /** Read-only access to the rhs-value of all C-space nodes. */
-    const rhs_map_t &      GetRhsMap() const      { return m_rhs; }
+    const rhs_map_t & GetRhsMap() const { return m_rhs; }
 
     /** Read-only access to the flags (flag_t) of all C-space nodes. */
-    const flag_map_t &     GetFlagMap() const     { return m_flag; }
+    const flag_map_t & GetFlagMap() const { return m_flag; }
 
     /** Read-only access to the vertex ID of all C-space nodes, useful
 	for adding user-defined data to nodes. For example, see Grid
@@ -236,11 +238,11 @@ namespace estar {
     const vertexid_map_t & GetVertexIdMap() const { return m_vertexid; }
     
     /** Read-only access to the wavefront queue. */
-    const Queue &          GetQueue() const       { return m_queue; }
+    const Queue & GetQueue() const { return m_queue; }
 
     /** Read-only access to the upwind graph, which traces on which
 	neighbor's a node's value depends. */
-    const Upwind &         GetUpwind() const      { return m_upwind; }
+    const Upwind & GetUpwind() const { return m_upwind; }
     
     /** Write-access to the upwind queue. Should not be required
 	anymore, unless you're developing some new features that
@@ -250,17 +252,17 @@ namespace estar {
     
     /** \return The number of times that ComputeOne() has actually
 	done something. */
-    size_t GetStep()                 const { return m_step; }
+    size_t GetStep() const { return m_step; }
     
     /** \return The last value that was used in ComputeOne(). */
-    double GetLastComputedValue()    const { return m_last_computed_value; }
+    double GetLastComputedValue() const { return m_last_computed_value; }
     
     /** \return The ID of the vertex that was last touched by ComputeOne(). */
     vertex_t GetLastComputedVertex() const { return m_last_computed_vertex; }
     
     /** \return The queue key of the vertex that was last expanded by
 	ComputeOne(). */
-    double GetLastPoppedKey()        const { return m_last_popped_key; }
+    double GetLastPoppedKey() const { return m_last_popped_key; }
     
     
   private:
@@ -272,20 +274,21 @@ namespace estar {
     
     Queue m_queue;
     Upwind m_upwind;
+    boost::scoped_ptr<PropagatorFactory> m_propfactory;
     
     cspace_t m_cspace;
     goalset_t m_goalset;
     
-    value_map_t    m_value;
-    meta_map_t     m_meta;
-    rhs_map_t      m_rhs;
-    flag_map_t     m_flag;
+    value_map_t m_value;
+    meta_map_t m_meta;
+    rhs_map_t m_rhs;
+    flag_map_t m_flag;
     vertexid_map_t m_vertexid;
     
     size_t m_step;
-    double   m_last_computed_value;
+    double m_last_computed_value;
     vertex_t m_last_computed_vertex;
-    double   m_last_popped_key;
+    double m_last_popped_key;
     
     bool m_pending_reset;
   };

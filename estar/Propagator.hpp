@@ -31,22 +31,25 @@ namespace estar {
   
   
   class Upwind;
+  class Algorithm;
   
   
-  /** Propagator set of a node. Used for filtering the neighborhood of
-      a node before passing it to a specific Kernel subtype for
-      interpolation. */
-  class Propagator {
+  /**
+     Propagator set of a node. Used for filtering the neighborhood of
+     a node before passing it to a specific Kernel subtype for
+     interpolation. To create a Propagator instance, use a
+     PropagatorFactory. This allows us to easily experiment with
+     alternative formulations of how to compute the propagator set.
+  */
+  class Propagator
+  {
+  private:
+    friend class PropagatorFactory;
+    Propagator(vertex_t target_vertex, double target_meta);
+    
   public:
     typedef std::list<vertex_t> backpointer_t;
     typedef backpointer_t::iterator backpointer_it;
-    
-    Propagator(vertex_t target,
-	       std::pair<adjacency_it, adjacency_it> neighbors,
- 	       const Upwind & upwind,
-	       const flag_map_t & flag,
-	       const value_map_t & value,
-	       const meta_map_t & meta);
     
     double GetTargetMeta() const;
     vertex_t GetTargetVertex() const;
@@ -58,12 +61,11 @@ namespace estar {
     std::size_t GetNBackpointers() const;
     
   private:
-    const double m_target_meta;
     const vertex_t m_target_vertex;
+    const double m_target_meta;
     queue_t m_nbor;
     backpointer_t m_bp;
   };
-  
   
 } // namespace estar
 

@@ -19,6 +19,7 @@ libestarsub_la_SOURCES= Algorithm.cpp \
                         LSMKernel.cpp \
                         NF1Kernel.cpp \
                         Propagator.cpp \
+                        PropagatorFactory.cpp \
                         Queue.cpp \
                         Region.cpp \
                         Sprite.cpp \
@@ -42,6 +43,7 @@ include_HEADERS=        Algorithm.hpp \
                         LSMKernel.hpp \
                         NF1Kernel.hpp \
                         Propagator.hpp \
+                        PropagatorFactory.hpp \
                         Queue.hpp \
                         Region.hpp \
                         RiskMap.hpp \
