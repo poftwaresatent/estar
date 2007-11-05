@@ -30,13 +30,6 @@ using std::make_pair;
 namespace estar {
   
 
-  bool Queue::
-  IsEmpty() const
-  {
-    return m_queue.empty();
-  }
-  
-  
   vertex_t Queue::
   Pop(flag_map_t & flag_map)
   {

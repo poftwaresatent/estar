@@ -40,7 +40,8 @@ namespace estar {
       (mainly) by Algorithm. */
   class Queue {
   public:
-    bool IsEmpty() const;
+    bool IsEmpty() const { return m_queue.empty(); }
+    
     vertex_t Pop(flag_map_t & flag_map);
 
     /** \note flag_map has to reflect the actual presence of vertex in queue */
