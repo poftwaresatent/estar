@@ -38,7 +38,11 @@ namespace estar {
   {
   private:
     ComparisonFacade(boost::shared_ptr<Facade> master,
-		     boost::shared_ptr<Facade> sample);
+		     bool auto_reset_master,
+		     bool auto_flush_master,
+		     boost::shared_ptr<Facade> sample,
+		     bool auto_reset_sample,
+		     bool auto_flush_sample);
     
   public:
     /**
@@ -51,6 +55,24 @@ namespace estar {
 	   size_t ysize,
 	   double scale,
 	   int connect_diagonal,
+	   FILE * dbgstream);
+    
+    /**
+       Uses Facade::Create() to initialize two possibly different
+       Facades.
+    */
+    static boost::shared_ptr<ComparisonFacade>
+    Create(const std::string & master_kernel_name,
+	   int master_connect_diagonal,
+	   bool master_auto_reset,
+	   bool master_auto_flush,
+	   const std::string & sample_kernel_name,
+	   int sample_connect_diagonal,
+	   bool sample_auto_reset,
+	   bool sample_auto_flush,
+	   size_t xsize,
+	   size_t ysize,
+	   double scale,
 	   FILE * dbgstream);
     
     /**
@@ -116,8 +138,13 @@ namespace estar {
     
   private:
     boost::shared_ptr<Facade> m_master;
-    boost::shared_ptr<Facade> m_sample;
+    bool m_auto_reset_master;
+    bool m_auto_flush_master;
     bool m_reset_master;
+    boost::shared_ptr<Facade> m_sample;
+    bool m_auto_reset_sample;
+    bool m_auto_flush_sample;
+    bool m_reset_sample;
   };
   
 } // namespace estar

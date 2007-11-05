@@ -1,0 +1,15 @@
+size 30 20
+scale 0.1
+goal 0 0 0
+goal 1 0 0.1
+goal 0 1 0.1
+
+master_kernel lsm
+master_connect_diagonal false
+master_auto_flush false
+master_auto_reset false
+
+sample_kernel nf1
+sample_connect_diagonal false
+sample_auto_flush false
+sample_auto_reset false

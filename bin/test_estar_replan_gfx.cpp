@@ -21,21 +21,14 @@
 #include "Getopt.hpp"
 #include <estar/ComparisonFacade.hpp>
 #include <estar/Facade.hpp>
-// #include <estar/util.hpp>
-// #include <estar/numeric.hpp>
-// #include <estar/Algorithm.hpp>
-// #include <estar/LSMKernel.hpp>
-// #include <estar/AlphaKernel.hpp>
 #include <estar/Grid.hpp>
 #include <estar/graphics.hpp>
-// #include <estar/dump.hpp>
 #include <gfx/Viewport.hpp>
 #include <gfx/Mousehandler.hpp>
 #include <gfx/wrap_glut.hpp>
-// #include <boost/shared_ptr.hpp>
 #include <iostream>
-// #include <fstream>
-// #include <sstream>
+#include <fstream>
+#include <sstream>
 
 
 using namespace estar;
@@ -223,36 +216,252 @@ void motion(int x, int y)
 }
 
 
+struct goal_s {
+  goal_s(size_t _x, size_t _y, double _v)
+    : x(_x), y(_y), v(_v) {}
+  size_t x, y;
+  double v;
+};
+
+
 void parse_options(int argc, char ** argv)
 {
+  typedef util::Callback<string> string_cb;
+  typedef util::Callback<bool> bool_cb;
   util::Parser parser;
+  string cfg_fname("");
+  bool help(false);
+  parser.Add(new string_cb(cfg_fname,
+			   'c', "config", "name of config file"));
+  parser.Add(new bool_cb(help,
+			 'h', "help", "print help message"));
+  for (int ii(0); ii < argc; ++ii)
+    cout << argv[0] << " ";
+  cout << "\n";
+  const int res(parser.Do(argc, argv, cerr));
+  if (res < 0) {
+    cerr << "ERROR in parse_options()\n";
+    parser.UsageMessage(cerr);
+    exit(EXIT_FAILURE);
+  }
+  
+  if (help) {
+    parser.UsageMessage(cout);
+    exit(EXIT_FAILURE);
+  }
+  
+  typedef vector<goal_s> goals_t;
+  goals_t goals;
   int xsize(20);
   int ysize(20);
-  int goalx(0);
-  int goaly(0);
-  string kernel("lsm");
   double scale(1);
-  bool cdiag(false);
+  string master_kernel("lsm");
+  string sample_kernel("lsm");
+  bool master_cdiag(false);
+  bool sample_cdiag(false);
+  bool master_flush(true);
+  bool sample_flush(false);
+  bool master_reset(true);
+  bool sample_reset(false);
+  if (cfg_fname.empty())
+    goals.push_back(goal_s(0, 0, 0));
   
-  //   parser.Add(new util::Callback<string>(result_fname, 'o', "outfile",
-  // 					"write results to specified file"));
-  //   cout << argv[0] << "\n";
-  //   parser.UsageMessage(cout);
-  //   const int res(parser.Do(argc, argv, cerr));
-  //   if(res < 0){
-  //     cerr << "ERROR in parse_options()\n";
-  //     exit(EXIT_FAILURE);
-  //   }
+  else {
+    // parse the config file
+    
+    ifstream is(cfg_fname.c_str());
+    if ( ! is) {
+      cerr << "ERROR: could not open config file \""
+	   << cfg_fname << "\"\n";
+      exit(EXIT_FAILURE);
+    }
+    
+    string textline;
+    while (getline(is, textline)) {
+      istringstream tls(textline);
+      if (textline[0] == '#')
+	continue;
+      
+      string token;
+      if ( ! (tls >> token))
+	continue;
+      
+      if (token == "goal") {
+	int xx, yy;
+	double vv;
+	tls >> xx >> yy >> vv;
+	if ( ! tls) {
+	  cerr << "ERROR: could not parse goal from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if ((xx < 0) || (yy < 0) || (vv < 0)) {
+	  cerr << "ERROR: negative X, Y, or value in goal \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	goals.push_back(goal_s(xx, yy, vv));
+      }
+      else if (token == "size") {
+	tls >> xsize >> ysize;
+	if ( ! tls) {
+	  cerr << "ERROR: could not parse size from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "scale") {
+	tls >> scale;
+	if ( ! tls) {
+	  cerr << "ERROR: could not parse scale from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      
+      else if (token == "master_kernel") {
+	tls >> master_kernel;
+	if (( ! tls) || master_kernel.empty()) {
+	  cerr << "ERROR: could not parse master_kernel from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "master_connect_diagonal") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse master_connect_diagonal from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  master_cdiag = true;
+	else if (foo == "false")
+	  master_cdiag = false;
+	else {
+	  cerr << "ERROR: invalid master_connect_diagonal \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "master_auto_flush") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse master_auto_flush from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  master_flush = true;
+	else if (foo == "false")
+	  master_flush = false;
+	else {
+	  cerr << "ERROR: invalid master_auto_flush \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "master_auto_reset") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse master_auto_reset from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  master_reset = true;
+	else if (foo == "false")
+	  master_reset = false;
+	else {
+	  cerr << "ERROR: invalid master_auto_reset \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      
+      else if (token == "sample_kernel") {
+	tls >> sample_kernel;
+	if (( ! tls) || sample_kernel.empty()) {
+	  cerr << "ERROR: could not parse sample_kernel from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "sample_connect_diagonal") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse sample_connect_diagonal from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  sample_cdiag = true;
+	else if (foo == "false")
+	  sample_cdiag = false;
+	else {
+	  cerr << "ERROR: invalid sample_connect_diagonal \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "sample_auto_flush") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse sample_auto_flush from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  sample_flush = true;
+	else if (foo == "false")
+	  sample_flush = false;
+	else {
+	  cerr << "ERROR: invalid sample_auto_flush \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "sample_auto_reset") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse sample_auto_reset from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  sample_reset = true;
+	else if (foo == "false")
+	  sample_reset = false;
+	else {
+	  cerr << "ERROR: invalid sample_auto_reset \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      
+      else {
+	cerr << "ERROR: unknown token \"" << token << "\"\n";
+	exit(EXIT_FAILURE);
+      }
+    }
+  }
   
-  comparison =
-    ComparisonFacade::Create(kernel, xsize, ysize, scale, cdiag, stderr);
+  comparison = ComparisonFacade::
+    Create(master_kernel, master_cdiag, master_reset, master_flush,
+	   sample_kernel, sample_cdiag, sample_reset, sample_flush,
+	   xsize, ysize, scale, stderr);
   if ( ! comparison)
     exit(EXIT_FAILURE);
-  comparison->AddGoal(goalx, goaly, 0);
   
-  //   for(map<vertex_t, double>::const_iterator ig(m_goal.begin());
-  //       ig != m_goal.end(); ++ig)
-  //     m_algo->AddGoal(ig->first, ig->second);
+  for(goals_t::const_iterator ig(goals.begin());
+      ig != goals.end(); ++ig)
+    comparison->AddGoal(ig->x, ig->y, ig->v);
 }
 
 
