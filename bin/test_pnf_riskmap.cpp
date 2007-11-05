@@ -135,7 +135,7 @@ void dump_plot(FILE *stream, const string * desc, size_t ncurves)
 {
   fprintf(stream, "gnuplot -persist <<EOF\n");
   for(size_t icurve(0); icurve < ncurves; ++icurve)
-    fprintf(stream, "%s 'test_riskmap.data' u 1:%lu w l t '%s'",
+    fprintf(stream, "%s 'test_riskmap.data' u 1:%zu w l t '%s'",
 	    icurve == 0 ? "plot" : ",", icurve + 2, desc[icurve].c_str());
   fprintf(stream, "\nEOF\n");
 }
@@ -148,7 +148,7 @@ void dump_plot_fig(FILE *stream, const string * desc, size_t ncurves)
 	  "set terminal fig\n"
 	  "set output 'test_riskmap.fig'\n");
   for(size_t icurve(0); icurve < ncurves; ++icurve)
-    fprintf(stream, "%s 'test_riskmap.data' u 1:%lu w l t '%s'",
+    fprintf(stream, "%s 'test_riskmap.data' u 1:%zu w l t '%s'",
 	    icurve == 0 ? "plot" : ",", icurve + 2, desc[icurve].c_str());
   fprintf(stream, "\nEOF\n");
 }

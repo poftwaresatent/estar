@@ -633,7 +633,7 @@ namespace pnf {
   {
     fprintf(stream,
 	    "--------------------------------------------------\n"
-	    "Environment distance 0x%08X:\n", m_envdist.get());
+	    "Environment distance %p:\n", m_envdist.get());
     m_envdist->DumpPointers(stream);
     m_envdist->DumpGrid(stream);
   }
@@ -646,7 +646,7 @@ namespace pnf {
     BOOST_ASSERT( m_robot );
     fprintf(stream,
 	    "--------------------------------------------------\n"
-	    "Robot distance 0x%08X:\n", m_robot->dist.get());
+	    "Robot distance %p:\n", m_robot->dist.get());
     m_robot->dist->DumpPointers(stream);
     m_robot->dist->DumpGrid(stream);
   }
@@ -663,8 +663,7 @@ namespace pnf {
     if(m_object.end() == io)
       fprintf(stream, "NO SUCH OBJECT\n");
     else{
-      fprintf(stream, "distance from object %zd 0x%08X:\n",
-	      io->second.get(), id);
+      fprintf(stream, "distance from object %p:\n", io->second.get());
       io->second->dist->DumpPointers(stream);
       io->second->dist->DumpGrid(stream);
     }
@@ -692,7 +691,7 @@ namespace pnf {
   {
     fprintf(stream,
 	    "--------------------------------------------------\n"
-	    "Risk 0x%08X:\n", m_risk.get());
+	    "Risk %p:\n", m_risk.get());
     if(m_risk)
       dump_probabilities(*m_risk, 0, 0, xsize-1, ysize-1, stream);
   }
@@ -704,7 +703,7 @@ namespace pnf {
   {
     fprintf(stream,
 	    "--------------------------------------------------\n"
-	    "Probabilistic Navigation Function 0x%08X:\n", m_pnf.get());
+	    "Probabilistic Navigation Function %p:\n", m_pnf.get());
     m_pnf->DumpPointers(stream);
     m_pnf->DumpGrid(stream);
   }

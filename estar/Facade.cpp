@@ -229,10 +229,10 @@ namespace estar {
     const
   {
     fprintf(stream,
-	    "estar::Facade 0x%08X\n"
-	    "    Algorithm 0x%08X\n"
-	    "    Grid      0x%08X\n"
-	    "    Kernel    0x%08X\n",
+	    "estar::Facade %p\n"
+	    "    Algorithm %p\n"
+	    "    Grid      %p\n"
+	    "    Kernel    %p\n",
 	    this, m_algo.get(), m_grid.get(), m_kernel.get());
   }
   

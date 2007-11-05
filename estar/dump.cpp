@@ -156,14 +156,14 @@ namespace estar {
     fprintf(stream, "queue:\n");
     for(/**/; iq != queue.end(); ++iq, ++count){
       const vertex_t vertex(iq->second);
-      fprintf(stream, "  %s f: %s %s i: %lu",
+      fprintf(stream, "  %s f: %s %s i: %zu",
 	      iq->first == firstkey ? "*" : " ",
 	      flag_name(get(flag, vertex)),
 	      get(rhs, vertex) < get(value, vertex)
 	      ? "lower" : "raise", vertex);
       if(0 != grid){
 	const GridNode & gn(grid->Vertex2Node(vertex));
-	fprintf(stream, " (%lu, %lu)", gn.ix, gn.iy);
+	fprintf(stream, " (%zu, %zu)", gn.ix, gn.iy);
       }
       const double vv(get(value, vertex));
       if(vv == infinity) fprintf(stream, " k: %g v: inf", iq->first);
@@ -271,7 +271,7 @@ namespace estar {
 	fprintf(stream, "|raise ");
       else
 	fprintf(stream, "|r==v? ");
-      fprintf(stream, "%5lu", grid.GetVertex(ix, iy));
+      fprintf(stream, "%5zu", grid.GetVertex(ix, iy));
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -286,7 +286,7 @@ namespace estar {
     if(0 != prefix) fprintf(stream, prefix);
     for(size_t ix(ix0); ix <= ix1; ++ix){
       const GridNode & node(grid.GetNode(ix, iy));
-      fprintf(stream, "| (%3lu, %3lu)", node.ix, node.iy);
+      fprintf(stream, "| (%3zu, %3zu)", node.ix, node.iy);
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -319,7 +319,7 @@ namespace estar {
 		       size_t ix0, size_t iy0, size_t ix1, size_t iy1,
 		       FILE * stream)
   {
-    PVDEBUG("%lu   %lu   %lu   %lu\n", ix0, iy0, ix1, iy1);
+    PVDEBUG("%zu   %zu   %zu   %zu\n", ix0, iy0, ix1, iy1);
     const char * even("");
     const char * oddsep(grid.connect == HEX_GRID ? "+-----" : even);
     const char * oddpre(grid.connect == HEX_GRID ? "      " : even);
@@ -375,7 +375,7 @@ namespace estar {
 				 size_t ixhigh, size_t iyhigh,
 				 FILE * stream)
   {
-    PVDEBUG("%lu   %lu   %lu   %lu   %lu   %lu\n",
+    PVDEBUG("%zu   %zu   %zu   %zu   %zu   %zu\n",
 	    ix0, iy0, ix1, iy1, ixhigh, iyhigh);
     fprintf(stream, " ");
     for(size_t ix(ix0); ix <= ix1; ++ix)
@@ -420,10 +420,10 @@ namespace estar {
       const Upwind::set_t & downwind(upwind.GetDownwind(*iv));
       for(Upwind::set_t::const_iterator id(downwind.begin());
 	  id != downwind.end(); ++id){
-	fprintf(stream, "  (%lu, %lu)", *iv, *id);
+	fprintf(stream, "  (%zu, %zu)", *iv, *id);
 	if(0 != grid){
 	  const GridNode & gto(grid->Vertex2Node(*id));
-	  fprintf(stream, " [(%lu, %lu) -> (%lu, %lu)]",
+	  fprintf(stream, " [(%zu, %zu) -> (%zu, %zu)]",
 		  gfrom->ix, gfrom->iy, gto.ix, gto.iy);
 	}
 	fprintf(stream, "\n");
