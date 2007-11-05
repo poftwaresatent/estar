@@ -19,7 +19,8 @@ BUILDDIR=            @abs_top_builddir@
 
 EXTRA_DIST=          ABOUT \
                      LICENSE.GPL \
-                     CHANGELOG \
+                     CHANGES \
+                     NOTES \
                      bootstrap-buildsystem.sh \
                      build-stage.sh \
                      doxylogo.png \
@@ -63,8 +64,8 @@ libs: $(lib_LTLIBRARIES)
 doc:
 	doxygen Doxyfile
 
-ChangeLog:
-	test -f Changelog || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > ChangeLog
+CHANGES:
+	test -f CHANGES || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > CHANGES
 
-CHANGELOG:
-	test -f CHANGELOG || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > CHANGELOG
+NOTES:
+	test -f NOTES || echo "see http://estar.svn.sourceforge.net/viewvc/estar/" > NOTES

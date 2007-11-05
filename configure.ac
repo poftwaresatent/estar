@@ -1,5 +1,5 @@
 AC_REVISION($Id$)
-AC_INIT([estar],[0.2pre],[estar-devel AT lists DOT sourceforge DOT net])
+AC_INIT([estar],[0.3pre],[estar-devel AT lists DOT sourceforge DOT net])
 AC_CONFIG_AUX_DIR([.])
 AC_PREREQ(2.57)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
@@ -62,7 +62,11 @@ AC_ARG_WITH(boost,
       ESTAR_LDFLAGS="-L${withval}/lib $ESTAR_LDFLAGS"
     fi ], [])
 oldCPPFLAGS="$CPPFLAGS"
-test "$prefix" != "NONE" && CPPFLAGS="$ESTAR_CPPFLAGS -I$prefix/include"
+if test "$prefix" = "NONE"; then
+  CPPFLAGS="$ESTAR_CPPFLAGS"
+else
+  CPPFLAGS="$ESTAR_CPPFLAGS -I$prefix/include"
+fi
 AC_CHECK_HEADER([boost/shared_ptr.hpp], [], [
   AC_MSG_NOTICE([failed to find boost smart pointer library:])
   AC_MSG_NOTICE([  cannot compile boost/shared_ptr.hpp])
