@@ -13,61 +13,15 @@
 /**
    \mainpage
 
-   \section Introduction
-   
    The E-Star library implements the interpolated graph replanner
    originally developed in [1] and subsequently improved in [2,3]. It
    also includes an implementation of the Probabilistic Navigation
    Function, originally developed in [4] before E* had seen the day,
-   and modified for it in [5].
-   
-   
-   
-   \section Prerequisites
-   
-   - Boost Graph Library and smart pointers (http://www.boost.org/).
-   - An OpenGL implementation. This is only needed for some of the
-     included applications, but at the moment the build process (which
-     was recently replaced by autoconf) is not flexible enough to
-     switch these components off in case it doesn't find it on your
-     system.
-   - Doxygen (optional, http://www.doxygen.org/).
-   
-   
-   \section Building
-
-   From source tarball:
-   
-   \verbatim
-   $ tar xfvz estar-X.Y.tar.gz
-   $ cd estar-X.Y
-   $ mkdir build
-   $ cd build
-   $ ../configure
-   $ make
-   $ su -c 'make install'
-   \endverbatim
-   
-   Better: Use subversion to check out (or update) a working copy!
-   
-   \verbatim
-   $ svn co https://svn.sourceforge.net/svnroot/estar/trunk/estar
-   $ cd estar
-   $ mkdir build
-   $ cd build
-   $ ../configure
-   $ make
-   $ su -c 'make install'
-   \endverbatim
-   
-   
-   
-   \section foo Getting Started
-   
-   A good starting point for using E* is to read [3] and look at
-   estar::Facade, estar::Algorithm, and their source code. All the
-   core functionality is in the <a href="namespaceestar.html">estar
-   namespace</a>, which also includes some utilities.
+   and modified for it in [5]. A good starting point for using E* is
+   to read [3] and look at estar::Facade, estar::Algorithm, and their
+   source code. All the core functionality is in the <a
+   href="namespaceestar.html">estar namespace</a>, which also includes
+   some utilities.
    
    Have a look at the <code>bin/</code> subdirectory for examples of
    using E* and PNF. Most of these are simple text-based tools (that
@@ -83,6 +37,12 @@
      (quit the program by pressing 'q')
    $ ./test_pnf_gfx ../../misc/pnf-setup-star06-b.pnf paper
    \endverbatim
+
+
+   
+   \section README
+   
+   \verbinclude README
    
    
    
@@ -117,9 +77,5 @@
    Springer Tracts on Advanced Robotics, editors Christian Laugier and
    Raja Chatila, 2006.  (Available online
    http://estar.sourceforge.net/papers/philippsen-jensen-siegwart--star06.pdf.zip)
-   
-   \section README
-   
-   \verbinclude README
 
 */
