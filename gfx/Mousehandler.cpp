@@ -44,13 +44,13 @@ namespace gfx {
     PVDEBUG("%g\t%g\n", x, y);
     
     size_t const xsize(m_facade_read->GetXSize());
-    x = floor(x);
+    x = rint(x);
     if ((x < 0) || (x >= xsize))
       return;
     PVDEBUG("  ix: %i\n", static_cast<size_t>(x));
     
     size_t const ysize(m_facade_read->GetYSize());
-    y = floor(y);
+    y = rint(y);
     if ((y < 0) || (y >= ysize))
       return;
     PVDEBUG("  iy: %i\n", static_cast<size_t>(y));
