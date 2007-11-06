@@ -4,7 +4,7 @@ CXXFLAGS= @ESTAR_CXXFLAGS@
 LDFLAGS=  @ESTAR_LDFLAGS@
 
 if ESTAR_ENABLE_GFX
-  GFX_PROGS=  test_estar_gfx test_estar_replan_gfx test_pnf_gfx
+  GFX_PROGS=  test_estar_gfx estar_compare_gfx test_pnf_gfx
   GFX_LIBADD= ../gfx/libgfx.la @ESTAR_GFXLIBS@
 endif
 
@@ -41,8 +41,8 @@ test_shape_LDADD=         ../libestar.la
 if ESTAR_ENABLE_GFX
   test_estar_gfx_SOURCES= test_estar_gfx.cpp Getopt.cpp
   test_estar_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
-  test_estar_replan_gfx_SOURCES= test_estar_replan_gfx.cpp Getopt.cpp
-  test_estar_replan_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
+  estar_compare_gfx_SOURCES= estar_compare_gfx.cpp Getopt.cpp
+  estar_compare_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
   test_pnf_gfx_SOURCES=   test_pnf_gfx.cpp
   test_pnf_gfx_LDADD=     ../libestar.la $(GFX_LIBADD)
 endif

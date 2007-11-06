@@ -106,7 +106,7 @@ void init_glut(int * argc, char ** argv, int width, int height)
   glutInitWindowPosition(0, 0);
   glutInitWindowSize(width, height);
   
-  int handle(glutCreateWindow("test_estar_replan_gfx"));
+  int handle(glutCreateWindow("estar_compare_gfx"));
   if(0 == handle){
     cerr << argv[0] << ": init_glut(): couldn't create parent window\n";
     exit(EXIT_FAILURE);
