@@ -26,7 +26,6 @@ libestarsub_la_SOURCES= Algorithm.cpp \
                         Upwind.cpp \
                         base.cpp \
                         check.cpp \
-                        cwrap.cpp \
                         dump.cpp \
                         numeric.cpp \
                         util.cpp \
