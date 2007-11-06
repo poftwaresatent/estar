@@ -53,12 +53,16 @@ namespace estar {
 	 size_t xsize,
 	 size_t ysize,
 	 double scale,
-	 int connect_diagonal,
+	 FacadeOptions const & options,
 	 FILE * dbgstream)
   {
-    shared_ptr<Algorithm> algo(new Algorithm());
+    shared_ptr<Algorithm> algo(new Algorithm(options.check_upwind,
+					     options.check_local_consistency,
+					     options.check_queue_key,
+					     options.auto_reset,
+					     options.auto_flush));
     shared_ptr<Grid> grid;
-    if (connect_diagonal)
+    if (options.connect_diagonal)
       grid.reset(new Grid(*algo, xsize, ysize, EIGHT_CONNECTED));
     else
       grid.reset(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
@@ -88,8 +92,17 @@ namespace estar {
 		size_t ysize,
 		double scale)
   {
-    shared_ptr<Algorithm> algo(new Algorithm());
-    shared_ptr<Grid> grid(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
+    FacadeOptions options;
+    shared_ptr<Algorithm> algo(new Algorithm(options.check_upwind,
+					     options.check_local_consistency,
+					     options.check_queue_key,
+					     options.auto_reset,
+					     options.auto_flush));
+    shared_ptr<Grid> grid;
+    if (options.connect_diagonal)
+      grid.reset(new Grid(*algo, xsize, ysize, EIGHT_CONNECTED));
+    else
+      grid.reset(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
     shared_ptr<Kernel> kernel(new LSMKernel(*grid, scale));
     return new Facade(algo, grid, kernel);
   }

@@ -35,12 +35,18 @@ namespace estar {
   
   
   Algorithm::
-  Algorithm()
+  Algorithm(bool check_upwind,
+	    bool check_local_consistency,
+	    bool check_queue_key,
+	    bool auto_reset,
+	    bool auto_flush)
     : m_step(0),
       m_last_computed_value(-1),
       m_last_computed_vertex(0),
       m_last_popped_key(-1),
-      m_pending_reset(false)
+      m_pending_reset(false),
+      m_auto_reset(auto_reset),
+      m_auto_flush(auto_flush)
   {
     m_value    = get(value_p(),    m_cspace);
     m_meta     = get(meta_p(),     m_cspace);
@@ -51,7 +57,9 @@ namespace estar {
     m_propfactory.
       reset(new PropagatorFactory(m_queue, m_upwind, m_cspace,
 				  m_value, m_meta, m_rhs, m_flag,
-				  false, false, false));
+				  check_upwind,
+				  check_local_consistency,
+				  check_queue_key));
   }
   
   
@@ -86,16 +94,28 @@ namespace estar {
   void Algorithm::
   SetMeta(vertex_t vertex, double meta, const Kernel & kernel)
   {
-    // if (absval(get(m_meta, vertex) - meta) > epsilon)
-    if(get(m_meta, vertex) == meta)
+    if (absval(get(m_meta, vertex) - meta) < epsilon)
       return;
     put(m_meta, vertex, meta);
     UpdateVertex(vertex, kernel);
+    if (m_auto_reset)
+      m_pending_reset = true;
   }
   
   
   void Algorithm::
   ComputeOne(const Kernel & kernel, double slack)
+  {
+    if (m_auto_flush)
+      while (HaveWork())
+	DoComputeOne(kernel, slack);
+    else
+      DoComputeOne(kernel, slack);
+  }
+  
+  
+  void Algorithm::
+  DoComputeOne(const Kernel & kernel, double slack)
   {
     if(m_pending_reset){
       Reset();
@@ -193,6 +213,8 @@ namespace estar {
     PVDEBUG("needs (re)queuing\n");
     put(m_value, vertex, infinity);
     m_queue.Requeue(vertex, m_flag, m_value, m_rhs);
+    if (m_auto_reset)
+      m_pending_reset = true;
   }
   
   
@@ -207,10 +229,6 @@ namespace estar {
   }
   
   
-  /**
-     \todo Spurious Reset() at the end of the method? Added by Sascha
-     in rev 90, but should not be necessary.
-  */
   void Algorithm::
   RemoveAllGoals()
   {
@@ -220,7 +238,6 @@ namespace estar {
       put(m_flag, *ig, NONE);
     m_goalset.clear();
     m_pending_reset = true;
-		Reset();
   }
   
   

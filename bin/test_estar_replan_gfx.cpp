@@ -257,12 +257,10 @@ void parse_options(int argc, char ** argv)
   double scale(1);
   string master_kernel("lsm");
   string sample_kernel("lsm");
-  bool master_cdiag(false);
-  bool sample_cdiag(false);
-  bool master_flush(true);
-  bool sample_flush(false);
-  bool master_reset(true);
-  bool sample_reset(false);
+  FacadeOptions master_options;
+  master_options.auto_flush = true;
+  master_options.auto_reset = true;
+  FacadeOptions sample_options;
   if (cfg_fname.empty())
     goals.push_back(goal_s(0, 0, 0));
   
@@ -336,11 +334,65 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_cdiag = true;
+	  master_options.connect_diagonal = true;
 	else if (foo == "false")
-	  master_cdiag = false;
+	  master_options.connect_diagonal = false;
 	else {
 	  cerr << "ERROR: invalid master_connect_diagonal \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "master_check_upwind") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse master_check_upwind from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  master_options.check_upwind = true;
+	else if (foo == "false")
+	  master_options.check_upwind = false;
+	else {
+	  cerr << "ERROR: invalid master_check_upwind \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "master_check_local_consistency") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse master_check_local_consistency from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  master_options.check_local_consistency = true;
+	else if (foo == "false")
+	  master_options.check_local_consistency = false;
+	else {
+	  cerr << "ERROR: invalid master_check_local_consistency \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "master_check_queue_key") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse master_check_queue_key from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  master_options.check_queue_key = true;
+	else if (foo == "false")
+	  master_options.check_queue_key = false;
+	else {
+	  cerr << "ERROR: invalid master_check_queue_key \""
 	       << tls.str() << "\" should be true or false\n";
 	  exit(EXIT_FAILURE);
 	}
@@ -354,9 +406,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_flush = true;
+	  master_options.auto_flush = true;
 	else if (foo == "false")
-	  master_flush = false;
+	  master_options.auto_flush = false;
 	else {
 	  cerr << "ERROR: invalid master_auto_flush \""
 	       << tls.str() << "\" should be true or false\n";
@@ -372,9 +424,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_reset = true;
+	  master_options.auto_reset = true;
 	else if (foo == "false")
-	  master_reset = false;
+	  master_options.auto_reset = false;
 	else {
 	  cerr << "ERROR: invalid master_auto_reset \""
 	       << tls.str() << "\" should be true or false\n";
@@ -399,11 +451,65 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_cdiag = true;
+	  sample_options.connect_diagonal = true;
 	else if (foo == "false")
-	  sample_cdiag = false;
+	  sample_options.connect_diagonal = false;
 	else {
 	  cerr << "ERROR: invalid sample_connect_diagonal \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "sample_check_upwind") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse sample_check_upwind from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  sample_options.check_upwind = true;
+	else if (foo == "false")
+	  sample_options.check_upwind = false;
+	else {
+	  cerr << "ERROR: invalid sample_check_upwind \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "sample_check_local_consistency") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse sample_check_local_consistency from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  sample_options.check_local_consistency = true;
+	else if (foo == "false")
+	  sample_options.check_local_consistency = false;
+	else {
+	  cerr << "ERROR: invalid sample_check_local_consistency \""
+	       << tls.str() << "\" should be true or false\n";
+	  exit(EXIT_FAILURE);
+	}
+      }
+      else if (token == "sample_check_queue_key") {
+	string foo;
+	tls >> foo;
+	if (( ! tls) || foo.empty()) {
+	  cerr << "ERROR: could not parse sample_check_queue_key from \""
+	       << tls.str() << "\"\n";
+	  exit(EXIT_FAILURE);
+	}
+	if (foo == "true")
+	  sample_options.check_queue_key = true;
+	else if (foo == "false")
+	  sample_options.check_queue_key = false;
+	else {
+	  cerr << "ERROR: invalid sample_check_queue_key \""
 	       << tls.str() << "\" should be true or false\n";
 	  exit(EXIT_FAILURE);
 	}
@@ -417,9 +523,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_flush = true;
+	  sample_options.auto_flush = true;
 	else if (foo == "false")
-	  sample_flush = false;
+	  sample_options.auto_flush = false;
 	else {
 	  cerr << "ERROR: invalid sample_auto_flush \""
 	       << tls.str() << "\" should be true or false\n";
@@ -435,9 +541,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_reset = true;
+	  sample_options.auto_reset = true;
 	else if (foo == "false")
-	  sample_reset = false;
+	  sample_options.auto_reset = false;
 	else {
 	  cerr << "ERROR: invalid sample_auto_reset \""
 	       << tls.str() << "\" should be true or false\n";
@@ -452,10 +558,9 @@ void parse_options(int argc, char ** argv)
     }
   }
   
-  comparison = ComparisonFacade::
-    Create(master_kernel, master_cdiag, master_reset, master_flush,
-	   sample_kernel, sample_cdiag, sample_reset, sample_flush,
-	   xsize, ysize, scale, stderr);
+  comparison = ComparisonFacade::Create(master_kernel, master_options,
+					sample_kernel, sample_options,
+					xsize, ysize, scale, stderr);
   if ( ! comparison)
     exit(EXIT_FAILURE);
   

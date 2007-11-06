@@ -44,7 +44,27 @@ namespace estar {
   */
   class Algorithm {
   public:
-    Algorithm();
+    Algorithm(/** Whether to check the upwind structure when computing
+		  the propagator set of a node. Use false to mimic old
+		  behavior. */
+	      bool check_upwind,
+	      /** Whether to check for local consistency (rhs==value)
+		  when computing the propagator set of a node. Use
+		  false to mimic old behavior. */
+	      bool check_local_consistency,
+	      /** Whether to check if a neighbor lies below the
+		  wavefront when computing the propagator set of a
+		  node. Use false to mimic old behavior */
+	      bool check_queue_key,
+	      /** Whether to automatically reset the whole E*
+		  computations when meta information changes. This is
+		  usually not needed. */
+	      bool auto_reset,
+	      /** Whether to automatically propagate until the entire
+		  queue has been emptied each time you call
+		  ComputeOne(). This is usually a waste of
+		  resources. */
+	      bool auto_flush);
     
     /**
        Create a new node, initializes it, and adds it to the
@@ -179,7 +199,10 @@ namespace estar {
     /**
        Perform an elementary propagation (or "expansion") step. This
        is a no-op if the queue is empty. If there is a pending
-       Reset(), such as after RemoveGoal(), this is performed first.
+       Reset(), such as after RemoveGoal() or any meta modification
+       with an enabled m_auto_reset option, the reset is performed
+       first. If m_auto_flush is set, the computation is iterated
+       until the queue is empty.
        
        Node expansion means:
        -# Take the top vertex from the Queue.
@@ -196,7 +219,7 @@ namespace estar {
           infinity, update all its downwind neighbors (whose value was
           computed using the just-raised node), and re-queue the node
           such that it may be lowered on its next turn
-
+	  
        \todo Wasn't "slack" a bit of a hack at one point? Should test
        if we can take it out now, and just use epsilon as everywhere
        else...
@@ -270,6 +293,7 @@ namespace estar {
     
     
     void UpdateVertex(vertex_t vertex, const Kernel & kernel);
+    void DoComputeOne(const Kernel & kernel, double slack);
     
     
     Queue m_queue;
@@ -291,6 +315,8 @@ namespace estar {
     double m_last_popped_key;
     
     bool m_pending_reset;
+    bool m_auto_reset;
+    bool m_auto_flush;
   };
   
   

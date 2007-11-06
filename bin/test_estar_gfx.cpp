@@ -361,7 +361,7 @@ void parse_options(int argc, char ** argv)
     exit(EXIT_FAILURE);
   }
   
-  m_algo.reset(new Algorithm());
+  m_algo.reset(new Algorithm(false, false, false, false, false));
   ifstream is(argv[res]);
   if( ! is){
     cerr << "ERROR in parse_options(): Couldn't open \""

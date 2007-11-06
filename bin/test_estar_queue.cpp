@@ -67,7 +67,7 @@ int main(int argc, char ** argv)
   }
   cout << "\"" << kernel_name << "\" kernel\n";
   
-  Algorithm algo;
+  Algorithm algo(false, false, false, false, false);
   Grid grid(algo, 4, 2, connect);
   scoped_ptr<Kernel> kernel;
   if(kernel_name == "lsm")

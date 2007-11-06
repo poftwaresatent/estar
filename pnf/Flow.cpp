@@ -118,11 +118,13 @@ namespace pnf {
       half_diagonal(0.707106781187 * _resolution), // sqrt(1/2)
       perform_convolution(_perform_convolution),
       alternate_worst_case(_alternate_worst_case),
-      m_envdist(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0)),
+      m_envdist(Facade::Create("lsm", _xsize, _ysize, _resolution,
+			       estar::FacadeOptions(), 0)),
       // m_robot invalid until SetRobot()
       // m_object to be populated by SetDynamicObject()
       // m_risk invalid until ComputeRisk()
-      m_pnf(Facade::Create("lsm", _xsize, _ysize, _resolution, false, 0))
+      m_pnf(Facade::Create("lsm", _xsize, _ysize, _resolution,
+			   estar::FacadeOptions(), 0))
       // m_goal invalid until SetGoal()
   {
   }
@@ -172,7 +174,8 @@ namespace pnf {
       return false;
     
     shared_ptr<Facade>
-      dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
+      dist(Facade::Create("lsm", xsize, ysize, resolution,
+			  estar::FacadeOptions(), 0));
     BOOST_ASSERT( dist );
     const double object_radius(r + half_diagonal);
     shared_ptr<Object>
@@ -206,7 +209,8 @@ namespace pnf {
       return false;		// actually already checked by caller...
     
     shared_ptr<Facade>
-      dist(Facade::Create("lsm", xsize, ysize, resolution, false, 0));
+      dist(Facade::Create("lsm", xsize, ysize, resolution,
+			  estar::FacadeOptions(), 0));
     BOOST_ASSERT( dist );
     const double robot_radius(r + half_diagonal);
     m_robot.reset(new Robot(robot_radius, v, region, dist, xsize, ysize));

@@ -58,8 +58,8 @@ int main(int argc, char ** argv)
       cout << "don't understand arg \"" << arg << "\"\n";
   }
   
-  Algorithm algo1;
-  Algorithm algo2;
+  Algorithm algo1(false, false, false, false, false);
+  Algorithm algo2(false, false, false, false, false);
   
 #define TEST_CASE 4
   cout << "init test case " << TEST_CASE << "\n";

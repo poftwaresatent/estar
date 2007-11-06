@@ -6,10 +6,16 @@ goal 0 1 0.1
 
 master_kernel lsm
 master_connect_diagonal false
+master_check_upwind false
+master_check_local_consistency false
+master_check_queue_key false
 master_auto_flush true
 master_auto_reset true
 
 sample_kernel lsm
 sample_connect_diagonal false
+sample_check_upwind false
+sample_check_local_consistency false
+sample_check_queue_key false
 sample_auto_flush false
 sample_auto_reset false

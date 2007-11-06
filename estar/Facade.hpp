@@ -34,7 +34,84 @@ namespace estar {
   
   
   class Region;
-
+  
+  
+  class FacadeOptions
+  {
+  public:
+    /** Default: FOUR_CONNECTED grid, no special propagator checks, no
+	automatic resets or flushing. */
+    FacadeOptions()
+      : connect_diagonal(false),
+	check_upwind(false),
+	check_local_consistency(false),
+	check_queue_key(false),
+	auto_reset(false),
+	auto_flush(false)
+    {}
+    
+    FacadeOptions(/** See connect_diagonal and Grid ctor. */
+		  bool _connect_diagonal,
+		  /** See check_upwind and Algorithm ctor. */
+		  bool _check_upwind,
+		  /** See check_local_consistency and Algorithm ctor. */
+		  bool _check_local_consistency,
+		  /** See check_queue_key and Algorithm ctor. */
+		  bool _check_queue_key,
+		  /** See auto_reset and Algorithm ctor. */
+		  bool _auto_reset,
+		  /** See auto_flush and Algorithm ctor. */
+		  bool _auto_flush)
+      : connect_diagonal(_connect_diagonal),
+	check_upwind(_check_upwind),
+	check_local_consistency(_check_local_consistency),
+	check_queue_key(_check_queue_key),
+	auto_reset(_auto_reset),
+	auto_flush(_auto_flush)
+    {}
+    
+    /** Whether to create a EIGHT_CONNECTED or FOUR_CONNECTED Grid
+	(see enum connectedness_t). If true, then the grid will be
+	8-connected, which might be appropriate in some
+	cases. However, for the preferred LSMKernel, you should set
+	this to false in order to create a 4-connected grid.*/
+    bool connect_diagonal;
+    
+    /** Whether to check the upwind structure when computing the
+	propagator set of a node. Passed to PropagatorFactory ctor via
+	Algorithm ctor. Use false to mimic old behavior. */
+    bool check_upwind;
+    
+    /** Whether to check for local consistency (rhs==value) when
+	computing the propagator set of a node. Passed to
+	PropagatorFactory ctor via Algorithm ctor. Use false to mimic
+	old behavior. */
+    bool check_local_consistency;
+    
+    /** Whether to check if a neighbor lies below the wavefront when
+	computing the propagator set of a node. Passed to
+	PropagatorFactory ctor via Algorithm ctor. Use false to mimic
+	old behavior */
+    bool check_queue_key;
+    
+    /** Whether to automatically reset the whole E* computations when
+	meta information changes. This is usually not needed, as the
+	algorithm is designed to copy with exactly that, but this flag
+	makes it easy to verify that the propagation result is the
+	same. Passed to Algorithm ctor. Use false unless you have a
+	good reason for wasting processing power. */
+    bool auto_reset;
+    
+    /** Whether to automatically propagate until the entire queue has
+	been emptied each time you call Algorithm::ComputeOne() or
+	Facade::ComputeOne() or similar. This is usually a waste of
+	resources, because you only need to propagate until the
+	wavefront has passed over the robot's current location, which
+	can be checked by calling Facade::GetStatus(). Use false
+	unless you have a good reason for wasting processing power */
+    bool auto_flush;
+  };
+  
   
   /**
      High-level interface for E-star approach to smooth dynamic
@@ -114,11 +191,7 @@ namespace estar {
 	   size_t ysize,
 	   /** size of the square grid cells */
 	   double scale,
-	   /** if true (non-zero), then the grid will be 8-connected,
-	       which might be appropriate in some cases. However, for
-	       the preferred LSMKernel, you should set this to zero in
-	       order to create a 4-connected grid. */
-	   int connect_diagonal,
+	   FacadeOptions const & options,
 	   /** If non-null, error messages are written to this
 	       stream. This currently only happens when you specify an
 	       invalid kernel_name. */
@@ -126,7 +199,7 @@ namespace estar {
     
     /** Like Create(), but doesn't give you a choice of Kernel (it's
 	always LSMKernel) or of diagonally connected cells (that's
-	always disabled). */
+	always disabled). It uses the default FacadeOptions ctor. */
     static Facade *
     CreateDefault(size_t xsize,
 		  size_t ysize,
