@@ -1,0 +1,21 @@
+size 30 20
+scale 0.1
+goal 0 0 0
+goal 1 0 0.1
+goal 0 1 0.1
+
+master_kernel lsm
+master_connect_diagonal false
+master_check_upwind false
+master_check_local_consistency false
+master_check_queue_key false
+master_auto_flush false
+master_auto_reset false
+
+sample_kernel lsm
+sample_connect_diagonal false
+sample_check_upwind false
+sample_check_local_consistency false
+sample_check_queue_key true
+sample_auto_flush false
+sample_auto_reset false
