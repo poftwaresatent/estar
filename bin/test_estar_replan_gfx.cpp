@@ -44,6 +44,23 @@ namespace local {
   /** convenient string-based lookup of viewports */
   typedef map<string, shared_ptr<Viewport> > viewport_map_t;
   
+  class CycleColorScheme: public gfx::ColorScheme {
+  public:
+    CycleColorScheme(double period, double width)
+      : m_cc(new gfx::ColorCycle(gfx::ColorScheme::Get(gfx::INVERTED_GREY),
+				 period, width))
+    {}
+    
+    virtual void Set(double value) const {
+      if (value >= estar::infinity)
+	glColor3d(0.4, 0, 0);
+      else
+	m_cc->Set(value);
+    }
+    
+  private:
+    shared_ptr<gfx::ColorCycle> m_cc;
+  };
 }
 
 using namespace local;
@@ -68,6 +85,7 @@ static bool continuous(false);
 static bool finish(false);
 static viewport_map_t viewport;
 static shared_ptr<ComparisonFacade> comparison;
+static shared_ptr<CycleColorScheme> cycle_color;
 
 
 int main(int argc, char ** argv)
@@ -110,22 +128,22 @@ void draw()
   
   viewport["master"]->PushProjection();
   shared_ptr<FacadeReadInterface const> master(comparison->GetMaster());
-  draw_grid_value(*master, ColorScheme::Get(BLUE_GREEN_RED), true);
+  draw_grid_value(*master, cycle_color.get(), false);
   draw_grid_queue(*master);
   ////  draw_grid_upwind(*master, 1, 1, 1, 5);
   viewport["master"]->PopProjection();
   
   viewport["sample"]->PushProjection();
   shared_ptr<FacadeReadInterface const> sample(comparison->GetSample());
-  draw_grid_value(*sample, ColorScheme::Get(BLUE_GREEN_RED), true);
+  draw_grid_value(*sample, cycle_color.get(), false);
   draw_grid_queue(*sample);
   ////  draw_grid_upwind(*sample, 1, 1, 1, 5);
   viewport["sample"]->PopProjection();
   
-  viewport["comparison"]->PushProjection();
-  draw_grid_meta(*sample, ColorScheme::Get(BLUE_GREEN_RED));
+  viewport["obstacles"]->PushProjection();
   draw_grid_status(*sample);
-  viewport["comparison"]->PopProjection();
+  draw_grid_obstacles(*sample, 0.8, 0.8, 0.8, false);
+  viewport["obstacles"]->PopProjection();
   
   glFlush();
   glutSwapBuffers();
@@ -236,7 +254,7 @@ void parse_options(int argc, char ** argv)
   parser.Add(new bool_cb(help,
 			 'h', "help", "print help message"));
   for (int ii(0); ii < argc; ++ii)
-    cout << argv[0] << " ";
+    cout << argv[ii] << " ";
   cout << "\n";
   const int res(parser.Do(argc, argv, cerr));
   if (res < 0) {
@@ -567,6 +585,8 @@ void parse_options(int argc, char ** argv)
   for(goals_t::const_iterator ig(goals.begin());
       ig != goals.end(); ++ig)
     comparison->AddGoal(ig->x, ig->y, ig->v);
+  
+  cycle_color.reset(new CycleColorScheme(10 * scale, 1.5 * scale));
 }
 
 
@@ -581,11 +601,13 @@ void create_viewports()
   get_grid_bbox(grid, x0, y0, x1, y1);
   static bb_t const realbb(x0, y0, x1, y1);
   viewport["master"].
-    reset(new Viewport("master",     realbb, bb_t(0.0, 0.5, 0.4, 1.0)));
+    reset(new Viewport("master",     realbb, bb_t(0.0, 0.5, 0.5, 1.0)));
   viewport["sample"].
-    reset(new Viewport("sample",     realbb, bb_t(0.0, 0.0, 0.4, 0.5)));
-  viewport["comparison"].
-    reset(new Viewport("comparison", realbb, bb_t(0.4, 0.0, 1.0, 1.0)));
+    reset(new Viewport("sample",     realbb, bb_t(0.0, 0.0, 0.5, 0.5)));
+  viewport["obstacles"].
+    reset(new Viewport("obstacles",  realbb, bb_t(0.5, 0.5, 1.0, 1.0)));
+  viewport["delta"].
+    reset(new Viewport("delta",      realbb, bb_t(0.5, 0.0, 1.0, 0.5)));
   for (viewport_map_t::iterator iv(viewport.begin());
        iv != viewport.end(); ++iv)
     iv->second->Enable();

@@ -119,7 +119,8 @@ namespace gfx {
 		      const ColorScheme * colorscheme);
   
   void draw_grid_obstacles(const estar::FacadeReadInterface & facade,
-			   double red, double green, double blue);
+			   double red, double green, double blue,
+			   bool fill_cells = true);
   
   void draw_array(const estar::array<double> & grid,
 		  size_t x0, size_t y0, size_t x1, size_t y1,

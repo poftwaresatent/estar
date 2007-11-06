@@ -437,7 +437,8 @@ namespace gfx {
   
   
   void draw_grid_obstacles(const FacadeReadInterface & facade,
-			   double red, double green, double blue)
+			   double red, double green, double blue,
+			   bool fill_cells)
   {
     const Grid & grid(facade.GetGrid());
     const Algorithm & algo(facade.GetAlgorithm());
@@ -449,7 +450,10 @@ namespace gfx {
     const meta_map_t & meta(algo.GetMetaMap());
     
     glColor3d(red, green, blue);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (fill_cells)
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    else
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy)
 	if(get(meta, grid.GetVertex(ix, iy)) == kernel.obstacle_meta){
