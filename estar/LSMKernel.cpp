@@ -69,7 +69,7 @@ namespace estar {
     // calling this method.
     const const_queue_it primary(iq);
     propagator.AddBackpointer(primary->second);
-    const GridNode & primary_node(m_grid.GetNode(primary->second));
+    const GridNode & primary_node(m_grid.Vertex2Node(primary->second));
     const double primary_value(primary->first);
 
     dbg << "\n  target_meta: " << target_meta
@@ -80,10 +80,11 @@ namespace estar {
     // Search for a secondary backpointer, which has to lie along
     // another axis than the primary. Use the fallback solution if no
     // such upwind neighbor exists.
-    const GridNode & target_node(m_grid.GetNode(propagator.GetTargetVertex()));
+    const GridNode &
+      target_node(m_grid.Vertex2Node(propagator.GetTargetVertex()));
     const bool primary_is_along_x(target_node.ix != primary_node.ix);
     for(++iq; iq != qend; ++iq){
-      const GridNode & secondary_node(m_grid.GetNode(iq->second));
+      const GridNode & secondary_node(m_grid.Vertex2Node(iq->second));
       const bool secondary_is_along_x(target_node.ix != secondary_node.ix);
       if(primary_is_along_x ^ secondary_is_along_x)
 	break;

@@ -24,7 +24,7 @@
 
 #include <estar/base.hpp>
 #include <boost/scoped_array.hpp>
-#include <cstdio>
+//#include <cstdio>
 
 
 namespace estar {
@@ -47,10 +47,14 @@ namespace estar {
     GridNode() {}
     GridNode(size_t _ix, size_t _iy,
 	     vertex_t _vertex, size_t _igrid)
-      : ix(_ix), iy(_iy), igrid(_igrid), vertex(_vertex) {}
+      : ix(_ix), iy(_iy), vertex(_vertex), igrid(_igrid) {}
     friend std::ostream & operator << (std::ostream & os, const GridNode & gn);
-    size_t ix, iy, igrid;
+    size_t ix, iy;
     vertex_t vertex;
+
+  private:
+    friend class Grid;
+    size_t igrid;
   };
   
   
@@ -75,19 +79,19 @@ namespace estar {
     const GridNode & Vertex2Node(vertex_t vertex) const
     { return boost::get(m_node_map, vertex); }
     
-    const GridNode & GetNode(size_t ix, size_t iy) const
-    { return m_node_array[GetIndex(ix, iy)]; }
+    const GridNode & Index2Node(size_t ix, size_t iy) const
+    { return m_node_array[Index2Index(ix, iy)]; }
     
-    const GridNode & GetNode(size_t igrid) const
+    const GridNode & Index2Node(size_t igrid) const
     { return m_node_array[igrid]; }
+
+    vertex_t Index2Vertex(size_t ix, size_t iy) const
+    { return m_node_array[Index2Index(ix, iy)].vertex; }
     
-    vertex_t GetVertex(size_t ix, size_t iy) const
-    { return m_node_array[GetIndex(ix, iy)].vertex; }
-    
-    vertex_t GetVertex(size_t igrid) const
+    vertex_t Index2Vertex(size_t igrid) const
     { return m_node_array[igrid].vertex; }
     
-    size_t GetIndex(size_t ix, size_t iy) const
+    size_t Index2Index(size_t ix, size_t iy) const
     { return ix + xsize * iy; }
     
     /** The gradient is computed with an upwind formula. It does not

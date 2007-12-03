@@ -249,7 +249,7 @@ void cleanup()
 	grid_iy < m_grid->GetYSize(); // only for unsigned!!!
 	--grid_iy){
       for(size_t grid_ix(0); grid_ix < m_grid->GetXSize(); ++grid_ix)
-	(*result_os) << get(value, m_grid->GetVertex(grid_ix, grid_iy))
+	(*result_os) << get(value, m_grid->Index2Vertex(grid_ix, grid_iy))
 		     << "\t";
       (*result_os) << "\n";
     }
@@ -475,7 +475,7 @@ void parse_grid(istream & is)
 
   static const bool fake_goal_radius(false);
   if( ! fake_goal_radius)
-    m_goal.insert(make_pair(m_grid->GetVertex(m_goal_ix, m_goal_iy), 0));
+    m_goal.insert(make_pair(m_grid->Index2Vertex(m_goal_ix, m_goal_iy), 0));
   else{
     const size_t ix0(0 == m_goal_ix ? 0 : m_goal_ix - 1);
     const size_t ix1(grid_xsize - 1 == m_goal_ix
@@ -487,11 +487,11 @@ void parse_grid(istream & is)
       for(size_t iy(iy0); iy <= iy1; ++iy){
 	double dist(sqrt(square(static_cast<double>(ix) - m_goal_ix)
 			 + square(static_cast<double>(iy) - m_goal_iy)));
-	m_goal.insert(make_pair(m_grid->GetVertex(ix, iy), dist));
+	m_goal.insert(make_pair(m_grid->Index2Vertex(ix, iy), dist));
       }
   }
   
-  m_robot = m_grid->GetVertex(m_robot_ix, m_robot_iy);
+  m_robot = m_grid->Index2Vertex(m_robot_ix, m_robot_iy);
   
   m_riskmap.reset(new NHPRiskmap(maxcost, 1));
   const double norisk_meta(m_riskmap->RiskToMeta(0));
@@ -508,14 +508,14 @@ void parse_grid(istream & is)
 #ifdef ESTAR_DEBUG
 	printf("xoxo:%4.2f", norisk_meta);
 #endif // ESTAR_DEBUG
-	m_algo->InitMeta(m_grid->GetVertex(grid_ix, grid_iy), norisk_meta);
+	m_algo->InitMeta(m_grid->Index2Vertex(grid_ix, grid_iy), norisk_meta);
       }
       else{
 	const double meta(m_riskmap->CostToMeta(cost[iline][icol]));
 #ifdef ESTAR_DEBUG
 	printf("%4.2f:%4.2f", cost[iline][icol], meta);
 #endif // ESTAR_DEBUG
-	m_algo->InitMeta(m_grid->GetVertex(grid_ix, grid_iy), meta);
+	m_algo->InitMeta(m_grid->Index2Vertex(grid_ix, grid_iy), meta);
       }
     }
 #ifdef ESTAR_DEBUG

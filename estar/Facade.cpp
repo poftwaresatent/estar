@@ -128,7 +128,7 @@ namespace estar {
   GetValue(size_t ix, size_t iy)
     const
   {
-    return get(m_algo->GetValueMap(), m_grid->GetVertex(ix, iy));
+    return get(m_algo->GetValueMap(), m_grid->Index2Vertex(ix, iy));
   }
   
   
@@ -136,28 +136,28 @@ namespace estar {
   GetMeta(size_t ix, size_t iy)
     const
   {
-    return get(m_algo->GetMetaMap(), m_grid->GetVertex(ix, iy));
+    return get(m_algo->GetMetaMap(), m_grid->Index2Vertex(ix, iy));
   }
   
   
   void Facade::
   SetMeta(size_t ix, size_t iy, double meta)
   {
-    m_algo->SetMeta(m_grid->GetVertex(ix, iy), meta, *(m_kernel));
+    m_algo->SetMeta(m_grid->Index2Vertex(ix, iy), meta, *(m_kernel));
   }
   
   
   void Facade::
   InitMeta(size_t ix, size_t iy, double meta)
   {
-    m_algo->InitMeta(m_grid->GetVertex(ix, iy), meta);
+    m_algo->InitMeta(m_grid->Index2Vertex(ix, iy), meta);
   }
   
   
   void Facade::
   AddGoal(size_t ix, size_t iy, double value)
   {
-    m_algo->AddGoal(m_grid->GetVertex(ix, iy), value);
+    m_algo->AddGoal(m_grid->Index2Vertex(ix, iy), value);
   }
   
   
@@ -168,7 +168,7 @@ namespace estar {
     const meta_map_t & meta_map(m_algo->GetMetaMap());
     for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
 	in != goal.GetArea().end(); ++in){
-      const vertex_t vertex(m_grid->GetVertex(in->x, in->y));
+      const vertex_t vertex(m_grid->Index2Vertex(in->x, in->y));
       if(get(meta_map, vertex) != obstacle)
 	m_algo->AddGoal(vertex, in->r);
     }
@@ -178,7 +178,7 @@ namespace estar {
   void Facade::
   RemoveGoal(size_t ix, size_t iy)
   {
-    m_algo->RemoveGoal(m_grid->GetVertex(ix, iy));
+    m_algo->RemoveGoal(m_grid->Index2Vertex(ix, iy));
   }
 
 
@@ -187,7 +187,7 @@ namespace estar {
   {
     for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
 	in != goal.GetArea().end(); ++in)
-      m_algo->RemoveGoal(m_grid->GetVertex(in->x, in->y));
+      m_algo->RemoveGoal(m_grid->Index2Vertex(in->x, in->y));
   }
   
   
@@ -202,7 +202,7 @@ namespace estar {
   IsGoal(size_t ix, size_t iy)
     const
   {
-    return m_algo->IsGoal(m_grid->GetVertex(ix, iy));
+    return m_algo->IsGoal(m_grid->Index2Vertex(ix, iy));
   }
   
   
@@ -255,7 +255,7 @@ namespace estar {
   {
     if((ix >= m_grid->xsize) || (iy >= m_grid->ysize))
       return OUT_OF_GRID;
-    const vertex_t vertex(m_grid->GetVertex(ix, iy));
+    const vertex_t vertex(m_grid->Index2Vertex(ix, iy));
     const flag_t flag(get(m_algo->GetFlagMap(), vertex));
     if(estar::GOAL == flag)
       return GOAL;

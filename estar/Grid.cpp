@@ -43,20 +43,20 @@ namespace estar {
     for(size_t iy(0); iy < _ysize; ++iy)
       for(size_t ix(0); ix < _xsize; ++ix){
 	const vertex_t v(algo.AddVertex());
-	put(m_node_map, v, GridNode(ix, iy, v, GetIndex(ix, iy)));
+	put(m_node_map, v, GridNode(ix, iy, v, Index2Index(ix, iy)));
       }
     
     for(size_t ix(0); ix < _xsize-1; ++ix)
       for(size_t iy(0); iy < _ysize-1; ++iy){
-	algo.AddNeighbor(GetVertex(ix, iy), GetVertex(ix+1, iy  ));
-	algo.AddNeighbor(GetVertex(ix, iy), GetVertex(ix  , iy+1));
+	algo.AddNeighbor(Index2Vertex(ix, iy), Index2Vertex(ix+1, iy  ));
+	algo.AddNeighbor(Index2Vertex(ix, iy), Index2Vertex(ix  , iy+1));
       }
     for(size_t ix(0); ix < _xsize-1; ++ix)
-      algo.AddNeighbor(GetVertex(ix  , _ysize-1),
-		       GetVertex(ix+1, _ysize-1));
+      algo.AddNeighbor(Index2Vertex(ix  , _ysize-1),
+		       Index2Vertex(ix+1, _ysize-1));
     for(size_t iy(0); iy < _ysize-1; ++iy)
-      algo.AddNeighbor(GetVertex(_xsize-1, iy  ),
-		       GetVertex(_xsize-1, iy+1));
+      algo.AddNeighbor(Index2Vertex(_xsize-1, iy  ),
+		       Index2Vertex(_xsize-1, iy+1));
     
     switch(connect){
     case FOUR_CONNECTED:
@@ -66,18 +66,18 @@ namespace estar {
       PVDEBUG("eight-connected grid\n");
       for(size_t ix(0); ix < _xsize-1; ++ix)
 	for(size_t iy(0); iy < _ysize-1; ++iy){
-	  algo.AddNeighbor(GetVertex(ix  , iy  ), GetVertex(ix+1, iy+1));
-	  algo.AddNeighbor(GetVertex(ix+1, iy  ), GetVertex(ix  , iy+1));
+	  algo.AddNeighbor(Index2Vertex(ix  , iy  ), Index2Vertex(ix+1, iy+1));
+	  algo.AddNeighbor(Index2Vertex(ix+1, iy  ), Index2Vertex(ix  , iy+1));
 	}
       break;
     case HEX_GRID:
       PVDEBUG("hex grid\n");
       for(size_t iy(0); iy < _ysize-1; iy += 2)
 	for(size_t ix(1); ix < _xsize; ++ix)
-	  algo.AddNeighbor(GetVertex(ix  , iy  ), GetVertex(ix-1, iy+1));
+	  algo.AddNeighbor(Index2Vertex(ix  , iy  ), Index2Vertex(ix-1, iy+1));
       for(size_t iy(1); iy < _ysize-1; iy += 2)
 	for(size_t ix(0); ix < _xsize-1; ++ix)
-	  algo.AddNeighbor(GetVertex(ix  , iy  ), GetVertex(ix+1, iy+1));
+	  algo.AddNeighbor(Index2Vertex(ix  , iy  ), Index2Vertex(ix+1, iy+1));
       break;
     default:
       PDEBUG_ERR("BUG: Invalid connect parameter %d\n", connect);
@@ -99,21 +99,21 @@ namespace estar {
 #define UPWIND_GRADIENT
 #ifdef UPWIND_GRADIENT
     
-    const double baseval(get(value_map, GetVertex(ix, iy)));
+    const double baseval(get(value_map, Index2Vertex(ix, iy)));
     bool have_x(false);
     bool have_y(false);
     gradx = 0;
     grady = 0;
     
     if(ix < xsize - 1){
-      const double dxplus(get(value_map, GetVertex(ix + 1, iy)) - baseval);
+      const double dxplus(get(value_map, Index2Vertex(ix + 1, iy)) - baseval);
       if(dxplus < 0){
 	have_x = true;
 	gradx = dxplus;
       }
     }
     if(ix > 0){
-      const double dxminus(baseval - get(value_map, GetVertex(ix - 1, iy)));
+      const double dxminus(baseval - get(value_map, Index2Vertex(ix - 1, iy)));
       if(dxminus > 0){
 	if(have_x){
 	  gradx += dxminus;
@@ -127,14 +127,14 @@ namespace estar {
     }
     
     if(iy < ysize - 1){
-      const double dyplus(get(value_map, GetVertex(ix, iy + 1)) - baseval);
+      const double dyplus(get(value_map, Index2Vertex(ix, iy + 1)) - baseval);
       if(dyplus < 0){
 	have_y = true;
 	grady = dyplus;
       }
     }
     if(iy > 0){
-      const double dyminus(baseval - get(value_map, GetVertex(ix, iy - 1)));
+      const double dyminus(baseval - get(value_map, Index2Vertex(ix, iy - 1)));
       if(dyminus > 0){
 	if(have_y){
 	  grady += dyminus;
@@ -154,26 +154,26 @@ namespace estar {
     
 #else // ! UPWIND_GRADIENT
     
-    const double baseval(get(value_map, GetVertex(ix, iy)));
+    const double baseval(get(value_map, Index2Vertex(ix, iy)));
     gradx = 0;
     double xscale(0);
     grady = 0;
     double yscale(0);
     
     if(ix < xsize - 1){
-      gradx += get(value_map, GetVertex(ix + 1, iy)) - baseval;
+      gradx += get(value_map, Index2Vertex(ix + 1, iy)) - baseval;
       xscale += 1;
     }
     if(ix > 0){
-      gradx += baseval - get(value_map, GetVertex(ix - 1, iy));
+      gradx += baseval - get(value_map, Index2Vertex(ix - 1, iy));
       xscale += 1;
     }
     if(iy < ysize - 1){
-      grady += get(value_map, GetVertex(ix, iy + 1)) - baseval;
+      grady += get(value_map, Index2Vertex(ix, iy + 1)) - baseval;
       yscale += 1;
     }
     if(iy > 0){
-      grady += baseval - get(value_map, GetVertex(ix, iy - 1));
+      grady += baseval - get(value_map, Index2Vertex(ix, iy - 1));
       yscale += 1;
     }
     

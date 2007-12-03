@@ -217,7 +217,8 @@ namespace gfx {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       for(size_t ix(0); ix < xsize; ++ix)
 	for(size_t iy(0); iy < ysize; ++iy){
-	  const double vv(minval(get(value, grid.GetVertex(ix, iy)), delta));
+	  const double
+	    vv(minval(get(value, grid.Index2Vertex(ix, iy)), delta));
 	  colorscheme->Set(vv / delta);
 	  double xc, yc;
 	  tie(xc, yc) = pfunc(ix, iy);
@@ -228,7 +229,7 @@ namespace gfx {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       for(size_t ix(0); ix < xsize; ++ix)
 	for(size_t iy(0); iy < ysize; ++iy){
-	  colorscheme->Set(get(value, grid.GetVertex(ix, iy)));
+	  colorscheme->Set(get(value, grid.Index2Vertex(ix, iy)));
 	  double xc, yc;
 	  tie(xc, yc) = pfunc(ix, iy);
 	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
@@ -251,7 +252,7 @@ namespace gfx {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	colorscheme->Set(get(rhs, grid.GetVertex(ix, iy)));
+	colorscheme->Set(get(rhs, grid.Index2Vertex(ix, iy)));
 	double xc, yc;
 	tie(xc, yc) = pfunc(ix, iy);
 	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
@@ -275,7 +276,8 @@ namespace gfx {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	colorscheme->Set(riskmap.MetaToRisk(get(meta, grid.GetVertex(ix, iy))));
+	colorscheme->
+	  Set(riskmap.MetaToRisk(get(meta, grid.Index2Vertex(ix, iy))));
  	double xc, yc;
 	tie(xc, yc) = pfunc(ix, iy);
 	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
@@ -305,7 +307,8 @@ namespace gfx {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	colorscheme->Set(get(meta, grid.GetVertex(ix, iy)) / delta - min_meta);
+	colorscheme->
+	  Set(get(meta, grid.Index2Vertex(ix, iy)) / delta - min_meta);
  	double xc, yc;
 	tie(xc, yc) = pfunc(ix, iy);
 	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
@@ -357,7 +360,7 @@ namespace gfx {
     const value_map_t & value(algo.GetValueMap());
     const size_t max_ix(grid.GetXSize() - 1);
     const size_t max_iy(grid.GetYSize() - 1);
-    const double startval(get(value, grid.GetVertex(robot_ix, robot_iy)));
+    const double startval(get(value, grid.Index2Vertex(robot_ix, robot_iy)));
     
     PVDEBUG("\n"
 	    "  robot: (%lu, %lu)\n"
@@ -397,7 +400,7 @@ namespace gfx {
 	}
 	rix = boundval<size_t>(0, static_cast<size_t>(rint(rx)), max_ix);
 	riy = boundval<size_t>(0, static_cast<size_t>(rint(ry)), max_iy);
-	val = get(value, grid.GetVertex(rix, riy));
+	val = get(value, grid.Index2Vertex(rix, riy));
 	trace.push_back(trace_s(rix, riy, val, ok, heur, rx, ry));
 	
 	PVDEBUG(" -(%5.2f, %5.2f) ==> (%5.2f, %5.2f) [%lu, %lu] @ %2e\n",
@@ -456,7 +459,7 @@ namespace gfx {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy)
-	if(get(meta, grid.GetVertex(ix, iy)) == kernel.obstacle_meta){
+	if(get(meta, grid.Index2Vertex(ix, iy)) == kernel.obstacle_meta){
 	  double xc, yc;
 	  tie(xc, yc) = pfunc(ix, iy);
 	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);

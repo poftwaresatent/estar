@@ -87,7 +87,7 @@ int main(int argc, char ** argv)
   
   cout << "\n==================================================\n"
        << "algo1.AddGoal(grid1.GetVertex(0, 0), 0)\n";
-  algo1.AddGoal(grid1.GetVertex(0, 0), 0);
+  algo1.AddGoal(grid1.Index2Vertex(0, 0), 0);
   while(algo1.HaveWork()){
     algo1.ComputeOne(kernel1, 0.5);
   }
@@ -95,9 +95,9 @@ int main(int argc, char ** argv)
     dump_grid(grid1, stdout);
   
   cout << "\n==================================================\n"
-       << "algo1.SetMeta(grid.GetVertex(1, 0), "
+       << "algo1.SetMeta(grid.Index2Vertex(1, 0), "
        << kernel1.obstacle_meta << ", kernel1)\n";
-  algo1.SetMeta(grid1.GetVertex(1, 0), kernel1.obstacle_meta, kernel1);
+  algo1.SetMeta(grid1.Index2Vertex(1, 0), kernel1.obstacle_meta, kernel1);
   if( ! skip_output)
     dump_grid(grid1, stdout);
   while(algo1.HaveWork()){
@@ -125,12 +125,12 @@ int main(int argc, char ** argv)
   }
   
   cout << "\n==================================================\n"
-       << "algo2.AddGoal(grid2.GetVertex(0, 0), 0)\n";
-  algo2.AddGoal(grid2.GetVertex(0, 0), 0);
+       << "algo2.AddGoal(grid2.Index2Vertex(0, 0), 0)\n";
+  algo2.AddGoal(grid2.Index2Vertex(0, 0), 0);
   cout << "\n==================================================\n"
-       << "algo2.SetMeta(grid2.GetVertex(1, 0), "
+       << "algo2.SetMeta(grid2.Index2Vertex(1, 0), "
        << kernel2.obstacle_meta << ", kernel2)\n";
-  algo2.SetMeta(grid2.GetVertex(1, 0), kernel2.obstacle_meta, kernel2);
+  algo2.SetMeta(grid2.Index2Vertex(1, 0), kernel2.obstacle_meta, kernel2);
   while(algo2.HaveWork()){
     algo2.ComputeOne(kernel2, 0.5);
   }

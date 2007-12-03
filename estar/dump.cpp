@@ -93,7 +93,7 @@ namespace estar {
     const value_map_t & value(algo.GetValueMap());
     for(size_t x(x0); x <= x1; x++){
       for(size_t y(y0); y <= y1; y++){
-	const double vv(get(value, grid.GetVertex(x, y)));
+	const double vv(get(value, grid.Index2Vertex(x, y)));
 	if(vv != infinity)
 	  fprintf(stream, "%zd   %zd   %f\n", x, y, vv);
 	else
@@ -114,7 +114,7 @@ namespace estar {
     for(size_t x(x0); x <= x1; x++){
       for(size_t y(y0); y <= y1; y++)
 	fprintf(stream, "%zd   %zd   %f\n", x, y,
-		get(meta, grid.GetVertex(x, y)));
+		get(meta, grid.Index2Vertex(x, y)));
       fprintf(stream, "\n");
     }
   }
@@ -210,14 +210,14 @@ namespace estar {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
     for(size_t ix(ix0); ix <= ix1; ++ix){
-      const double meta(get(grid.meta_map, grid.GetVertex(ix, iy)));
+      const double meta(get(grid.meta_map, grid.Index2Vertex(ix, iy)));
       if(infinity == meta)
 	fprintf(stream, "|infty ");
       else if(huge <= meta)
 	fprintf(stream, "|huge  ");
       else
 	fprintf(stream, "|%5.2f ", meta);
-      const double value(get(grid.value_map, grid.GetVertex(ix, iy)));
+      const double value(get(grid.value_map, grid.Index2Vertex(ix, iy)));
       if(infinity == value)
 	fprintf(stream, "infty");
       else if(huge <= value)
@@ -237,12 +237,12 @@ namespace estar {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
     for(size_t ix(ix0); ix <= ix1; ++ix){
-      const flag_t flag(get(grid.flag_map, grid.GetVertex(ix, iy)));
+      const flag_t flag(get(grid.flag_map, grid.Index2Vertex(ix, iy)));
       if(NONE == flag)
 	fprintf(stream, "|      ");
       else
 	fprintf(stream, "|%5s ", flag_name(flag));
-      const double rhs(get(grid.rhs_map, grid.GetVertex(ix, iy)));
+      const double rhs(get(grid.rhs_map, grid.Index2Vertex(ix, iy)));
       if(infinity == rhs)
 	fprintf(stream, "infty");
       else if(huge <= rhs)
@@ -262,7 +262,7 @@ namespace estar {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
     for(size_t ix(ix0); ix <= ix1; ++ix){
-      const vertex_t vertex(grid.GetVertex(ix, iy));
+      const vertex_t vertex(grid.Index2Vertex(ix, iy));
       if( ! (OPEN & get(grid.flag_map, vertex)))
 	fprintf(stream, "|      ");
       else if(get(grid.rhs_map, vertex) < get(grid.value_map, vertex))
@@ -271,7 +271,7 @@ namespace estar {
 	fprintf(stream, "|raise ");
       else
 	fprintf(stream, "|r==v? ");
-      fprintf(stream, "%5zu", grid.GetVertex(ix, iy));
+      fprintf(stream, "%5zu", grid.Index2Vertex(ix, iy));
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -285,7 +285,7 @@ namespace estar {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
     for(size_t ix(ix0); ix <= ix1; ++ix){
-      const GridNode & node(grid.GetNode(ix, iy));
+      const GridNode & node(grid.Index2Node(ix, iy));
       fprintf(stream, "| (%3zu, %3zu)", node.ix, node.iy);
     }
     if(0 != high) fprintf(stream, "|%s\n", high);

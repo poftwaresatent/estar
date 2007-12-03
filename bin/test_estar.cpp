@@ -105,7 +105,7 @@ int main(int argc, char ** argv)
   
   cout << "\n==================================================\n"
        << "algo.AddGoal(grid.GetVertex(0, 0), 0)\n";
-  algo.AddGoal(grid.GetVertex(0, 0), 0);
+  algo.AddGoal(grid.Index2Vertex(0, 0), 0);
   while(algo.HaveWork()){
     if(skip_output){
       const size_t step(algo.GetStep());
@@ -133,9 +133,9 @@ int main(int argc, char ** argv)
     dump_grid(grid, stdout);
   
   cout << "\n==================================================\n"
-       << "algo.SetMeta(grid.GetVertex(1, 1), "
+       << "algo.SetMeta(grid.Index2Vertex(1, 1), "
        << kernel.obstacle_meta << ", kernel)\n";
-  algo.SetMeta(grid.GetVertex(1, 1), kernel.obstacle_meta, kernel);
+  algo.SetMeta(grid.Index2Vertex(1, 1), kernel.obstacle_meta, kernel);
   while(algo.HaveWork()){
     if(skip_output){
       const size_t step(algo.GetStep());

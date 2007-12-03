@@ -267,10 +267,10 @@ namespace pnf {
       Algorithm & robalgo(m_robot->dist->GetAlgorithm());
       const Kernel & robkernel(m_robot->dist->GetKernel());
       for(size_t iv(0); iv < nvertices; ++iv)
-	if(get(envdist, envgrid.GetVertex(iv)) > m_robot->radius)
-	  robalgo.SetMeta(robgrid.GetVertex(iv), freespace, robkernel);
+	if(get(envdist, envgrid.Index2Vertex(iv)) > m_robot->radius)
+	  robalgo.SetMeta(robgrid.Index2Vertex(iv), freespace, robkernel);
 	else
-	  robalgo.SetMeta(robgrid.GetVertex(iv), obstacle, robkernel);
+	  robalgo.SetMeta(robgrid.Index2Vertex(iv), obstacle, robkernel);
       // set robot goal, this will skip obstacles
       m_robot->dist->AddGoal(*m_robot->region);
     }
@@ -283,10 +283,10 @@ namespace pnf {
 	Algorithm & objalgo(objdist.GetAlgorithm());
 	const Kernel & objkernel(objdist.GetKernel());
 	for(size_t iv(0); iv < nvertices; ++iv)
-	  if(get(envdist, envgrid.GetVertex(iv)) > io->second->radius)
-	    objalgo.SetMeta(objgrid.GetVertex(iv), freespace, objkernel);
+	  if(get(envdist, envgrid.Index2Vertex(iv)) > io->second->radius)
+	    objalgo.SetMeta(objgrid.Index2Vertex(iv), freespace, objkernel);
 	  else
-	    objalgo.SetMeta(objgrid.GetVertex(iv), obstacle, objkernel);
+	    objalgo.SetMeta(objgrid.Index2Vertex(iv), obstacle, objkernel);
 	// set object goal, this will skip obstacles
 	objdist.AddGoal(*io->second->region);
       }
@@ -391,7 +391,7 @@ namespace pnf {
 	  const ssize_t jy(iy + area[ia].y);
 	  if((jy < 0) || (jy >= static_cast<ssize_t>(ysize)))
 	    continue;
-	  const double ll(get(objdist, objgrid.GetVertex(jx, jy)));
+	  const double ll(get(objdist, objgrid.Index2Vertex(jx, jy)));
 	  if(ll < lambda)
 	    lambda = ll;
 	}
@@ -465,7 +465,7 @@ namespace pnf {
     const Grid & envgrid(m_envdist->GetGrid());
     for(size_t ix(0); ix < xsize; ++ix)
       for(size_t iy(0); iy < ysize; ++iy){
-	const double dist(get(envdist, envgrid.GetVertex(ix, iy)));
+	const double dist(get(envdist, envgrid.Index2Vertex(ix, iy)));
 	double cooc;
 	if(buffer)
 	  cooc = buffer->DistanceToRisk(dist);

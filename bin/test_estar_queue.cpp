@@ -85,7 +85,7 @@ int main(int argc, char ** argv)
   
   cout << "\n==================================================\n"
        << "algo.AddGoal(grid.GetVertex(0, 0), 0)\n";
-  algo.AddGoal(grid.GetVertex(0, 0), 0);
+  algo.AddGoal(grid.Index2Vertex(0, 0), 0);
   while(true){
     dump_upwind(algo, &grid, stdout);
     dump_queue(algo, &grid, 0, stdout);
