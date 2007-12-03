@@ -54,6 +54,8 @@ include_HEADERS=        Algorithm.hpp \
                         numeric.hpp \
                         util.hpp \
                         pdebug.hpp \
+                        sdeque.hpp \
+                        flexgrid.hpp \
                         $(GFX_HDR)
 
 includedir=             @includedir@/estar
