@@ -80,43 +80,6 @@ namespace estar {
     outer_t data;
   };
   
-  
-  /**
-     This is now implemented as a wrapper around trace_carrot(), which
-     is now implemented as a forwarding to
-     FacadeReadInterface::TraceCarrot(). Go check out more
-     documentation there.
-     
-     \note The carrot is computed in the grid frame of reference.
-     
-     \return
-       0 on success<br>
-       1 if distance wasn't reached after maxstep iterations
-      -1 if the robot is outside the grid<br>
-      -2 if the grid is a hexgrid (not implemented yet)
-      -3 trace_carrot() succeeded but the trace is emtpy (probably a bug)
-  */
-  int compute_carrot(const FacadeReadInterface & facade,
-		     double robot_x, double robot_y,
-		     double distance, double stepsize,
-		     size_t maxsteps,
-		     double & carrot_x, double & carrot_y,
-		     std::vector<std::pair<double, double> > * trace);
-  
-  
-  /**
-     This is now simply forwarded to
-     FacadeReadInterface::TraceCarrot(). Go check out more
-     documentation there.
-     
-     \note The trace is computed in the grid frame of reference.
-  */
-  int trace_carrot(const FacadeReadInterface & facade,
-		   double robot_x, double robot_y,
-		   double distance, double stepsize,
-		   size_t maxsteps,
-		   carrot_trace & trace);
-  
 }
 
 #endif // ESTAR_UTIL_HPP

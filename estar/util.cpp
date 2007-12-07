@@ -57,41 +57,5 @@ namespace estar {
       exit(EXIT_FAILURE);
     }
   }
-
-
-  int compute_carrot(const FacadeReadInterface & facade,
-		     double robot_x, double robot_y,
-		     double distance, double stepsize,
-		     size_t maxsteps,
-		     double & carrot_x, double & carrot_y,
-		     vector<pair<double, double> > * trace)
-  {
-    carrot_trace gtrace;
-    const int res(facade.TraceCarrot(robot_x, robot_y, distance, stepsize,
-				     maxsteps, gtrace));
-    if(0 > res)
-      return res;
-    if(gtrace.empty())
-      return -3;
-    carrot_x = gtrace.back().cx;
-    carrot_y = gtrace.back().cy;
-    if(0 == trace)
-      return res;
-    trace->clear();
-    for(size_t ii(0); ii < gtrace.size(); ++ii)
-      trace->push_back(make_pair(gtrace[ii].cx, gtrace[ii].cy));
-    return res;
-  }
-  
-  
-  int trace_carrot(const FacadeReadInterface & facade,
-		   double robot_x, double robot_y,
-		   double distance, double stepsize,
-		   size_t maxsteps,
-		   carrot_trace & trace)
-  {
-    return facade.TraceCarrot(robot_x, robot_y, distance,
-			      stepsize, maxsteps, trace);
-  }
   
 }
