@@ -21,14 +21,20 @@
 #include "Facade.hpp"
 #include "Algorithm.hpp"
 #include "Grid.hpp"
+#include "Supergrid.hpp"
 #include "NF1Kernel.hpp"
 #include "AlphaKernel.hpp"
 #include "LSMKernel.hpp"
 #include "dump.hpp"
 #include "Region.hpp"
+#include "pdebug.hpp"
+#include "CSpace.hpp"
+
+#include <iostream>		// rfct
 
 
 using namespace boost;
+using namespace std;		// rfct
 
   
 namespace estar {
@@ -38,41 +44,46 @@ namespace estar {
   Facade(shared_ptr<Algorithm> algo,
 	 shared_ptr<Grid> grid,
 	 shared_ptr<Kernel> kernel)
-    : xsize(grid->xsize),
-      ysize(grid->ysize),
-      scale(kernel->scale),
+    : scale(kernel->scale),
+      m_cspace(grid->GetCSpace()),
       m_algo(algo),
-      m_grid(grid),
+      m_supergrid(new Supergrid(algo, grid->xsize, grid->ysize)),
       m_kernel(kernel)
   {
+    if ( ! m_supergrid->AddGrid(0, 0, grid)) {
+      cerr << "ERROR in estar::Facade::Facade(): Supergrid::AddGrid().\n";
+#warning "Very bad idea for library code."
+      exit(EXIT_FAILURE);
+    }
   }
   
   
   Facade * Facade::
   Create(const std::string & kernel_name,
-	 size_t xsize,
-	 size_t ysize,
+	 ssize_t xsize,
+	 ssize_t ysize,
 	 double scale,
 	 FacadeOptions const & options,
 	 FILE * dbgstream)
   {
-    shared_ptr<Algorithm> algo(new Algorithm(options.check_upwind,
+    shared_ptr<Grid> grid;
+    if (options.connect_diagonal)
+      grid.reset(new Grid(xsize, ysize, EIGHT_CONNECTED));
+    else
+      grid.reset(new Grid(xsize, ysize, FOUR_CONNECTED));
+    shared_ptr<Algorithm> algo(new Algorithm(grid->GetCSpace(),
+					     options.check_upwind,
 					     options.check_local_consistency,
 					     options.check_queue_key,
 					     options.auto_reset,
 					     options.auto_flush));
-    shared_ptr<Grid> grid;
-    if (options.connect_diagonal)
-      grid.reset(new Grid(*algo, xsize, ysize, EIGHT_CONNECTED));
-    else
-      grid.reset(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
     shared_ptr<Kernel> kernel;
     if (kernel_name == "nf1")
       kernel.reset(new NF1Kernel());
     else if (kernel_name == "alpha")
       kernel.reset(new AlphaKernel(scale));
     else if (kernel_name == "lsm")
-      kernel.reset(new LSMKernel(*grid, scale));
+      kernel.reset(new LSMKernel(grid->GetCSpace(), scale));
     else {
       if(0 != dbgstream)
 	fprintf(dbgstream,
@@ -88,22 +99,23 @@ namespace estar {
   
   
   Facade * Facade::
-  CreateDefault(size_t xsize,
-		size_t ysize,
+  CreateDefault(ssize_t xsize,
+		ssize_t ysize,
 		double scale)
   {
     FacadeOptions options;
-    shared_ptr<Algorithm> algo(new Algorithm(options.check_upwind,
+    shared_ptr<Grid> grid;
+    if (options.connect_diagonal)
+      grid.reset(new Grid(xsize, ysize, EIGHT_CONNECTED));
+    else
+      grid.reset(new Grid(xsize, ysize, FOUR_CONNECTED));
+    shared_ptr<Algorithm> algo(new Algorithm(grid->GetCSpace(),
+					     options.check_upwind,
 					     options.check_local_consistency,
 					     options.check_queue_key,
 					     options.auto_reset,
 					     options.auto_flush));
-    shared_ptr<Grid> grid;
-    if (options.connect_diagonal)
-      grid.reset(new Grid(*algo, xsize, ysize, EIGHT_CONNECTED));
-    else
-      grid.reset(new Grid(*algo, xsize, ysize, FOUR_CONNECTED));
-    shared_ptr<Kernel> kernel(new LSMKernel(*grid, scale));
+    shared_ptr<Kernel> kernel(new LSMKernel(grid->GetCSpace(), scale));
     return new Facade(algo, grid, kernel);
   }
   
@@ -125,50 +137,69 @@ namespace estar {
   
   
   double Facade::
-  GetValue(size_t ix, size_t iy)
+  GetValue(ssize_t ix, ssize_t iy)
     const
   {
-    return get(m_algo->GetValueMap(), m_grid->Index2Vertex(ix, iy));
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return infinity;
+    return get(m_algo->GetValueMap(), grid->Index2Vertex(ix, iy));
   }
   
   
   double Facade::
-  GetMeta(size_t ix, size_t iy)
+  GetMeta(ssize_t ix, ssize_t iy)
     const
   {
-    return get(m_algo->GetMetaMap(), m_grid->Index2Vertex(ix, iy));
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return m_kernel->obstacle_meta;
+    return get(m_algo->GetMetaMap(), grid->Index2Vertex(ix, iy));
   }
   
   
   void Facade::
-  SetMeta(size_t ix, size_t iy, double meta)
+  SetMeta(ssize_t ix, ssize_t iy, double meta)
   {
-    m_algo->SetMeta(m_grid->Index2Vertex(ix, iy), meta, *(m_kernel));
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return;		      // should create new grid and link it in
+    m_algo->SetMeta(grid->Index2Vertex(ix, iy), meta, *(m_kernel));
   }
   
   
   void Facade::
-  InitMeta(size_t ix, size_t iy, double meta)
+  InitMeta(ssize_t ix, ssize_t iy, double meta)
   {
-    m_algo->InitMeta(m_grid->Index2Vertex(ix, iy), meta);
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return;		      // should create new grid and link it in
+    m_algo->InitMeta(grid->Index2Vertex(ix, iy), meta);
   }
   
   
   void Facade::
-  AddGoal(size_t ix, size_t iy, double value)
+  AddGoal(ssize_t ix, ssize_t iy, double value)
   {
-    m_algo->AddGoal(m_grid->Index2Vertex(ix, iy), value);
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return;		      // should create new grid and link it in
+    m_algo->AddGoal(grid->Index2Vertex(ix, iy), value);
   }
   
   
   void Facade::
   AddGoal(const Region & goal)
   {
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return; // should create new grid and link it in, individually
+	      // for each vertex in the region
     const double obstacle(m_kernel->obstacle_meta);
     const meta_map_t & meta_map(m_algo->GetMetaMap());
     for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
 	in != goal.GetArea().end(); ++in){
-      const vertex_t vertex(m_grid->Index2Vertex(in->x, in->y));
+      const vertex_t vertex(grid->Index2Vertex(in->x, in->y));
       if(get(meta_map, vertex) != obstacle)
 	m_algo->AddGoal(vertex, in->r);
     }
@@ -176,18 +207,24 @@ namespace estar {
   
   
   void Facade::
-  RemoveGoal(size_t ix, size_t iy)
+  RemoveGoal(ssize_t ix, ssize_t iy)
   {
-    m_algo->RemoveGoal(m_grid->Index2Vertex(ix, iy));
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return;			// what if? probably safely ignore
+    m_algo->RemoveGoal(grid->Index2Vertex(ix, iy));
   }
 
 
   void Facade::
   RemoveGoal(const Region & goal)
   {
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return;			// what if? probably safely ignore
     for(Region::indexlist_t::const_iterator in(goal.GetArea().begin());
 	in != goal.GetArea().end(); ++in)
-      m_algo->RemoveGoal(m_grid->Index2Vertex(in->x, in->y));
+      m_algo->RemoveGoal(grid->Index2Vertex(in->x, in->y));
   }
   
   
@@ -199,10 +236,13 @@ namespace estar {
   
   
   bool Facade::
-  IsGoal(size_t ix, size_t iy)
+  IsGoal(ssize_t ix, ssize_t iy)
     const
   {
-    return m_algo->IsGoal(m_grid->Index2Vertex(ix, iy));
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return false;
+    return m_algo->IsGoal(grid->Index2Vertex(ix, iy));
   }
   
   
@@ -225,7 +265,10 @@ namespace estar {
   DumpGrid(FILE * stream)
     const
   {
-    dump_grid(*m_grid, stream);
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      fprintf(stream, "WARNING in Facade::DumpGrid(): no grid (bizarre)\n");
+    dump_grid(*grid, stream);
   }
   
   
@@ -233,7 +276,10 @@ namespace estar {
   DumpQueue(FILE * stream, size_t limit)
     const
   {
-    dump_queue(*m_algo, m_grid.get(), limit, stream);
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      fprintf(stream, "WARNING in Facade::DumpQueue(): no grid (bizarre)\n");
+    dump_queue(*m_algo, grid.get(), limit, stream);
   }
   
 
@@ -241,21 +287,31 @@ namespace estar {
   DumpPointers(FILE * stream)
     const
   {
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
     fprintf(stream,
 	    "estar::Facade %p\n"
 	    "    Algorithm %p\n"
 	    "    Grid      %p\n"
 	    "    Kernel    %p\n",
-	    this, m_algo.get(), m_grid.get(), m_kernel.get());
+	    this, m_algo.get(), grid.get(), m_kernel.get());
   }
   
   
   Facade::node_status_t Facade::
-  GetStatus(size_t ix, size_t iy) const
+  GetStatus(ssize_t ix, ssize_t iy) const
   {
-    if((ix >= m_grid->xsize) || (iy >= m_grid->ysize))
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
       return OUT_OF_GRID;
-    const vertex_t vertex(m_grid->Index2Vertex(ix, iy));
+    if((ix >= grid->xsize) || (iy >= grid->ysize))
+      return OUT_OF_GRID;
+    return GetStatus(grid->Index2Vertex(ix, iy));
+  }
+  
+  
+  Facade::node_status_t Facade::
+  GetStatus(vertex_t vertex) const
+  {
     const flag_t flag(get(m_algo->GetFlagMap(), vertex));
     if(estar::GOAL == flag)
       return GOAL;
@@ -293,4 +349,143 @@ namespace estar {
     m_algo->Reset();
   }
   
+  
+  const Grid & Facade::
+  GetGrid() const
+  {
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid) {
+      cerr << "ERROR in estar::Facade::GetGrid(): no grid\n";
+#warning "Very bad idea for library code."
+      exit(EXIT_FAILURE);
+    }
+    return *grid;
+  }
+
+
+  bool Facade::
+  IsValidIndex(ssize_t ix, ssize_t iy) const
+  {
+    shared_ptr<Grid> grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid)
+      return false;
+    return (ix < grid->GetXSize()) && (iy < grid->GetYSize());
+  }
+  
+  
+  int Facade::
+  TraceCarrot(double robot_x, double robot_y,
+	      double distance, double stepsize,
+	      size_t maxsteps,
+	      carrot_trace & trace) const
+  {
+    PVDEBUG("(%g   %g)   d: %g   s: %g   N: %lu\n",
+	    robot_x, robot_y, distance, stepsize, maxsteps);
+    if((robot_x < 0) || (robot_y < 0)){
+      PDEBUG("FAIL (robot_x < 0) || (robot_y < 0)\n");
+      return -1;
+    }
+    robot_x /= scale;
+    robot_y /= scale;
+    distance /= scale;
+    const double unscaled_stepsize(stepsize);
+    stepsize /= scale;
+    PVDEBUG("scaled: (%g   %g)   d: %g   s: %g\n",
+	   robot_x, robot_y, distance, stepsize);
+    ssize_t ix(static_cast<ssize_t>(rint(robot_x)));
+    ssize_t iy(static_cast<ssize_t>(rint(robot_y)));
+    const Supergrid::const_subgrid_ptr grid(m_supergrid->GetGrid(0, 0));
+    if ( ! grid) {
+      PDEBUG("FAIL: no (sub)grid\n");
+      return -17;
+    }
+    if((ix >= grid->GetXSize()) || (iy >= grid->GetYSize())){
+      PDEBUG("FAIL (ix >= grid->GetXSize()) || (iy >= grid->GetYSize())\n");
+      return -1;
+    }
+    
+    if((grid->connect != FOUR_CONNECTED)
+       && (grid->connect != EIGHT_CONNECTED)){
+      PDEBUG("TODO: Implement carrot for hexgrids!\n");
+      return -2;
+    }
+    const ssize_t max_ix(grid->GetXSize() - 1);
+    const ssize_t max_iy(grid->GetYSize() - 1);
+    
+    trace.clear();
+    double cx(robot_x);		// carrot
+    double cy(robot_y);
+    size_t ii;
+    for(ii = 0; ii < maxsteps; ++ii){
+      const double value(GetValue(ix, iy));
+      double dx, dy, gx, gy;
+      const int res(grid->ComputeStableScaledGradient(ix, iy, stepsize,
+						      gx, gy, dx, dy));
+      if(0 == res)
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
+				    gx / scale,
+				    gy / scale,
+				    value,
+				    false));
+      else
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
+				    dx / stepsize,
+				    dy / stepsize,
+				    value,
+				    true));
+      cx -= dx;
+      cy -= dy;
+      PVDEBUG("(%g   %g) ==> (%g   %g)%s\n",
+	      dx, dy, cx, cy, (0 != res) ? "[heuristic]" : "");
+      
+      if(sqrt(square(robot_x - cx) + square(robot_y - cy)) >= distance){
+	PVDEBUG("... >= distance");
+	break;
+      }
+      if(value <= unscaled_stepsize){
+	PVDEBUG("... value <= unscaled_stepsize");
+	break;
+      }
+      
+      ix = boundval<ssize_t>(0, static_cast<ssize_t>(rint(cx)), max_ix);
+      iy = boundval<ssize_t>(0, static_cast<ssize_t>(rint(cy)), max_iy);
+    }
+    // add final point to the trace
+    {
+      double dx, dy, gx, gy;
+      const int res(grid->ComputeStableScaledGradient(ix, iy, stepsize,
+						      gx, gy, dx, dy));
+      if(0 == res)
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
+				    gx / scale,
+				    gy / scale,
+				    GetValue(ix, iy),
+				    false));
+      else
+	trace.push_back(carrot_item(cx * scale,
+				    cy * scale,
+				    dx / stepsize,
+				    dy / stepsize,
+				    GetValue(ix, iy),
+				    true));
+    }
+    
+    if(ii >= maxsteps){
+      PVDEBUG("WARNING (ii >= maxsteps)\n");
+      return 1;
+    }
+    PVDEBUG("success: %g   %g\n", cx * scale, cy * scale);
+    return 0;
+  }
+  
+  
+  shared_ptr<GridCSpace const> Facade::
+  GetCSpace() const
+  {
+    return m_cspace;
+  }
+
 } // namespace estar

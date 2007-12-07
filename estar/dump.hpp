@@ -64,7 +64,7 @@ namespace estar {
   */
   void dump_raw_value(const Grid & grid,
 		      const Algorithm & algo,
-		      size_t x0, size_t y0, size_t x1, size_t y1,
+		      ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		      double infinity_replacement,
 		      FILE * stream);
   
@@ -75,7 +75,7 @@ namespace estar {
   */
   void dump_raw_meta(const Grid & grid,
 		     const Algorithm & algo,
-		     size_t x0, size_t y0, size_t x1, size_t y1,
+		     ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		     FILE * stream);
   
   /** Similar to eg dump_raw_value(), but writes all values and meta
@@ -99,17 +99,17 @@ namespace estar {
   
   void dump_grid(const Grid & grid, FILE * stream);
   void dump_grid_range(const Grid & grid,
-		       size_t ix0, size_t iy0, size_t ix1, size_t iy1,
+		       ssize_t ix0, ssize_t iy0, ssize_t ix1, ssize_t iy1,
 		       FILE * stream);
   void dump_grid_range_highlight(const Grid & grid,
-				 size_t ix0, size_t iy0,
-				 size_t ix1, size_t iy1,
-				 size_t ixhigh, size_t iyhigh,
+				 ssize_t ix0, ssize_t iy0,
+				 ssize_t ix1, ssize_t iy1,
+				 ssize_t ixhigh, ssize_t iyhigh,
 				 FILE * stream);
   void dump_facade_range_highlight(const FacadeReadInterface & facade,
-				   size_t ix0, size_t iy0,
-				   size_t ix1, size_t iy1,
-				   size_t ixhigh, size_t iyhigh,
+				   ssize_t ix0, ssize_t iy0,
+				   ssize_t ix1, ssize_t iy1,
+				   ssize_t ixhigh, ssize_t iyhigh,
 				   FILE * stream);
 
   void dump_upwind(const Algorithm & algo, const Grid * grid, FILE * stream);

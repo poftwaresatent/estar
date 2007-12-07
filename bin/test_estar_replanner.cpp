@@ -58,27 +58,28 @@ int main(int argc, char ** argv)
       cout << "don't understand arg \"" << arg << "\"\n";
   }
   
-  Algorithm algo1(false, false, false, false, false);
-  Algorithm algo2(false, false, false, false, false);
-  
 #define TEST_CASE 4
   cout << "init test case " << TEST_CASE << "\n";
 
 // #elif TEST_CASE == 4
-  Grid grid1(algo1, 3, 3, FOUR_CONNECTED);
-  Grid grid2(algo2, 3, 3, FOUR_CONNECTED);
-  LSMKernel kernel1(grid1, 1.25);
-  LSMKernel kernel2(grid2, 1.25);
-
+  Grid grid1(static_cast<ssize_t>(3), static_cast<ssize_t>(3), FOUR_CONNECTED);
+  Grid grid2(static_cast<ssize_t>(3), static_cast<ssize_t>(3), FOUR_CONNECTED);
+  
+  LSMKernel kernel1(grid1.GetCSpace(), 1.25);
+  LSMKernel kernel2(grid2.GetCSpace(), 1.25);
+  
+  Algorithm algo1(grid1.GetCSpace(), false, false, false, false, false);
+  Algorithm algo2(grid2.GetCSpace(), false, false, false, false, false);
+  
   if( ! skip_input){
     cout << "checking cspace\n";
     ostringstream os;
-    if( ! check_cspace(algo1.GetCSpace(), "", os)){
+    if( ! check_cspace(algo1.GetCSpaceGraph(), "", os)){
       dump_grid(grid1, stdout);
       cout << os.str();
       exit(EXIT_FAILURE);
     }
-    if( ! check_cspace(algo2.GetCSpace(), "", os)){
+    if( ! check_cspace(algo2.GetCSpaceGraph(), "", os)){
       dump_grid(grid2, stdout);
       cout << os.str();
       exit(EXIT_FAILURE);

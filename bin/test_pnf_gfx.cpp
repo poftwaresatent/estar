@@ -95,7 +95,7 @@ namespace local {
     typedef struct { size_t id; double x, y, r, v; } object_t;
     typedef vector<object_t> dynobj_t;
     
-    size_t grid_x, grid_y;
+    ssize_t grid_x, grid_y;
     double grid_d;
     statobj_t statobj;
     double robot_x, robot_y, robot_r, robot_v;
@@ -167,7 +167,7 @@ int main(int argc,
   typedef Viewport VP;
   if(m_config->paper){
     double x0, y0, x1, y1;
-    get_grid_bbox(m_flow->GetEnvdist().GetGrid(), x0, y0, x1, y1);
+    get_grid_bbox(*m_flow->GetEnvdist().GetCSpace(), x0, y0, x1, y1);
     const bb_t rbb(x0, y0, x1, y1);
     const bb_t lbb0(0, 0, 0, 0);
     m_envdist_view.reset(new VP("envdist", rbb, lbb0));
@@ -277,7 +277,7 @@ void draw()
       draw_grid_meta(*m_flow->GetRobdist(), ColorScheme::Get(INVERTED_GREY));
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		   ColorScheme::Get(RED), 0, 1, 1);
       draw_setup(false, false);
     }
     m_rob_lambda_view->PopProjection();
@@ -299,7 +299,7 @@ void draw()
 		     0, max_cooc, ColorScheme::Get(INVERTED_GREY));
 	  if(7 <= m_flowstep)
 	    draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		       m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		       ColorScheme::Get(RED), 0, 1, 1);
 	  draw_setup(false, false);
 	}
 	m_cooc_view[io]->PopProjection();
@@ -316,7 +316,7 @@ void draw()
 		     0, max_risk, ColorScheme::Get(INVERTED_GREY));
 	  if(7 <= m_flowstep)
 	    draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		       m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		       ColorScheme::Get(RED), 0, 1, 1);
 	  draw_setup(true, false);
 	  m_risk_view->PopProjection();
 	}
@@ -325,7 +325,7 @@ void draw()
       draw_grid_meta(m_flow->GetPNF(), ColorScheme::Get(INVERTED_GREY));
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		   ColorScheme::Get(RED), 0, 1, 1);
       draw_setup(false, false);
       m_pnf_meta_view->PopProjection();
     }
@@ -335,7 +335,7 @@ void draw()
       m_envdist_view->PushProjection();
       draw_grid_value(m_flow->GetEnvdist(),
 		      ColorScheme::Get(BLUE_GREEN_RED), true);
-      draw_grid_queue(m_flow->GetEnvdist().GetGrid(),
+      draw_grid_queue(*m_flow->GetEnvdist().GetCSpace(),
 		      m_flow->GetEnvdist().GetAlgorithm());
       //       draw_grid_upwind(m_flow->GetEnvdist().GetGrid(),
       // 		       m_flow->GetEnvdist().GetAlgorithm(),
@@ -415,7 +415,7 @@ void draw()
 		   0, max_risk, ColorScheme::Get(BLUE_GREEN_RED));
 	if(7 <= m_flowstep)
 	  draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		     m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		     ColorScheme::Get(RED), 0, 1, 1);
 	draw_setup(false, false);
 	m_risk_view->PopProjection();
       }
@@ -423,7 +423,7 @@ void draw()
       draw_grid_meta(m_flow->GetPNF(), ColorScheme::Get(BLUE_GREEN_RED));
       if(7 <= m_flowstep)
 	draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		   m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		   ColorScheme::Get(RED), 0, 1, 1);
       draw_setup(false, false);
       m_pnf_meta_view->PopProjection();
     }
@@ -432,7 +432,7 @@ void draw()
       draw_grid_value(m_flow->GetPNF(),
 		      ColorScheme::Get(BLUE_GREEN_RED), true);
       draw_trace(m_flow->GetPNF(), m_config->robot_x, m_config->robot_y,
-		 m_config->goal_r, ColorScheme::Get(RED), 0, 1, 1);
+		 ColorScheme::Get(RED), 0, 1, 1);
       draw_setup(false, false);
       m_pnf_value_view->PopProjection();
     }
@@ -483,7 +483,7 @@ void keyboard(unsigned char key, int x, int y)
   case 'x':
     cout << "checking environment distance queue...\n";
     if( ! check_queue(m_flow->GetEnvdist().GetAlgorithm(),
-		      &(m_flow->GetEnvdist().GetGrid()), "", cout))
+		      &(m_flow->GetEnvdistGrid()), "", cout))
       cout << "INCONSISTENT QUEUE in environment distance\n"
 	   << "==================================================\n";
     else
@@ -521,16 +521,16 @@ void timer(int handle)
 	  m_flow->PropagateEnvdist(true);
 	if(m_debug){
 	  const Algorithm & algo(m_flow->GetEnvdist().GetAlgorithm());
-	  const Grid & grid(m_flow->GetEnvdist().GetGrid());
+	  const Grid & grid(m_flow->GetEnvdistGrid());
 	  dump_queue(algo, &grid, 10, stdout);
 	  const vertex_t vertex(algo.GetLastComputedVertex());
 	  const GridNode & gn(grid.Vertex2Node(vertex));
-	  static const size_t dx(2);
-	  static const size_t dy(2);
-	  const size_t x0(gn.ix <= dx ? 0 : gn.ix - dx);
-	  const size_t y0(gn.iy <= dy ? 0 : gn.iy - dy);
-	  const size_t x1(minval(gn.ix + dx, grid.xsize - 1));
-	  const size_t y1(minval(gn.iy + dy, grid.ysize - 1));
+	  static const ssize_t dx(2);
+	  static const ssize_t dy(2);
+	  const ssize_t x0(gn.ix <= dx ? 0 : gn.ix - dx);
+	  const ssize_t y0(gn.iy <= dy ? 0 : gn.iy - dy);
+	  const ssize_t x1(minval(gn.ix + dx, grid.xsize - 1));
+	  const ssize_t y1(minval(gn.iy + dy, grid.ysize - 1));
 	  dump_grid_range_highlight(grid, x0, y0, x1, y1,
 				    gn.ix, gn.iy, stdout);
 	  //BOOST_ASSERT( ! (get(algo.GetFlagMap(), vertex) & OPEN) );
@@ -790,8 +790,8 @@ void parse_config(istream & config_is, ostream & dbg)
 	dbg << "Couldn't parse mgrid from \"" << tls.str() << "\"\n";
 	exit(EXIT_FAILURE);
       }
-      m_config->grid_x = static_cast<size_t>(ceil(mx / md));
-      m_config->grid_y = static_cast<size_t>(ceil(my / md));
+      m_config->grid_x = static_cast<ssize_t>(ceil(mx / md));
+      m_config->grid_y = static_cast<ssize_t>(ceil(my / md));
       m_config->grid_d = md;
       have_grid = true;
     }

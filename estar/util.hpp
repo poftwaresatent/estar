@@ -22,19 +22,14 @@
 #define ESTAR_UTIL_HPP
 
 
+#include <estar/FacadeReadInterface.hpp>
 #include <boost/scoped_array.hpp>
 #include <vector>
-//#include <unistd.h>
 
 
 namespace estar {
   
   
-  class FacadeReadInterface;
-  class Algorithm;
-  class Grid;
-
-
   /**
      Set the function for cleaning up after your program. Also sets up
      signal handlers for SIGINT, SIGHUP, and SIGTERM to call that ceanup
@@ -55,30 +50,42 @@ namespace estar {
      boost::shared_ptr to avoid problems with the non-copyable
      boost::scoped_array fields.
   */
-  template<typename T>
+  template<typename value_t, typename index_t = size_t>
   class array
   {
   public:
-    typedef boost::scoped_array<T> inner_t;
+    typedef boost::scoped_array<value_t> inner_t;
     typedef boost::scoped_array<inner_t> outer_t;
   
-    array(size_t xsize, size_t ysize): data(new inner_t[xsize])
-    { for(size_t ix(0); ix < xsize; ++ix) data[ix].reset(new T[ysize]); }
-  
-    array(size_t xsize, size_t ysize, const T & init): data(new inner_t[xsize])
-    { for(size_t ix(0); ix < xsize; ++ix)
-      { data[ix].reset(new T[ysize]);
-        for(size_t iy(0); iy < ysize; ++iy) data[ix][iy] = init; } }
+    array(index_t xsize, index_t ysize)
+      : data(new inner_t[xsize])
+    {
+      for (index_t ix(0); ix < xsize; ++ix)
+	data[ix].reset(new value_t[ysize]);
+    }
     
-    inner_t & operator [] (size_t ix) { return data[ix]; }
-    const inner_t & operator [] (size_t ix) const { return data[ix]; }
-  
+    array(index_t xsize, index_t ysize, const value_t & init)
+      : data(new inner_t[xsize])
+    {
+      for (index_t ix(0); ix < xsize; ++ix) {
+	data[ix].reset(new value_t[ysize]);
+        for(index_t iy(0); iy < ysize; ++iy)
+	  data[ix][iy] = init;
+      }
+    }
+    
+    inner_t & operator [] (index_t ix) { return data[ix]; }
+    const inner_t & operator [] (index_t ix) const { return data[ix]; }
+    
     outer_t data;
   };
   
   
   /**
-     This is now implemented as a wrapper around trace_carrot().
+     This is now implemented as a wrapper around trace_carrot(), which
+     is now implemented as a forwarding to
+     FacadeReadInterface::TraceCarrot(). Go check out more
+     documentation there.
      
      \note The carrot is computed in the grid frame of reference.
      
@@ -98,41 +105,11 @@ namespace estar {
   
   
   /**
-     An element of the 'trace' of the steepest gradient from a given
-     start position, used (pcked into a vector) as out-parameter for
-     trace_carrot().
-  */
-  struct carrot_item {
-    carrot_item(double x, double y, double gx, double gy, double val, bool dgn)
-      : cx(x), cy(y), gradx(gx), grady(gy), value(val), degenerate(dgn) {}
-    double cx;			/**< carrot x-coordinate */
-    double cy;			/**< carrot y-coordinate */
-    double gradx;		/**< gradient at carrot, x-component */
-    double grady;		/**< gradient at carrot, y-component */
-    double value;		/**< navigation function value */
-    bool degenerate;		/**< degenerate gradient (used heuristic) */
-  };
-  
-  typedef std::vector<carrot_item> carrot_trace;
-  
-  
-  /**
-     Like (the original) compute_carrot(), but leaves a more richly
-     informed trace.
+     This is now simply forwarded to
+     FacadeReadInterface::TraceCarrot(). Go check out more
+     documentation there.
      
      \note The trace is computed in the grid frame of reference.
-     
-     \return
-       0 on success<br>
-       1 if distance wasn't reached after maxstep iterations
-      -1 if the robot is outside the grid<br>
-      -2 if the grid is a hexgrid (not implemented yet)
-      
-      \todo URGENT: Need ridge detection (and avoidance) to avoid
-      going straight toward obstacle in case the robot is on the ridge
-      where two wavefronts meet after they swept around an
-      obstacle. In such a case, one direction should be chosen at
-      "random"!
   */
   int trace_carrot(const FacadeReadInterface & facade,
 		   double robot_x, double robot_y,

@@ -29,7 +29,7 @@
 namespace estar {
 
   class FacadeReadInterface;
-  class Grid;
+  class GridCSpace;
   class Algorithm;
   class RiskMap;
   class Kernel;
@@ -89,7 +89,7 @@ namespace gfx {
   };
   
   
-  void draw_grid_value(const estar::Grid & grid,
+  void draw_grid_value(const estar::GridCSpace & cspace,
 		       const estar::Algorithm & algo,
 		       const ColorScheme * colorscheme,
  		       bool auto_scale_value);
@@ -98,19 +98,19 @@ namespace gfx {
 		       const ColorScheme * colorscheme,
  		       bool auto_scale_value);
   
-  void draw_grid_rhs(const estar::Grid & grid,
+  void draw_grid_rhs(const estar::GridCSpace & cspace,
 		     const estar::Algorithm & algo,
 		     const ColorScheme * colorscheme);
   
   void draw_grid_rhs(const estar::FacadeReadInterface & facade,
 		     const ColorScheme * colorscheme);
   
-  void draw_grid_risk(const estar::Grid & grid,
+  void draw_grid_risk(const estar::GridCSpace & cspace,
 		      const estar::Algorithm & algo,
 		      const estar::RiskMap & riskmap,
 		      const ColorScheme * colorscheme);
   
-  void draw_grid_meta(const estar::Grid & grid,
+  void draw_grid_meta(const estar::GridCSpace & cspace,
  		      const estar::Algorithm & algo,
 		      const estar::Kernel & kernel,
 		      const ColorScheme * colorscheme);
@@ -123,28 +123,25 @@ namespace gfx {
 			   bool fill_cells = true);
   
   void draw_array(const estar::array<double> & grid,
-		  size_t x0, size_t y0, size_t x1, size_t y1,
+		  ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		  double lower, double upper,
 		  const ColorScheme * colorscheme);
   
-  void draw_trace(const estar::Grid & grid,
-		  const estar::Algorithm & algo,
-		  size_t robot_ix, size_t robot_iy,
-		  double stepsize, double goalradius,
-		  const ColorScheme * colorscheme,
+  void draw_trace(estar::carrot_trace const & trace,
+		  ColorScheme const * colorscheme,
 		  double fail_r, double fail_g, double fail_b);
   
   void draw_trace(const estar::FacadeReadInterface & facade,
-		  double robot_x, double robot_y, double goalradius,
+		  double robot_x, double robot_y,
 		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b);
   
-  void draw_grid_queue(const estar::Grid & grid,
+  void draw_grid_queue(const estar::GridCSpace & cspace,
 		       const estar::Algorithm & algo);
   
   void draw_grid_queue(const estar::FacadeReadInterface & facade);
   
-  void draw_grid_upwind(const estar::Grid & grid,
+  void draw_grid_upwind(const estar::GridCSpace & cspace,
 			const estar::Algorithm & algo,
 			double red, double green, double blue,
 			double linewidth);
@@ -153,14 +150,14 @@ namespace gfx {
 			double red, double green, double blue,
 			double linewidth);
   
-  void draw_grid_connect(const estar::Grid & grid,
+  void draw_grid_connect(const estar::GridCSpace & cspace,
 			 const estar::Algorithm & algo,
 			 double red, double green, double blue,
 			 double linewidth);
   
   void draw_grid_status(const estar::FacadeReadInterface & facade);
   
-  void get_grid_bbox(const estar::Grid & grid,
+  void get_grid_bbox(const estar::GridCSpace & cspace,
 		     double & x0, double & y0, double & x1, double & y1);
   
   void get_grid_bbox(const estar::FacadeReadInterface & facade,

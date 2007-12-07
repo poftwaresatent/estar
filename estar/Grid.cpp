@@ -24,39 +24,78 @@
 #include "pdebug.hpp"
 
 
+namespace local {
+  // copy paste from graphics.cpp
+  static const double hex_yscale(0.866025403784); // sqrt(3)/2
+}
+
+using namespace local;
+using namespace boost;
+using namespace std;
+
+
 namespace estar {
   
   
-  Grid::
-  Grid(Algorithm & algo, size_t _xsize, size_t _ysize,
-       connectedness_t _connect):
-    xsize(_xsize),
-    ysize(_ysize),
-    connect(_connect),
-    value_map(algo.GetValueMap()),
-    meta_map(algo.GetMetaMap()),
-    rhs_map(algo.GetRhsMap()),
-    flag_map(algo.GetFlagMap()),
-    m_node_array(new GridNode[_xsize * _ysize]),
-    m_node_map(m_node_array.get(), algo.GetVertexIdMap())
+  std::pair<double, double> grid_postransform_cartesian::
+  operator()(double ix, double iy) const
+  { return make_pair(ix, iy); }
+  
+  
+  std::pair<double, double> grid_postransform_hexgrid::
+  operator()(double ix, double iy) const
   {
-    for(size_t iy(0); iy < _ysize; ++iy)
-      for(size_t ix(0); ix < _xsize; ++ix){
-	const vertex_t v(algo.AddVertex());
-	put(m_node_map, v, GridNode(ix, iy, v, Index2Index(ix, iy)));
+    if(absval(fmod(iy, 2) - 1) > 0.5)
+      return make_pair(ix + 0.5, hex_yscale * iy + 0.5);
+    return make_pair(ix + 1.0, hex_yscale * iy + 0.5);
+  }
+  
+  
+  Grid::
+  Grid(ssize_t _xsize, ssize_t _ysize, connectedness_t _connect)
+    : xsize(_xsize),
+      ysize(_ysize),
+      connect(_connect),
+      m_node_array(_xsize, _ysize)
+  {
+    boost::shared_ptr<grid_bbox_compute const> bbox_compute;
+    if (HEX_GRID == _connect) {
+      bbox_compute.
+	reset(new grid_bbox_compute_fixed(0,
+					  0,
+					  _xsize + 0.5,
+					  hex_yscale * (_ysize - 1) + 1));
+      m_postransform.reset(new grid_postransform_hexgrid());
+    }
+    else {
+      bbox_compute.reset(new grid_bbox_compute_fixed(-0.5,
+						     -0.5,
+						     _xsize - 0.5,
+						     _ysize - 0.5));
+      m_postransform.reset(new grid_postransform_cartesian());
+    }
+    m_cspace.reset(new GridCSpace(m_postransform, bbox_compute));
+    
+    for(ssize_t iy(0); iy < _ysize; ++iy)
+      for(ssize_t ix(0); ix < _xsize; ++ix){
+	shared_ptr<GridNode> gn(new GridNode());
+	gn->ix = ix;
+	gn->iy = iy;
+	gn->vertex = m_cspace->AddVertex(gn);
+	m_node_array[ix][iy] = gn;
       }
     
-    for(size_t ix(0); ix < _xsize-1; ++ix)
-      for(size_t iy(0); iy < _ysize-1; ++iy){
-	algo.AddNeighbor(Index2Vertex(ix, iy), Index2Vertex(ix+1, iy  ));
-	algo.AddNeighbor(Index2Vertex(ix, iy), Index2Vertex(ix  , iy+1));
+    for(ssize_t ix(0); ix < _xsize-1; ++ix)
+      for(ssize_t iy(0); iy < _ysize-1; ++iy){
+	m_cspace->AddNeighbor(Index2Vertex(ix, iy), Index2Vertex(ix+1, iy  ));
+	m_cspace->AddNeighbor(Index2Vertex(ix, iy), Index2Vertex(ix  , iy+1));
       }
-    for(size_t ix(0); ix < _xsize-1; ++ix)
-      algo.AddNeighbor(Index2Vertex(ix  , _ysize-1),
-		       Index2Vertex(ix+1, _ysize-1));
-    for(size_t iy(0); iy < _ysize-1; ++iy)
-      algo.AddNeighbor(Index2Vertex(_xsize-1, iy  ),
-		       Index2Vertex(_xsize-1, iy+1));
+    for(ssize_t ix(0); ix < _xsize-1; ++ix)
+      m_cspace->AddNeighbor(Index2Vertex(ix  , _ysize-1),
+			    Index2Vertex(ix+1, _ysize-1));
+    for(ssize_t iy(0); iy < _ysize-1; ++iy)
+      m_cspace->AddNeighbor(Index2Vertex(_xsize-1, iy  ),
+			    Index2Vertex(_xsize-1, iy+1));
     
     switch(connect){
     case FOUR_CONNECTED:
@@ -64,20 +103,24 @@ namespace estar {
       break;
     case EIGHT_CONNECTED:
       PVDEBUG("eight-connected grid\n");
-      for(size_t ix(0); ix < _xsize-1; ++ix)
-	for(size_t iy(0); iy < _ysize-1; ++iy){
-	  algo.AddNeighbor(Index2Vertex(ix  , iy  ), Index2Vertex(ix+1, iy+1));
-	  algo.AddNeighbor(Index2Vertex(ix+1, iy  ), Index2Vertex(ix  , iy+1));
+      for(ssize_t ix(0); ix < _xsize-1; ++ix)
+	for(ssize_t iy(0); iy < _ysize-1; ++iy){
+	  m_cspace->AddNeighbor(Index2Vertex(ix  , iy  ),
+				Index2Vertex(ix+1, iy+1));
+	  m_cspace->AddNeighbor(Index2Vertex(ix+1, iy  ),
+				Index2Vertex(ix  , iy+1));
 	}
       break;
     case HEX_GRID:
       PVDEBUG("hex grid\n");
-      for(size_t iy(0); iy < _ysize-1; iy += 2)
-	for(size_t ix(1); ix < _xsize; ++ix)
-	  algo.AddNeighbor(Index2Vertex(ix  , iy  ), Index2Vertex(ix-1, iy+1));
-      for(size_t iy(1); iy < _ysize-1; iy += 2)
-	for(size_t ix(0); ix < _xsize-1; ++ix)
-	  algo.AddNeighbor(Index2Vertex(ix  , iy  ), Index2Vertex(ix+1, iy+1));
+      for(ssize_t iy(0); iy < _ysize-1; iy += 2)
+	for(ssize_t ix(1); ix < _xsize; ++ix)
+	  m_cspace->AddNeighbor(Index2Vertex(ix  , iy  ),
+				Index2Vertex(ix-1, iy+1));
+      for(ssize_t iy(1); iy < _ysize-1; iy += 2)
+	for(ssize_t ix(0); ix < _xsize-1; ++ix)
+	  m_cspace->AddNeighbor(Index2Vertex(ix  , iy  ),
+				Index2Vertex(ix+1, iy+1));
       break;
     default:
       PDEBUG_ERR("BUG: Invalid connect parameter %d\n", connect);
@@ -92,28 +135,32 @@ namespace estar {
   }
   
   
+  /**
+     \todo This can now be moved away from any specific grid
+     implementation, given that the local grid neighbor is entirely
+     defined in GridNode.
+  */
   bool Grid::
-  ComputeGradient(size_t ix, size_t iy,
+  ComputeGradient(ssize_t ix, ssize_t iy,
 		   double & gradx, double & grady) const
   {
-#define UPWIND_GRADIENT
-#ifdef UPWIND_GRADIENT
-    
-    const double baseval(get(value_map, Index2Vertex(ix, iy)));
+    const double baseval(m_cspace->GetValue(Index2Vertex(ix, iy)));
     bool have_x(false);
     bool have_y(false);
     gradx = 0;
     grady = 0;
     
     if(ix < xsize - 1){
-      const double dxplus(get(value_map, Index2Vertex(ix + 1, iy)) - baseval);
+      const double
+	dxplus(m_cspace->GetValue(Index2Vertex(ix + 1, iy)) - baseval);
       if(dxplus < 0){
 	have_x = true;
 	gradx = dxplus;
       }
     }
     if(ix > 0){
-      const double dxminus(baseval - get(value_map, Index2Vertex(ix - 1, iy)));
+      const double
+	dxminus(baseval - m_cspace->GetValue(Index2Vertex(ix - 1, iy)));
       if(dxminus > 0){
 	if(have_x){
 	  gradx += dxminus;
@@ -127,14 +174,16 @@ namespace estar {
     }
     
     if(iy < ysize - 1){
-      const double dyplus(get(value_map, Index2Vertex(ix, iy + 1)) - baseval);
+      const double
+	dyplus(m_cspace->GetValue(Index2Vertex(ix, iy + 1)) - baseval);
       if(dyplus < 0){
 	have_y = true;
 	grady = dyplus;
       }
     }
     if(iy > 0){
-      const double dyminus(baseval - get(value_map, Index2Vertex(ix, iy - 1)));
+      const double
+	dyminus(baseval - m_cspace->GetValue(Index2Vertex(ix, iy - 1)));
       if(dyminus > 0){
 	if(have_y){
 	  grady += dyminus;
@@ -151,37 +200,43 @@ namespace estar {
       PVDEBUG("WARNING: have_x = %s   have_y = %s\n",
 	      have_x ? "TRUE" : "FALSE", have_y ? "TRUE" : "FALSE");
     return have_x && have_y;
-    
-#else // ! UPWIND_GRADIENT
-    
-    const double baseval(get(value_map, Index2Vertex(ix, iy)));
-    gradx = 0;
-    double xscale(0);
-    grady = 0;
-    double yscale(0);
-    
-    if(ix < xsize - 1){
-      gradx += get(value_map, Index2Vertex(ix + 1, iy)) - baseval;
-      xscale += 1;
+  }
+  
+  
+  int Grid::
+  ComputeStableScaledGradient(ssize_t ix, ssize_t iy,
+			      double stepsize,
+			      double & gx,
+			      double & gy,
+			      double & dx,
+			      double & dy) const
+  {
+    dx = 0;
+    dy = 0;
+    gx = 0;			// redundant with ComputeGradient()
+    gy = 0;			// but prudent about future changes
+    const bool ok(ComputeGradient(ix, iy, gx, gy));
+    bool heur(false);
+    if(ok){
+      const double alpha(stepsize / (sqrt(square(gx) + square(gy))));
+      if(alpha < epsilon)
+	heur = true;
+      else{
+	dx = gx * alpha;
+	dy = gy * alpha;
+      }
     }
-    if(ix > 0){
-      gradx += baseval - get(value_map, Index2Vertex(ix - 1, iy));
-      xscale += 1;
+    if(heur || ( ! ok)){
+      if(gx > 0)      dx =   stepsize / 2;
+      else if(gx < 0) dx = - stepsize / 2;
+      if(gy > 0)      dy =   stepsize / 2;
+      else if(gy < 0) dy = - stepsize / 2;
     }
-    if(iy < ysize - 1){
-      grady += get(value_map, Index2Vertex(ix, iy + 1)) - baseval;
-      yscale += 1;
-    }
-    if(iy > 0){
-      grady += baseval - get(value_map, Index2Vertex(ix, iy - 1));
-      yscale += 1;
-    }
-    
-    gradx /= xscale;
-    grady /= yscale;
-    return (absval(gradx) > epsilon) || (absval(grady) > epsilon);
-    
-#endif // UPWIND_GRADIENT
+    if( ! ok)
+      return 1;
+    if(heur)
+      return 2;
+    return 0;
   }
   
 } // namespace estar

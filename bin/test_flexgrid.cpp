@@ -1,6 +1,6 @@
 // compile with g++ -g -O0 -Wall -I.. -o test_flexgrid test_flexgrid.cpp
 
-#include "../estar/flexgrid.hpp"
+#include <estar/flexgrid.hpp>
 #include <cstdio>
 #include <iostream>
 #include <sstream>
@@ -151,7 +151,7 @@ void tfg1()
 }
 
 
-int main(int argc, char ** argv)
+void tfg2()
 {
   fg_t fg;
   try {
@@ -165,4 +165,153 @@ int main(int argc, char ** argv)
   fg.smart_at( 5, -2) = -17;
   fg.smart_at( 0, -3) =  42;
   dump(fg);
+}
+
+
+template<typename FGT, typename ITT>
+void tfg_it(FGT & bar)
+{
+  cout << "  fwd ++ii style:\n   <";
+  try {
+    for (ITT ii(bar.begin()); ii != bar.end(); ++ii)
+      cout << "  " << *ii;
+  }
+  catch (std::out_of_range) {
+    cout << "[out_of_range]";
+  }
+  
+  cout << " >\n  fwd ii++ style:\n   <";
+  try {
+    for (ITT ii(bar.begin()); ii != bar.end(); ii++)
+      cout << "  " << *ii;
+  }
+  catch (std::out_of_range) {
+    cout << "[out_of_range]";
+  }
+  
+  cout << " >\n  bwd --ii style:\n   <";
+  try {
+    ITT ii(bar.end());
+    if (ii != bar.begin())
+      do {
+	--ii;
+	cout << "  " << *ii;
+      } while (ii != bar.begin());
+  }
+  catch (std::out_of_range) {
+    cout << "[out_of_range]";
+  }
+  
+  cout << " >\n  bwd ii-- style:\n   <";
+  try {
+    ITT ii(bar.end());
+    if (ii != bar.begin())
+      do {
+	--ii;
+	cout << "  " << *ii;
+      } while (ii != bar.begin());
+  }
+  catch (std::out_of_range) {
+    cout << "[out_of_range]";
+  }
+  
+  cout << " >\n";
+}
+
+
+void tfg_it_helper(fg_t & bar)
+{
+  dump(bar);
+  cout << "non-const iterator:\n";
+  tfg_it<fg_t, fg_t::iterator>(bar);
+  cout << "const iterator from non-const grid:\n";
+  tfg_it<fg_t, fg_t::const_iterator>(bar);
+  cout << "const iterator from const grid:\n";
+  tfg_it<const fg_t, fg_t::const_iterator>(bar);
+  
+  cout << "alternatively, using fg_t::line_begin() etc:\n";
+  for (fg_t::const_line_iterator il(bar.line_begin());
+       il != bar.line_end(); ++il) {
+    cout << "  <";
+    for (fg_t::const_cell_iterator ic(il->begin()); ic != il->end(); ++ic)
+      cout << "  " << *ic;
+    cout << " >\n";
+  }
+}
+
+
+int main(int argc, char ** argv)
+{
+  {
+    fg_t foo;
+    fg_t const & bar(foo);
+    {
+      fg_t::iterator blah(foo.begin());
+    }
+    {
+      fg_t::const_iterator blah(foo.begin());
+    }
+    {
+      fg_t::const_iterator blah(bar.begin());
+    }
+  }
+  
+  cout << "\ntrying to decrement fg.begin(): ";
+  {
+    fg_t fg;
+    fg_t::iterator ii(fg.begin());
+    --ii;
+    if (ii != fg.begin())
+      cout << "ERROR\n";
+    else
+      cout << "OK\n";
+  }
+  
+  cout << "\ntrying to increment fg.end(): ";
+  {
+    fg_t fg;
+    fg_t::iterator ii(fg.end());
+    ++ii;
+    if (ii != fg.end())
+      cout << "ERROR\n";
+    else
+      cout << "OK\n";
+  }
+  
+  {
+    cout << "\n==================================================\n"
+	 << "normal:\n";
+    fg_t fg;
+    fg.resize(-2, 2, -1, 2);
+    {
+      int ii(0);
+      for (ssize_t ix(-2); ix < 2; ++ix)
+	for (ssize_t iy(-1); iy < 2; ++iy)
+	  fg.at(ix, iy) = ++ii;
+    }
+    tfg_it_helper(fg);
+  }
+  
+  {
+    cout << "\n==================================================\n"
+	 << "empty:\n";
+    fg_t fg;
+    tfg_it_helper(fg);
+  }
+  
+  {
+    cout << "\n==================================================\n"
+	 << "empty X-range:\n";
+    fg_t fg;
+    fg.resize(0, 0, -2, 2);
+    tfg_it_helper(fg);
+  }
+  
+  {
+    cout << "\n==================================================\n"
+	 << "empty Y-range:\n";
+    fg_t fg;
+    fg.resize(-2, 2, 0, 0);
+    tfg_it_helper(fg);
+  }  
 }

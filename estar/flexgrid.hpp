@@ -23,6 +23,8 @@
 
 
 #include <estar/sdeque.hpp>
+#include <estar/flexgrid_traits.hpp>
+#include <estar/flexgrid_iterator.hpp>
 
 
 namespace estar {
@@ -32,9 +34,15 @@ namespace estar {
   class flexgrid
   {
   public:
-    typedef sdeque<value_t> line_t;
-    typedef sdeque<line_t> grid_t;
-    typedef typename grid_t::iterator grid_iterator;
+    typedef flexgrid_traits<value_t>             traits;
+    typedef typename traits::line_t              line_t;
+    typedef typename traits::cell_iterator       cell_iterator;
+    typedef typename traits::const_cell_iterator const_cell_iterator;
+    typedef typename traits::grid_t              grid_t;
+    typedef typename traits::line_iterator       line_iterator;
+    typedef typename traits::const_line_iterator const_line_iterator;
+    typedef flexgrid_iterator<value_t>           iterator;
+    typedef const_flexgrid_iterator<value_t>     const_iterator;
     
     value_t & at(ssize_t ix, ssize_t iy) { return m_grid.at(iy).at(ix); }
     
@@ -42,7 +50,7 @@ namespace estar {
     { return m_grid.at(iy).at(ix); }
     
     void resize_xbegin(ssize_t xbegin, value_t const & value) {
-      for (grid_iterator ii(m_grid.begin()); ii != m_grid.end(); ++ii)
+      for (line_iterator ii(m_grid.begin()); ii != m_grid.end(); ++ii)
 	ii->resize_begin(xbegin, value);
       m_default.resize_begin(xbegin);
     }
@@ -50,7 +58,7 @@ namespace estar {
     void resize_xbegin(ssize_t xbegin) { resize_xbegin(xbegin, value_t()); }
     
     void resize_xend(ssize_t xend, value_t const & value) {
-      for (grid_iterator ii(m_grid.begin()); ii != m_grid.end(); ++ii)
+      for (line_iterator ii(m_grid.begin()); ii != m_grid.end(); ++ii)
 	ii->resize_end(xend, value);
       m_default.resize_end(xend);
     }
@@ -150,7 +158,34 @@ namespace estar {
       return m_grid.at(iy).at(ix);
     }
     
+    line_iterator line_begin() { return m_grid.begin(); }
+    
+    const_line_iterator line_begin() const { return m_grid.begin(); }
+    
+    line_iterator line_end() { return m_grid.end(); }
+    
+    const_line_iterator line_end() const { return m_grid.end(); }
+    
+    iterator begin() {
+      return iterator(m_grid, m_default, m_default.ibegin(), m_grid.ibegin());
+    }
+    
+    const_iterator begin() const {
+      return const_iterator(m_grid, m_default,
+			    m_default.ibegin(), m_grid.ibegin());
+    }
+    
+    iterator end()
+    { return iterator(m_grid, m_default, m_default.iend(), m_grid.iend()); }
+    
+    const_iterator end() const {
+      return const_iterator(m_grid, m_default,
+			    m_default.iend(), m_grid.iend());
+    }
+    
   protected:
+    friend class flexgrid_iterator<value_t>;
+    
     grid_t m_grid;
     line_t m_default;
   };

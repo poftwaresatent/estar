@@ -51,8 +51,8 @@ namespace estar {
 	   FacadeOptions const & master_options,
 	   const std::string & sample_kernel_name,
 	   FacadeOptions const & sample_options,
-	   size_t xsize,
-	   size_t ysize,
+	   ssize_t xsize,
+	   ssize_t ysize,
 	   double scale,
 	   FILE * dbgstream);
     
@@ -62,7 +62,7 @@ namespace estar {
        auto_flush will be enabled), the other as sample.
     */
     static boost::shared_ptr<ComparisonFacade>
-    CreateDefault(size_t xsize, size_t ysize, double scale);
+    CreateDefault(ssize_t xsize, ssize_t ysize, double scale);
     
     /**
        \return Read access to the "master" (or ground-truth) Facade,
@@ -81,20 +81,20 @@ namespace estar {
        on both master and sample. Flags the master for reset if the
        meta is actually changed.
     */
-    virtual void SetMeta(size_t ix, size_t iy, double meta);
+    virtual void SetMeta(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeWriteInterface::InitMeta() by initializing the
        meta on both master and sample.
     */
-    virtual void InitMeta(size_t ix, size_t iy, double meta);
+    virtual void InitMeta(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeWriteInterface::AddGoal() by adding the goal
        to both master and sample, and flagging the master for reset
        (unless the cell was already a goal with the same value).
     */
-    virtual void AddGoal(size_t ix, size_t iy, double value);
+    virtual void AddGoal(ssize_t ix, ssize_t iy, double value);
     
     /**
        Implements FacadeWriteInterface::RemoveAllGoals() by removing

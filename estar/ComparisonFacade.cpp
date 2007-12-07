@@ -44,8 +44,8 @@ namespace estar {
 	 FacadeOptions const & master_options,
 	 const std::string & sample_kernel_name,
 	 FacadeOptions const & sample_options,
-	 size_t xsize,
-	 size_t ysize,
+	 ssize_t xsize,
+	 ssize_t ysize,
 	 double scale,
 	 FILE * dbgstream)
   {
@@ -76,7 +76,7 @@ namespace estar {
   
   
   boost::shared_ptr<ComparisonFacade> ComparisonFacade::
-  CreateDefault(size_t xsize, size_t ysize, double scale)
+  CreateDefault(ssize_t xsize, ssize_t ysize, double scale)
   {
     FacadeOptions master_options;
     master_options.auto_reset = true;
@@ -101,7 +101,7 @@ namespace estar {
   
   
   void ComparisonFacade::
-  SetMeta(size_t ix, size_t iy, double meta)
+  SetMeta(ssize_t ix, ssize_t iy, double meta)
   {
     m_master->SetMeta(ix, iy, meta);
     m_sample->SetMeta(ix, iy, meta);
@@ -109,7 +109,7 @@ namespace estar {
   
   
   void ComparisonFacade::
-  InitMeta(size_t ix, size_t iy, double meta)
+  InitMeta(ssize_t ix, ssize_t iy, double meta)
   {
     m_master->InitMeta(ix, iy, meta);
     m_sample->InitMeta(ix, iy, meta);
@@ -117,7 +117,7 @@ namespace estar {
   
   
   void ComparisonFacade::
-  AddGoal(size_t ix, size_t iy, double value)
+  AddGoal(ssize_t ix, ssize_t iy, double value)
   {
     m_master->AddGoal(ix, iy, value);
     m_sample->AddGoal(ix, iy, value);

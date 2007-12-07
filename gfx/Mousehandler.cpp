@@ -41,21 +41,10 @@ namespace gfx {
   void FacadeReadMousehandler::
   HandleClick(double x, double y)
   {
-    PVDEBUG("%g\t%g\n", x, y);
-    
-    size_t const xsize(m_facade_read->GetXSize());
-    x = rint(x);
-    if ((x < 0) || (x >= xsize))
-      return;
-    PVDEBUG("  ix: %i\n", static_cast<size_t>(x));
-    
-    size_t const ysize(m_facade_read->GetYSize());
-    y = rint(y);
-    if ((y < 0) || (y >= ysize))
-      return;
-    PVDEBUG("  iy: %i\n", static_cast<size_t>(y));
-    
-    DoHandleClick(static_cast<size_t>(x), static_cast<size_t>(y));
+    size_t const ix(static_cast<size_t>(rint(x)));
+    size_t const iy(static_cast<size_t>(rint(y)));
+    if (m_facade_read->IsValidIndex(ix, iy))
+      DoHandleClick(ix, iy);
   }
   
   

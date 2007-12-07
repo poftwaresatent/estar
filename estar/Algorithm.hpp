@@ -22,11 +22,11 @@
 #define ESTAR_ALGORITHM_HPP
 
 
-#include <estar/base.hpp>
-#include <estar/numeric.hpp>
+#include <estar/CSpace.hpp>
 #include <estar/Queue.hpp>
 #include <estar/Upwind.hpp>
 #include <estar/PropagatorFactory.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <map>
 
@@ -44,7 +44,9 @@ namespace estar {
   */
   class Algorithm {
   public:
-    Algorithm(/** Whether to check the upwind structure when computing
+    Algorithm(/** The object that represents the planning space. */
+	      boost::shared_ptr<BaseCSpace> cspace,
+	      /** Whether to check the upwind structure when computing
 		  the propagator set of a node. Use false to mimic old
 		  behavior. */
 	      bool check_upwind,
@@ -65,51 +67,6 @@ namespace estar {
 		  ComputeOne(). This is usually a waste of
 		  resources. */
 	      bool auto_flush);
-    
-    /**
-       Create a new node, initializes it, and adds it to the
-       underlying C-space graph. If you are creating a regular grid,
-       save yourself the trouble and use a Grid instance, passing a
-       freshly allocated Algorithm to its constructor.
-       
-       \return The vertex identifier that can be used to retrieve this
-       node from the graph. You typically hold on to this at least
-       until you've linked the node into the graph using
-       AddNeighbor().
-    */
-    vertex_t
-    AddVertex(/** The initial value of the navigation function at this
-		  node. The default is infinity, as this makes the
-		  most sense prior to the very first propagation. */
-	      double value = infinity,
-	      /** The "meta" information attached to this node. The
-		  default is one, which means "freespace" for the
-		  LSMKernel. Other Kernel subclasses might need
-		  something else here. See also InitAllMeta() if you
-		  need a different initial value and SetMeta() for
-		  more information about why we use such a seemingly
-		  fuzzy concept. */
-	      double meta = 1,
-	      /** The initial "right-hand-side" value (the one-step
-		  lookahead estimation of the optimal value). Recall
-		  that the Queue is sorted by ascending min(value,
-		  rhs), and that nodes stay on the queue as long as
-		  value != rhs. The default is infinity, because at
-		  first all nodes are consistently unreachable as we
-		  haven't set a goal yet. */
-	      double rhs = infinity,
-	      /** The initial flags of the node. As we have neither
-		  goal nor wavefront yet, it makes sense to use the
-		  default which is NONE. */
-	      flag_t flag = NONE);
-    
-    /**
-       Create an edge between two nodes in the C-space graph, where
-       edges are non-directional. See AddVertex() to create nodes in
-       the first place. Use a Grid instance for creating grids, it's
-       much more convenient.
-    */
-    void AddNeighbor(vertex_t from, vertex_t to);
     
     /**
        Declare a node to be a goal vertex, and fix its value. This
@@ -240,8 +197,11 @@ namespace estar {
     */
     bool HaveWork() const;
     
+    /** Read-only access to C-space. */
+    boost::shared_ptr<BaseCSpace const> GetCSpace() const { return m_cspace; }
+    
     /** Read-only access to the C-space graph. */
-    const cspace_t & GetCSpace() const { return m_cspace; }
+    const cspace_t & GetCSpaceGraph() const { return m_cspace_graph; }
     
     /** Read-only access to the values of all C-space nodes. */
     const value_map_t & GetValueMap() const { return m_value; }
@@ -254,11 +214,16 @@ namespace estar {
 
     /** Read-only access to the flags (flag_t) of all C-space nodes. */
     const flag_map_t & GetFlagMap() const { return m_flag; }
-
-    /** Read-only access to the vertex ID of all C-space nodes, useful
-	for adding user-defined data to nodes. For example, see Grid
-	and GridNode. */
-    const vertexid_map_t & GetVertexIdMap() const { return m_vertexid; }
+    
+    /**
+       Read-only access to the vertex ID of all C-space nodes, useful
+       for adding user-defined data to nodes. For example, see Grid
+       and GridNode.
+       
+       \note Check out the CustomCSpace template.
+    */
+    const vertexid_map_t & GetVertexIdMap() const
+    { return m_cspace->GetVertexIdMap(); }
     
     /** Read-only access to the wavefront queue. */
     const Queue & GetQueue() const { return m_queue; }
@@ -295,19 +260,11 @@ namespace estar {
     void UpdateVertex(vertex_t vertex, const Kernel & kernel);
     void DoComputeOne(const Kernel & kernel, double slack);
     
-    
+    boost::shared_ptr<BaseCSpace> m_cspace;
     Queue m_queue;
     Upwind m_upwind;
-    boost::scoped_ptr<PropagatorFactory> m_propfactory;
     
-    cspace_t m_cspace;
     goalset_t m_goalset;
-    
-    value_map_t m_value;
-    meta_map_t m_meta;
-    rhs_map_t m_rhs;
-    flag_map_t m_flag;
-    vertexid_map_t m_vertexid;
     
     size_t m_step;
     double m_last_computed_value;
@@ -317,6 +274,14 @@ namespace estar {
     bool m_pending_reset;
     bool m_auto_reset;
     bool m_auto_flush;
+    
+    cspace_t & m_cspace_graph;
+    value_map_t & m_value;
+    meta_map_t & m_meta;
+    rhs_map_t & m_rhs;
+    flag_map_t & m_flag;
+
+    boost::scoped_ptr<PropagatorFactory> m_propfactory;
   };
   
   

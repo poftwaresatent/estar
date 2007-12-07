@@ -58,45 +58,45 @@ int main(int argc, char ** argv)
       cout << "don't understand arg \"" << arg << "\"\n";
   }
   
-  Algorithm algo(false, false, false, false, false);
-  
 #define TEST_CASE 6
   cout << "init test case " << TEST_CASE << "\n";
 
 #if TEST_CASE == 1
-  Grid grid(algo, 5, 3, EIGHT_CONNECTED);
+  Grid grid(5, 3, EIGHT_CONNECTED);
   AlphaKernel kernel(1);
 
 #elif TEST_CASE == 2
-  Grid grid(algo, 5, 3, FOUR_CONNECTED);
+  Grid grid(5, 3, FOUR_CONNECTED);
   NF1Kernel kernel;
 
 #elif TEST_CASE == 3
-  Grid grid(algo, 5, 3, FOUR_CONNECTED);
+  Grid grid(5, 3, FOUR_CONNECTED);
   AlphaKernel kernel(1);
 
 #elif TEST_CASE == 4
-  Grid grid(algo, 5, 3, FOUR_CONNECTED);
+  Grid grid(5, 3, FOUR_CONNECTED);
   LSMKernel kernel(grid, 1);
 
 #elif TEST_CASE == 5
-  Grid grid(algo, 500, 300, FOUR_CONNECTED);
+  Grid grid(500, 300, FOUR_CONNECTED);
   LSMKernel kernel(grid, 1);
   skip_input = true;
   skip_output = true;
 
 #elif TEST_CASE == 6
-  Grid grid(algo, 5, 3, HEX_GRID);
+  Grid grid(static_cast<ssize_t>(5), static_cast<ssize_t>(3), HEX_GRID);
   AlphaKernel kernel(1);
 
 #else
 #error "illegal TEST_CASE"
 #endif
   
+  Algorithm algo(grid.GetCSpace(), false, false, false, false, false);
+  
   if( ! skip_input){
     cout << "checking cspace\n";
     ostringstream os;
-    if( ! check_cspace(algo.GetCSpace(), "", os)){
+    if( ! check_cspace(algo.GetCSpaceGraph(), "", os)){
       dump_grid(grid, stdout);
       cout << os.str();
       exit(EXIT_FAILURE);

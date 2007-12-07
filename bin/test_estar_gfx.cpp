@@ -102,10 +102,11 @@ static shared_ptr<Viewport> m_risk_view;
 static shared_ptr<Grid> m_grid;
 static shared_ptr<Algorithm> m_algo;
 static shared_ptr<Kernel> m_kernel;
+static shared_ptr<Facade> hmmmm_facade;
 static shared_ptr<Mousehandler> m_mouse_meta;
-static size_t m_goal_ix, m_goal_iy;
+static ssize_t m_goal_ix, m_goal_iy;
 static map<vertex_t, double> m_goal;
-static size_t m_robot_ix, m_robot_iy;
+static ssize_t m_robot_ix, m_robot_iy;
 static vertex_t m_robot;
 static shared_ptr<ostream> result_os;
 static shared_ptr<NHPRiskmap> m_riskmap;
@@ -132,7 +133,7 @@ int main(int argc, char ** argv)
   }
   else{
     double x0, y0, x1, y1;
-    get_grid_bbox(*m_grid, x0, y0, x1, y1);
+    get_grid_bbox(*m_grid->GetCSpace(), x0, y0, x1, y1);
     static const bb_t realbbox(x0, y0, x1, y1);
     m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 0.5, 1)));
     m_value_view->SetMousehandler(Viewport::LEFT, m_mouse_meta);
@@ -187,16 +188,21 @@ void draw()
     have_path = true;
   
   m_value_view->PushProjection();
-  draw_grid_value(*m_grid, *m_algo, ColorScheme::Get(BLUE_GREEN_RED), true);
-  draw_grid_connect(*m_grid, *m_algo, 0.5, 0.5, 0.5, 1);
-  draw_grid_queue(*m_grid, *m_algo);
-  draw_grid_upwind(*m_grid, *m_algo, 1, 1, 1, 5);
+  draw_grid_value(*m_grid->GetCSpace(), *m_algo,
+		  ColorScheme::Get(BLUE_GREEN_RED), true);
+  draw_grid_connect(*m_grid->GetCSpace(), *m_algo, 0.5, 0.5, 0.5, 1);
+  draw_grid_queue(*m_grid->GetCSpace(), *m_algo);
+  draw_grid_upwind(*m_grid->GetCSpace(), *m_algo, 1, 1, 1, 5);
   if(m_grid->connect != HEX_GRID){
-    if(have_path)
-      draw_trace(*m_grid, *m_algo,
-		 m_robot_ix, m_robot_iy,
-		 0.1, 2,
-		 ColorScheme::Get(GREEN_PINK_BLUE), 1, 0.5, 0);
+    if (have_path) {
+      if ( ! hmmmm_facade)
+	hmmmm_facade.reset(new Facade(m_algo, m_grid, m_kernel));
+      draw_trace(*hmmmm_facade,
+		 m_robot_ix * hmmmm_facade->scale,
+		 m_robot_iy * hmmmm_facade->scale,
+		 ColorScheme::Get(GREEN_PINK_BLUE),
+		 1, 0.5, 0);
+    }
     glPointSize(5);
     glBegin(GL_POINTS);
     glColor3d(1, 0.5, 0.5);
@@ -208,14 +214,18 @@ void draw()
   m_value_view->PopProjection();
   
   m_risk_view->PushProjection();
-  draw_grid_risk(*m_grid, *m_algo, *m_riskmap,
+  draw_grid_risk(*m_grid->GetCSpace(), *m_algo, *m_riskmap,
 		 ColorScheme::Get(GREEN_PINK_BLUE));
   if(m_grid->connect != HEX_GRID){
-    if(have_path)
-      draw_trace(*m_grid, *m_algo,
-		 m_robot_ix, m_robot_iy,
-		 0.1, 2,
-		 ColorScheme::Get(GREY_WITH_SPECIAL), 1, 0.5, 0);
+    if(have_path) {
+      if ( ! hmmmm_facade)
+	hmmmm_facade.reset(new Facade(m_algo, m_grid, m_kernel));
+      draw_trace(*hmmmm_facade,
+		 m_robot_ix * hmmmm_facade->scale,
+		 m_robot_iy * hmmmm_facade->scale,
+		 ColorScheme::Get(GREY_WITH_SPECIAL),
+		 1, 0.5, 0);
+    }
     glBegin(GL_POINTS);
     glColor3d(1, 0.5, 0.5);
     glVertex2d(m_robot_ix + 0.5, m_robot_iy + 0.5);
@@ -245,10 +255,8 @@ void cleanup()
   if(result_os){
     cout << "cleanup(): writing result\n";
     const value_map_t & value(m_algo->GetValueMap());
-    for(size_t grid_iy(m_grid->GetYSize() - 1);
-	grid_iy < m_grid->GetYSize(); // only for unsigned!!!
-	--grid_iy){
-      for(size_t grid_ix(0); grid_ix < m_grid->GetXSize(); ++grid_ix)
+    for(ssize_t grid_iy(m_grid->GetYSize() - 1); grid_iy >= 0; --grid_iy){
+      for(ssize_t grid_ix(0); grid_ix < m_grid->GetXSize(); ++grid_ix)
 	(*result_os) << get(value, m_grid->Index2Vertex(grid_ix, grid_iy))
 		     << "\t";
       (*result_os) << "\n";
@@ -361,7 +369,6 @@ void parse_options(int argc, char ** argv)
     exit(EXIT_FAILURE);
   }
   
-  m_algo.reset(new Algorithm(false, false, false, false, false));
   ifstream is(argv[res]);
   if( ! is){
     cerr << "ERROR in parse_options(): Couldn't open \""
@@ -393,7 +400,7 @@ void parse_options(int argc, char ** argv)
 void parse_grid(istream & is)
 {
   vector<vector<double> > cost;
-  size_t grid_xsize(0);
+  ssize_t grid_xsize(0);
   double maxcost(0);
   bool hex(false);
   m_goal_ix = 0;
@@ -438,10 +445,10 @@ void parse_grid(istream & is)
       if(cost > maxcost)
 	maxcost = cost;
     }
-    if(line.size() > grid_xsize)
+    if(static_cast<ssize_t>(line.size()) > grid_xsize)
       grid_xsize = line.size();
   }
-  const size_t grid_ysize(cost.size());
+  const ssize_t grid_ysize(cost.size());
   
   if(grid_xsize < 1){
     cerr << "ERROR in parse_grid(): grid_xsize == " << grid_xsize << "\n";
@@ -465,26 +472,28 @@ void parse_grid(istream & is)
   }
   
   if(hex){
-    m_grid.reset(new Grid(*m_algo, grid_xsize, grid_ysize, HEX_GRID));
+    m_grid.reset(new Grid(grid_xsize, grid_ysize, HEX_GRID));
     m_kernel.reset(new AlphaKernel(1));
   }
   else{
-    m_grid.reset(new Grid(*m_algo, grid_xsize, grid_ysize, FOUR_CONNECTED));
-    m_kernel.reset(new LSMKernel(*m_grid, 1));
+    m_grid.reset(new Grid(grid_xsize, grid_ysize, FOUR_CONNECTED));
+    m_kernel.reset(new LSMKernel(m_grid->GetCSpace(), 1));
   }
-
+  m_algo.reset(new Algorithm(m_grid->GetCSpace(), false, false,
+			     false, false, false));
+  
   static const bool fake_goal_radius(false);
   if( ! fake_goal_radius)
     m_goal.insert(make_pair(m_grid->Index2Vertex(m_goal_ix, m_goal_iy), 0));
   else{
-    const size_t ix0(0 == m_goal_ix ? 0 : m_goal_ix - 1);
-    const size_t ix1(grid_xsize - 1 == m_goal_ix
+    const ssize_t ix0(0 == m_goal_ix ? 0 : m_goal_ix - 1);
+    const ssize_t ix1(grid_xsize - 1 == m_goal_ix
 		     ? grid_xsize - 1 : m_goal_ix + 1);
-    const size_t iy0(0 == m_goal_iy ? 0 : m_goal_iy - 1);
-    const size_t iy1(grid_ysize - 1 == m_goal_iy
+    const ssize_t iy0(0 == m_goal_iy ? 0 : m_goal_iy - 1);
+    const ssize_t iy1(grid_ysize - 1 == m_goal_iy
 		     ? grid_ysize - 1 : m_goal_iy + 1);
-    for(size_t ix(ix0); ix <= ix1; ++ix)
-      for(size_t iy(iy0); iy <= iy1; ++iy){
+    for(ssize_t ix(ix0); ix <= ix1; ++ix)
+      for(ssize_t iy(iy0); iy <= iy1; ++iy){
 	double dist(sqrt(square(static_cast<double>(ix) - m_goal_ix)
 			 + square(static_cast<double>(iy) - m_goal_iy)));
 	m_goal.insert(make_pair(m_grid->Index2Vertex(ix, iy), dist));
@@ -495,16 +504,16 @@ void parse_grid(istream & is)
   
   m_riskmap.reset(new NHPRiskmap(maxcost, 1));
   const double norisk_meta(m_riskmap->RiskToMeta(0));
-  for(size_t grid_iy(grid_ysize - 1), iline(0);
-      iline < cost.size();
+  for(ssize_t grid_iy(grid_ysize - 1), iline(0);
+      iline < static_cast<ssize_t>(cost.size());
       --grid_iy, ++iline){
-    for(size_t grid_ix(0), icol(0);
+    for(ssize_t grid_ix(0), icol(0);
 	grid_ix < grid_xsize;
 	++grid_ix, ++icol){
 #ifdef ESTAR_DEBUG
-      printf("  (%lu,%lu):", grid_ix, grid_iy);
+      printf("  (%ld,%ld):", grid_ix, grid_iy);
 #endif // ESTAR_DEBUG
-      if(icol >= cost[iline].size()){
+      if(icol >= static_cast<ssize_t>(cost[iline].size())){
 #ifdef ESTAR_DEBUG
 	printf("xoxo:%4.2f", norisk_meta);
 #endif // ESTAR_DEBUG

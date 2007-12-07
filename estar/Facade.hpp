@@ -24,16 +24,22 @@
 
 #include <estar/FacadeWriteInterface.hpp>
 #include <estar/FacadeReadInterface.hpp>
-#include <estar/base.hpp>
+#include <estar/CSpace.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
 #include <iosfwd>
+
+
+namespace pnf {			// rfct
+  class Flow;
+}
 
 
 namespace estar {
   
   
   class Region;
+  class Supergrid;
   
   
   class FacadeOptions
@@ -140,8 +146,6 @@ namespace estar {
     typedef FacadeReadInterface::node_status_t node_status_t;
     
     
-    const size_t xsize;	///< number of cells along X of the underlying grid
-    const size_t ysize;	///< number of cells along Y of the underlying grid
     const double scale; ///< edge length of square cells in the grid
     
     
@@ -157,11 +161,11 @@ namespace estar {
        -# Repeatedly call ComputeOne(), HaveWork(), and/or GetStatus()
           to compute the navigation function until you reach the robot
           or until the whole grid has been propagated.
-       -# Use trace_carrot() (defined in util.hpp) to compute a path
-          to the goal; you can also use
-          compute_stable_scaled_gradient() or the more basic
-          Grid::ComputeGradient() to devise a control that, at each
-          timestep, requires just the "best" direction to the goal.
+       -# Use TraceCarrot() to compute a path to the goal; you can
+          also use Grid::ComputeStableScaledGradient() or the more
+          basic Grid::ComputeGradient() to devise a control that, at
+          each timestep, requires just the "best" direction to the
+          goal.
        
        These steps interweave quite easily with updates to the
        traversability information, because SetMeta() will create
@@ -186,9 +190,9 @@ namespace estar {
 	       for LSMKernel. The latter is preferred. */
 	   const std::string & kernel_name,
 	   /** dimension along X of the grid */
-	   size_t xsize,
+	   ssize_t xsize,
 	   /** dimension along Y of the grid */
-	   size_t ysize,
+	   ssize_t ysize,
 	   /** size of the square grid cells */
 	   double scale,
 	   FacadeOptions const & options,
@@ -201,14 +205,13 @@ namespace estar {
 	always LSMKernel) or of diagonally connected cells (that's
 	always disabled). It uses the default FacadeOptions ctor. */
     static Facade *
-    CreateDefault(size_t xsize,
-		  size_t ysize,
-		  double scale);
+    CreateDefault(ssize_t xsize, ssize_t ysize, double scale);
     
     
     /**
        Create a Facade from existing instances of Algorithm, Grid, and
-       Kernel.
+       Kernel. There is NO CHECK if the separate entities are tied
+       together they way they should though.
        
        \note Create() and CreateDefault() are much more convenient if
        you're creating new objects anyway.
@@ -217,16 +220,6 @@ namespace estar {
 	   boost::shared_ptr<Grid> grid,
 	   boost::shared_ptr<Kernel> kernel);
     
-    
-    /**
-       Implements FacadeReadInterface::GetXSize().
-    */
-    virtual size_t GetXSize() const { return xsize; }
-    
-    /**
-       Implements FacadeReadInterface::GetYSize().
-    */
-    virtual size_t GetYSize() const { return ysize; }
     
     /**
        Implements FacadeReadInterface::GetScale().
@@ -246,24 +239,24 @@ namespace estar {
     /**
        Implements FacadeReadInterface::GetValue().
     */
-    virtual double GetValue(size_t ix, size_t iy) const;
+    virtual double GetValue(ssize_t ix, ssize_t iy) const;
     
     /**
        Implements FacadeReadInterface::GetMeta(). See also
        Algorithm::SetMeta() for more details.
     */
-    virtual double GetMeta(size_t ix, size_t iy) const;
+    virtual double GetMeta(ssize_t ix, ssize_t iy) const;
     
     /**
        Implements FacadeWriteInterface::SetMeta(). See also
        Algorithm::SetMeta() for more details.
     */
-    virtual void SetMeta(size_t ix, size_t iy, double meta);
+    virtual void SetMeta(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeWriteInterface::InitMeta().
     */
-    virtual void InitMeta(size_t ix, size_t iy, double meta);
+    virtual void InitMeta(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeWriteInterface::AddGoal().
@@ -271,10 +264,10 @@ namespace estar {
        \note Unlike AddGoal(const Region &), obstacle vertices are not
        ignored.
     */
-    virtual void AddGoal(size_t ix, size_t iy, double value);
+    virtual void AddGoal(ssize_t ix, ssize_t iy, double value);
     
     /**
-       An alternative to AddGoal(size_t, size_t, double) which ignores
+       An alternative to AddGoal(ssize_t, ssize_t, double) which ignores
        obstacles [vertices with meta equal to GetObstacleMeta()].
        
        \note FacadeWriteInterface has no corresponding abstract method.
@@ -287,11 +280,11 @@ namespace estar {
        causes the next call to ComputeOne() to reinitialize the
        navigation function and wavefront.
     */
-    void RemoveGoal(size_t ix, size_t iy);
+    void RemoveGoal(ssize_t ix, ssize_t iy);
     
     /**
        Revert all cells in a goal region to normal status. Basically
-       just calls RemoveGoal(size_t, size_t) for all the cells in the
+       just calls RemoveGoal(ssize_t, ssize_t) for all the cells in the
        region.
     */
     void RemoveGoal(const Region & goal);
@@ -304,7 +297,7 @@ namespace estar {
     /**
        Implements FacadeReadInterface::IsGoal().
     */
-    virtual bool IsGoal(size_t ix, size_t iy) const;
+    virtual bool IsGoal(ssize_t ix, ssize_t iy) const;
     
     /**
        Implements FacadeReadInterface::HaveWork().
@@ -324,8 +317,18 @@ namespace estar {
     /**
        Implements FacadeReadInterface::GetStatus().
     */
-    virtual node_status_t GetStatus(size_t ix, size_t iy) const;
+    virtual node_status_t GetStatus(ssize_t ix, ssize_t iy) const;
+        
+    /**
+       Implements FacadeReadInterface::GetStatus().
+    */
+    virtual node_status_t GetStatus(vertex_t vertex) const;
     
+    /**
+       Implements FacadeReadInterface::IsValidIndex().
+    */
+    virtual bool IsValidIndex(ssize_t ix, ssize_t iy) const;
+
     /**
        Implements FacadeReadInterface::GetLowestInconsistentValue().
     */
@@ -361,15 +364,33 @@ namespace estar {
     */
     virtual const Algorithm & GetAlgorithm() const { return * m_algo; }
     
+  protected:
+    friend class pnf::Flow;
+    
     /**
        Implements FacadeReadInterface::GetGrid().
     */
-    virtual const Grid & GetGrid() const { return * m_grid; }
+    virtual const Grid & GetGrid() const;
+  public:
     
     /**
        Implements FacadeReadInterface::GetKernel().
     */
     virtual const Kernel & GetKernel() const { return * m_kernel; }
+    
+    /**
+       Implements FacadeReadInterface::TraceCarrot().
+    */
+    virtual int TraceCarrot(double robot_x, double robot_y,
+			    double distance, double stepsize,
+			    size_t maxsteps,
+			    carrot_trace & trace) const;
+    
+    /**
+       Implements FacadeReadInterface::GetCSpace().
+    */
+    virtual boost::shared_ptr<GridCSpace const> GetCSpace() const;
+    
     
     /**
        \return A non-const reference to the underlying Algorithm.
@@ -388,12 +409,14 @@ namespace estar {
        once you're done.
     */
     Kernel & GetKernel() { return * m_kernel; }
-    
-    
+
   private:
+    boost::shared_ptr<GridCSpace const> m_cspace;
     boost::shared_ptr<Algorithm> m_algo;
-    boost::shared_ptr<Grid> m_grid;
+    boost::shared_ptr<Supergrid> m_supergrid;
     boost::shared_ptr<Kernel> m_kernel;
+    
+    node_status_t DoGetStatus(ssize_t ix, ssize_t iy, vertex_t vertex) const;
   };
   
 } // namespace estar

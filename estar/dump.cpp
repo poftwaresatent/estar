@@ -26,6 +26,9 @@
 #include "pdebug.hpp"
 
 
+using namespace boost;
+
+
 namespace estar {
   
   
@@ -85,14 +88,14 @@ namespace estar {
   
   void dump_raw_value(const Grid & grid,
 		      const Algorithm & algo,
-		      size_t x0, size_t y0, size_t x1, size_t y1,
+		      ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		      double infinity_replacement,
 		      FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
     const value_map_t & value(algo.GetValueMap());
-    for(size_t x(x0); x <= x1; x++){
-      for(size_t y(y0); y <= y1; y++){
+    for(ssize_t x(x0); x <= x1; x++){
+      for(ssize_t y(y0); y <= y1; y++){
 	const double vv(get(value, grid.Index2Vertex(x, y)));
 	if(vv != infinity)
 	  fprintf(stream, "%zd   %zd   %f\n", x, y, vv);
@@ -106,13 +109,13 @@ namespace estar {
   
   void dump_raw_meta(const Grid & grid,
 		     const Algorithm & algo,
-		     size_t x0, size_t y0, size_t x1, size_t y1,
+		     ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		     FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
     const meta_map_t & meta(algo.GetMetaMap());
-    for(size_t x(x0); x <= x1; x++){
-      for(size_t y(y0); y <= y1; y++)
+    for(ssize_t x(x0); x <= x1; x++){
+      for(ssize_t y(y0); y <= y1; y++)
 	fprintf(stream, "%zd   %zd   %f\n", x, y,
 		get(meta, grid.Index2Vertex(x, y)));
       fprintf(stream, "\n");
@@ -124,18 +127,21 @@ namespace estar {
 		FILE * value_stream,
 		FILE * meta_stream)
   {
-    size_t const xsize(facade.GetXSize());
+    ////    shared_ptr<Grid const> grid(facade.GetGrid());
+    Grid const & grid(facade.GetGrid());
+    ////     if ( ! grid)
+    ////       return;
+    ssize_t const xsize(grid.GetXSize());
     if (xsize < 1)
       return;
-    size_t const ysize(facade.GetYSize());
+    ssize_t const ysize(grid.GetYSize());
     if (ysize < 1)
-      return;    
+      return;
+    Algorithm const & algo(facade.GetAlgorithm());
     if(value_stream)
-      dump_raw_value(facade.GetGrid(), facade.GetAlgorithm(),
-		     0, 0, xsize - 1, ysize - 1, -1, value_stream);
+      dump_raw_value(grid, algo, 0, 0, xsize - 1, ysize - 1, -1, value_stream);
     if(meta_stream)
-      dump_raw_meta(facade.GetGrid(), facade.GetAlgorithm(),
-		    0, 0, xsize - 1, ysize - 1, meta_stream);  
+      dump_raw_meta(grid, algo, 0, 0, xsize - 1, ysize - 1, meta_stream);  
   }
   
   
@@ -185,7 +191,7 @@ namespace estar {
   
   
   static void linesep(const Grid & grid, FILE * stream,
-		      size_t ix0, size_t ix1,
+		      ssize_t ix0, ssize_t ix1,
 		      const char * prefix, const char * high)
   {
     char * line;
@@ -193,7 +199,7 @@ namespace estar {
     else                         line = "+-----------";
     if(0 != high)   fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
-    for(size_t ix(ix0); ix <= ix1; ++ix)
+    for(ssize_t ix(ix0); ix <= ix1; ++ix)
       fprintf(stream, line);
     if(0 != high) fprintf(stream, "+%s\n", high);
     else          fprintf(stream, "+\n");
@@ -204,20 +210,21 @@ namespace estar {
   
   
   static void line1(const Grid & grid, FILE * stream,
-		    size_t iy, size_t ix0, size_t ix1,
+		    ssize_t iy, ssize_t ix0, ssize_t ix1,
 		    const char * prefix, const char * high)
   {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
-    for(size_t ix(ix0); ix <= ix1; ++ix){
-      const double meta(get(grid.meta_map, grid.Index2Vertex(ix, iy)));
+    shared_ptr<GridCSpace const> const cspace(grid.GetCSpace());
+    for(ssize_t ix(ix0); ix <= ix1; ++ix){
+      const double meta(cspace->GetMeta(grid.Index2Vertex(ix, iy)));
       if(infinity == meta)
 	fprintf(stream, "|infty ");
       else if(huge <= meta)
 	fprintf(stream, "|huge  ");
       else
 	fprintf(stream, "|%5.2f ", meta);
-      const double value(get(grid.value_map, grid.Index2Vertex(ix, iy)));
+      const double value(cspace->GetValue(grid.Index2Vertex(ix, iy)));
       if(infinity == value)
 	fprintf(stream, "infty");
       else if(huge <= value)
@@ -231,18 +238,19 @@ namespace estar {
   
   
   static void line2(const Grid & grid, FILE * stream,
-		    size_t iy, size_t ix0, size_t ix1,
+		    ssize_t iy, ssize_t ix0, ssize_t ix1,
 		    const char * prefix, const char * high)
   {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
-    for(size_t ix(ix0); ix <= ix1; ++ix){
-      const flag_t flag(get(grid.flag_map, grid.Index2Vertex(ix, iy)));
+    shared_ptr<GridCSpace const> const cspace(grid.GetCSpace());
+    for(ssize_t ix(ix0); ix <= ix1; ++ix){
+      const flag_t flag(cspace->GetFlag(grid.Index2Vertex(ix, iy)));
       if(NONE == flag)
 	fprintf(stream, "|      ");
       else
 	fprintf(stream, "|%5s ", flag_name(flag));
-      const double rhs(get(grid.rhs_map, grid.Index2Vertex(ix, iy)));
+      const double rhs(cspace->GetRhs(grid.Index2Vertex(ix, iy)));
       if(infinity == rhs)
 	fprintf(stream, "infty");
       else if(huge <= rhs)
@@ -256,18 +264,19 @@ namespace estar {
   
   
   static void line3(const Grid & grid, FILE * stream,
-		    size_t iy, size_t ix0, size_t ix1,
+		    ssize_t iy, ssize_t ix0, ssize_t ix1,
 		    const char * prefix, const char * high)
   {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
-    for(size_t ix(ix0); ix <= ix1; ++ix){
+    shared_ptr<GridCSpace const> const cspace(grid.GetCSpace());
+    for(ssize_t ix(ix0); ix <= ix1; ++ix){
       const vertex_t vertex(grid.Index2Vertex(ix, iy));
-      if( ! (OPEN & get(grid.flag_map, vertex)))
+      if( ! (OPEN & cspace->GetFlag(vertex)))
 	fprintf(stream, "|      ");
-      else if(get(grid.rhs_map, vertex) < get(grid.value_map, vertex))
+      else if(cspace->GetRhs(vertex) < cspace->GetValue(vertex))
 	fprintf(stream, "|lower ");
-      else if(get(grid.rhs_map, vertex) > get(grid.value_map, vertex))
+      else if(cspace->GetRhs(vertex) > cspace->GetValue(vertex))
 	fprintf(stream, "|raise ");
       else
 	fprintf(stream, "|r==v? ");
@@ -279,12 +288,12 @@ namespace estar {
   
   
   static void line4(const Grid & grid, FILE * stream,
-		    size_t iy, size_t ix0, size_t ix1,
+		    ssize_t iy, ssize_t ix0, ssize_t ix1,
 		    const char * prefix, const char * high)
   {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
-    for(size_t ix(ix0); ix <= ix1; ++ix){
+    for(ssize_t ix(ix0); ix <= ix1; ++ix){
       const GridNode & node(grid.Index2Node(ix, iy));
       fprintf(stream, "| (%3zu, %3zu)", node.ix, node.iy);
     }
@@ -316,14 +325,14 @@ namespace estar {
   // x1        +-----+-----+-----+-----+
   
   void dump_grid_range(const Grid & grid,
-		       size_t ix0, size_t iy0, size_t ix1, size_t iy1,
+		       ssize_t ix0, ssize_t iy0, ssize_t ix1, ssize_t iy1,
 		       FILE * stream)
   {
     PVDEBUG("%zu   %zu   %zu   %zu\n", ix0, iy0, ix1, iy1);
     const char * even("");
     const char * oddsep(grid.connect == HEX_GRID ? "+-----" : even);
     const char * oddpre(grid.connect == HEX_GRID ? "      " : even);
-    size_t iy(iy1);
+    ssize_t iy(iy1);
     const char * prefix;
     for(/**/; iy != iy0; --iy){
       if(iy % 2){
@@ -359,9 +368,9 @@ namespace estar {
   
   
   void dump_facade_range_highlight(const FacadeReadInterface & facade,
-				   size_t ix0, size_t iy0,
-				   size_t ix1, size_t iy1,
-				   size_t ixhigh, size_t iyhigh,
+				   ssize_t ix0, ssize_t iy0,
+				   ssize_t ix1, ssize_t iy1,
+				   ssize_t ixhigh, ssize_t iyhigh,
 				   FILE * stream)
   {
     dump_grid_range_highlight(facade.GetGrid(), ix0, iy0, ix1, iy1,
@@ -370,19 +379,19 @@ namespace estar {
   
   
   void dump_grid_range_highlight(const Grid & grid,
-				 size_t ix0, size_t iy0,
-				 size_t ix1, size_t iy1,
-				 size_t ixhigh, size_t iyhigh,
+				 ssize_t ix0, ssize_t iy0,
+				 ssize_t ix1, ssize_t iy1,
+				 ssize_t ixhigh, ssize_t iyhigh,
 				 FILE * stream)
   {
     PVDEBUG("%zu   %zu   %zu   %zu   %zu   %zu\n",
 	    ix0, iy0, ix1, iy1, ixhigh, iyhigh);
     fprintf(stream, " ");
-    for(size_t ix(ix0); ix <= ix1; ++ix)
+    for(ssize_t ix(ix0); ix <= ix1; ++ix)
       if(ix == ixhigh) fprintf(stream, " ***********");
       else             fprintf(stream, "            ");
     fprintf(stream, " \n");
-    size_t iy(iy1);
+    ssize_t iy(iy1);
     for(/**/; iy != iy0; --iy){
       const char * high(iy == iyhigh ? "*" : " ");
       linesep(grid, stream, ix0, ix1, 0, " ");
@@ -399,7 +408,7 @@ namespace estar {
     line4(grid, stream, iy, ix0, ix1, 0, high);
     linesep(grid, stream, ix0, ix1, 0, " ");
     fprintf(stream, " ");
-    for(size_t ix(ix0); ix <= ix1; ++ix)
+    for(ssize_t ix(ix0); ix <= ix1; ++ix)
       if(ix == ixhigh) fprintf(stream, " ***********");
       else             fprintf(stream, "            ");
     fprintf(stream, " \n");
@@ -411,7 +420,7 @@ namespace estar {
     const Upwind & upwind(algo.GetUpwind());
     const GridNode * gfrom(0);
     vertex_it iv, vend;
-    tie(iv, vend) = vertices(algo.GetCSpace());
+    tie(iv, vend) = vertices(algo.GetCSpaceGraph());
     if(iv == vend)
       return;
     fprintf(stream, "upwind edges (from, to):\n");

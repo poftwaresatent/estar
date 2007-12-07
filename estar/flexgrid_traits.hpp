@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2005 Roland Philippsen <roland dot philippsen at gmx net>
+ * Copyright (C) 2007 Roland Philippsen <roland dot philippsen at gmx net>
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,37 +18,29 @@
  */
 
 
-#ifndef ESTAR_LSM_KERNEL_HPP
-#define ESTAR_LSM_KERNEL_HPP
+#ifndef ESTAR_FLEXGRID_TRAITS_HPP
+#define ESTAR_FLEXGRID_TRAITS_HPP
 
 
-#include <estar/Kernel.hpp>
-#include <boost/shared_ptr.hpp>
+#include <estar/sdeque.hpp>
 
 
 namespace estar {
   
   
-  class GridCSpace;
-  
-  
-  /** Interpolation kernel based on Level Set Method. Needs a
-      4-connected regular grid as C-space, ie an instance of Grid with
-      connectedness_t FOUR_CONNECTED. */
-  class LSMKernel:
-    public Kernel {
+  template<typename value_t>
+  class flexgrid_traits
+  {
   public:
-    LSMKernel(boost::shared_ptr<GridCSpace const> cspace, double scale);
+    typedef sdeque<value_t> line_t;
+    typedef typename line_t::iterator cell_iterator;
+    typedef typename line_t::const_iterator const_cell_iterator;
     
-    virtual bool ChangeWouldRaise(double oldmeta, double newmeta) const;
-    
-  protected:
-    virtual double DoCompute(Propagator & propagator) const;
-    
-    boost::shared_ptr<GridCSpace const> m_cspace;
+    typedef sdeque<line_t> grid_t;
+    typedef typename grid_t::iterator line_iterator;
+    typedef typename grid_t::const_iterator const_line_iterator;
   };
   
-  
-} // namespace estar
+}
 
-#endif // ESTAR_LSM_KERNEL_HPP
+#endif // ESTAR_FLEXGRID_TRAITS_HPP

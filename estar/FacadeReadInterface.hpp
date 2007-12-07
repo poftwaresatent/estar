@@ -22,15 +22,34 @@
 #define ESTAR_FACADE_READ_INTERFACE_HPP
 
 
-#include <stddef.h>
+#include <estar/GridNode.hpp>
+#include <vector>
 
 
 namespace estar {
   
-  
   class Algorithm;
   class Grid;
   class Kernel;
+  
+  
+  /**
+     An element of the 'trace' of the steepest gradient from a given
+     start position. Use FacadeReadInterface::TraceCarrot() to compute
+     a (partial) plan to the goal from any (valid) starting position.
+  */
+  struct carrot_item {
+    carrot_item(double x, double y, double gx, double gy, double val, bool dgn)
+      : cx(x), cy(y), gradx(gx), grady(gy), value(val), degenerate(dgn) {}
+    double cx;			/**< carrot x-coordinate */
+    double cy;			/**< carrot y-coordinate */
+    double gradx;		/**< gradient at carrot, x-component */
+    double grady;		/**< gradient at carrot, y-component */
+    double value;		/**< navigation function value */
+    bool degenerate;		/**< degenerate gradient (used heuristic) */
+  };
+  
+  typedef std::vector<carrot_item> carrot_trace;
   
   
   /**
@@ -66,16 +85,6 @@ namespace estar {
     } node_status_t;
     
     /**
-       \return The grid dimension along X.
-    */
-    virtual size_t GetXSize() const = 0;
-    
-    /**
-       \return The grid dimension along Y.
-    */
-    virtual size_t GetYSize() const = 0;
-    
-    /**
        \return The spacing between grid cells.
     */
     virtual double GetScale() const = 0;
@@ -99,19 +108,19 @@ namespace estar {
        "height" when you consider the navigation function to be a
        potential.
     */
-    virtual double GetValue(size_t ix, size_t iy) const = 0;
+    virtual double GetValue(ssize_t ix, ssize_t iy) const = 0;
     
     /**
        \return The kernel-dependent "meta" of the cell. Use
        GetFreespaceMeta() and GetObstacleMeta() to determine if the
        cell is an obstacle, in freespace, or something in between.
     */
-    virtual double GetMeta(size_t ix, size_t iy) const = 0;
+    virtual double GetMeta(ssize_t ix, ssize_t iy) const = 0;
     
     /**
        \return true if the cell at index (ix, iy) is a goal cell.
     */
-    virtual bool IsGoal(size_t ix, size_t iy) const = 0;
+    virtual bool IsGoal(ssize_t ix, ssize_t iy) const = 0;
     
     /**
        \return true if the wavefront is non-empty.
@@ -127,8 +136,22 @@ namespace estar {
        not. Typically, the cell (ix, iy) is where the robot is
        currently at, and you only need to propagate the wavefront
        further if GetStatus returns WAVEFRONT or DOWNWIND.
+       
+       \note If you don't know the indices of a node, use GetStatus(vertex_t).
     */
-    virtual node_status_t GetStatus(size_t ix, size_t iy) const = 0;
+    virtual node_status_t GetStatus(ssize_t ix, ssize_t iy) const = 0;
+    
+    /**
+       You don't need a node's coordinates in order to compute it's
+       status. Just call this variant of GetStatus(ssize_t, ssize_t)
+       instead.
+    */
+    virtual node_status_t GetStatus(vertex_t vertex) const = 0;
+    
+    /**
+       \return true if there is a cell at index (ix, iy).
+    */
+    virtual bool IsValidIndex(ssize_t ix, ssize_t iy) const = 0;
     
     /**
        The "lowest inconsistent value" is the "height" of the cell
@@ -150,15 +173,59 @@ namespace estar {
     */
     virtual const Algorithm & GetAlgorithm() const = 0;
     
+  protected:
+    friend void dump_raw(const FacadeReadInterface &, FILE *, FILE *);
+    friend void dump_queue(const FacadeReadInterface &, size_t, FILE *);
+    friend void dump_facade_range_highlight(const FacadeReadInterface &,
+					    ssize_t, ssize_t, ssize_t, ssize_t,
+					    ssize_t, ssize_t, FILE *);
+    
     /**
        \return The underlying Grid instance.
     */
     virtual const Grid & GetGrid() const = 0;
+  public:
     
     /**
        \return The underlying Kernel instance.
     */
     virtual const Kernel & GetKernel() const = 0;
+    
+    
+    /**
+       Compute a global path via iterative gradient descent. Start at
+       the position <code>(robot_x, robot_y)</code> and repeatedly move
+       <code>stepsize</code> along the gradient of the E* navigation
+       function. The trace stops if one of the following conditions is
+       met: The curvilinear distance reached the parameter
+       <code>distance</code>, the number of iterations has reached
+       <code>maxsteps</code>, or the trace has reached a goal location.
+       
+       \note The trace is computed in the grid frame of reference. The
+       <code>trace</code> is cleared prior to filling it.
+       
+       \return
+        0 on success<br>
+        1 if distance wasn't reached after maxstep iterations<br>
+       -1 if the robot is outside the grid<br>
+       -2 if the grid is a hexgrid (not implemented yet)<br>
+          other negative numbers would represent errors that were not
+          yet defined at the time when this documentation was
+          written... look at the implementation in
+          Facade::TraceCarrot().
+       
+       \todo URGENT: Need ridge detection (and avoidance) to avoid
+       going straight toward obstacle in case the robot is on the ridge
+       where two wavefronts meet after they swept around an
+       obstacle. In such a case, one direction should be chosen at
+       "random"!
+    */
+    virtual int TraceCarrot(double robot_x, double robot_y,
+			    double distance, double stepsize,
+			    size_t maxsteps,
+			    carrot_trace & trace) const = 0;
+
+    virtual boost::shared_ptr<GridCSpace const> GetCSpace() const = 0;
   };
   
 } // namespace estar

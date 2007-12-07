@@ -35,55 +35,31 @@ namespace estar {
   
   
   Algorithm::
-  Algorithm(bool check_upwind,
+  Algorithm(shared_ptr<BaseCSpace> cspace,
+	    bool check_upwind,
 	    bool check_local_consistency,
 	    bool check_queue_key,
 	    bool auto_reset,
 	    bool auto_flush)
-    : m_step(0),
+    : m_cspace(cspace),
+      m_step(0),
       m_last_computed_value(-1),
       m_last_computed_vertex(0),
       m_last_popped_key(-1),
       m_pending_reset(false),
       m_auto_reset(auto_reset),
-      m_auto_flush(auto_flush)
+      m_auto_flush(auto_flush),
+      m_cspace_graph(cspace->GetGraph()),
+      m_value(cspace->GetValueMap()),
+      m_meta(cspace->GetMetaMap()),
+      m_rhs(cspace->GetRhsMap()),
+      m_flag(cspace->GetFlagMap()), 
+      m_propfactory(new PropagatorFactory(m_queue, m_upwind, m_cspace_graph,
+					  m_value, m_meta, m_rhs, m_flag,
+					  check_upwind,
+					  check_local_consistency,
+					  check_queue_key))
   {
-    m_value    = get(value_p(),    m_cspace);
-    m_meta     = get(meta_p(),     m_cspace);
-    m_rhs      = get(rhs_p(),      m_cspace);
-    m_flag     = get(flag_p(),     m_cspace);
-    m_vertexid = get(vertex_index, m_cspace);
-    
-    m_propfactory.
-      reset(new PropagatorFactory(m_queue, m_upwind, m_cspace,
-				  m_value, m_meta, m_rhs, m_flag,
-				  check_upwind,
-				  check_local_consistency,
-				  check_queue_key));
-  }
-  
-  
-  vertex_t Algorithm::
-  AddVertex(double value,
-	    double meta,
-	    double rhs,
-	    flag_t flag)
-  {
-    vertex_t cv(add_vertex(m_cspace));
-    
-    put(m_value,    cv, value);
-    put(m_meta,     cv, meta);
-    put(m_rhs,      cv, rhs);
-    put(m_flag,     cv, flag);
-    
-    return cv;
-  }
-  
-  
-  void Algorithm::
-  AddNeighbor(vertex_t from, vertex_t to)
-  {
-    add_edge(from, to, m_cspace);
   }
   
   
@@ -145,7 +121,7 @@ namespace estar {
 	      val, rhs, val - rhs);
       put(m_value, vertex, rhs);
       adjacency_it in, nend;
-      tie(in, nend) = adjacent_vertices(vertex, m_cspace);
+      tie(in, nend) = adjacent_vertices(vertex, m_cspace_graph);
       for(/**/; in != nend; ++in)
 	UpdateVertex(*in, kernel);
     }
@@ -175,7 +151,7 @@ namespace estar {
 #else // RAISE_DOWNWIND_ONLY
       PVDEBUG("variant: expand all neighbors after raise\n");
       adjacency_it in, nend;
-      tie(in, nend) = adjacent_vertices(vertex, m_cspace);
+      tie(in, nend) = adjacent_vertices(vertex, m_cspace_graph);
       for(/**/; in != nend; ++in)
 	UpdateVertex(*in, kernel);
 #endif // RAISE_DOWNWIND_ONLY
@@ -260,7 +236,7 @@ namespace estar {
   InitAllMeta(double meta)
   {
     vertex_it iv, vend;
-    for(tie(iv, vend) = vertices(m_cspace); iv != vend; ++iv)
+    for(tie(iv, vend) = vertices(m_cspace_graph); iv != vend; ++iv)
       put(m_meta, *iv, meta);
   }
   
@@ -272,7 +248,7 @@ namespace estar {
     // which doesn't get touched here.
     m_queue.Clear();
     vertex_it iv, vend;
-    tie(iv, vend) = vertices(m_cspace);
+    tie(iv, vend) = vertices(m_cspace_graph);
     for(/**/; iv != vend; ++iv){
 
 #warning Is it a waste of time to clear the upwind structure? Does it create or avoid inconsistencies?

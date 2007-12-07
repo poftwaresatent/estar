@@ -99,7 +99,7 @@ namespace estar {
       }
       queued_vs.insert(make_pair(iq->second, iq->first));
     }
-    const cspace_t & cspace(algo.GetCSpace());
+    const cspace_t & cspace(algo.GetCSpaceGraph());
     vertex_it vi, vend;
     for(tie(vi, vend) = vertices(cspace); vi != vend; ++vi){
       if((get(flag, *vi) & OPEN) && (queued_vs.find(*vi) == queued_vs.end())){

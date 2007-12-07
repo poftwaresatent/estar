@@ -11,10 +11,12 @@ endif
 noinst_LTLIBRARIES=     libestarsub.la
 
 libestarsub_la_SOURCES= Algorithm.cpp \
+                        CSpace.cpp \
                         AlphaKernel.cpp \
                         Facade.cpp \
                         ComparisonFacade.cpp \
                         Grid.cpp \
+                        Supergrid.cpp \
                         Kernel.cpp \
                         LSMKernel.cpp \
                         NF1Kernel.cpp \
@@ -32,12 +34,15 @@ libestarsub_la_SOURCES= Algorithm.cpp \
                         $(GFX_SRC)
 
 include_HEADERS=        Algorithm.hpp \
+                        CSpace.hpp \
                         AlphaKernel.hpp \
                         FacadeWriteInterface.hpp \
                         FacadeReadInterface.hpp \
                         Facade.hpp \
                         ComparisonFacade.hpp \
+                        GridNode.hpp \
                         Grid.hpp \
+                        Supergrid.hpp \
                         Kernel.hpp \
                         LSMKernel.hpp \
                         NF1Kernel.hpp \
@@ -56,6 +61,8 @@ include_HEADERS=        Algorithm.hpp \
                         pdebug.hpp \
                         sdeque.hpp \
                         flexgrid.hpp \
+                        flexgrid_traits.hpp \
+                        flexgrid_iterator.hpp \
                         $(GFX_HDR)
 
 includedir=             @includedir@/estar

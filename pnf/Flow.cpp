@@ -34,6 +34,7 @@
 #include "../estar/dump.hpp"
 #include "../estar/Region.hpp"
 #include "../estar/pdebug.hpp"
+#include "../estar/GridNode.hpp"
 #include <iostream>
 #include <cmath>
 
@@ -47,6 +48,9 @@ using estar::Facade;
 using estar::square;
 using estar::minval;
 using estar::value_map_t;
+using estar::vertexid_map_t;
+using estar::vertex_read_iteration;
+using estar::GridCSpace;
 using estar::Grid;
 using estar::Algorithm;
 using estar::Kernel;
@@ -110,7 +114,7 @@ namespace pnf {
   
   
   Flow::
-  Flow(size_t _xsize, size_t _ysize, double _resolution,
+  Flow(ssize_t _xsize, ssize_t _ysize, double _resolution,
        bool _perform_convolution, bool _alternate_worst_case)
     : xsize(_xsize),
       ysize(_ysize),
@@ -137,7 +141,7 @@ namespace pnf {
   
   
   Flow * Flow::
-  Create(size_t xsize, size_t ysize, double resolution,
+  Create(ssize_t xsize, ssize_t ysize, double resolution,
 	 bool perform_convolution, bool alternate_worst_case)
   {
     Flow * flow(new Flow(xsize, ysize, resolution,
@@ -151,14 +155,14 @@ namespace pnf {
   
   
   void Flow::
-  AddStaticObject(size_t ix, size_t iy)
+  AddStaticObject(ssize_t ix, ssize_t iy)
   {
     m_envdist->AddGoal(ix, iy, 0);
   }
   
   
   void Flow::
-  RemoveStaticObject(size_t ix, size_t iy)
+  RemoveStaticObject(ssize_t ix, ssize_t iy)
   {
     m_envdist->RemoveGoal(ix, iy);
   }
@@ -200,7 +204,7 @@ namespace pnf {
   
   /** \todo URGENT! Goal and obstacle handling not made for replanning. */
   bool Flow::
-  DoSetRobot(double x, double y, size_t ix, size_t iy, double r, double v)
+  DoSetRobot(double x, double y, ssize_t ix, ssize_t iy, double r, double v)
   {
     const double region_radius(r - half_diagonal);
     shared_ptr<Region>
@@ -251,9 +255,9 @@ namespace pnf {
     // Threshold envdist value with robot and object radii, use
     // non-Facade access for efficiency.
     
-    const size_t nvertices(xsize * ysize);
     const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
-    const Grid & envgrid(m_envdist->GetGrid());
+    const vertexid_map_t &
+      vertexid(m_envdist->GetAlgorithm().GetVertexIdMap());
     
     // if you want to be paranoid, this should be specific for each
     // object as well as the robot... but they're all using the same
@@ -263,14 +267,18 @@ namespace pnf {
     const double obstacle(m_robot->dist->GetObstacleMeta());
     
     { // Robot obstacles:
-      const Grid & robgrid(m_robot->dist->GetGrid());
       Algorithm & robalgo(m_robot->dist->GetAlgorithm());
       const Kernel & robkernel(m_robot->dist->GetKernel());
-      for(size_t iv(0); iv < nvertices; ++iv)
-	if(get(envdist, envgrid.Index2Vertex(iv)) > m_robot->radius)
-	  robalgo.SetMeta(robgrid.Index2Vertex(iv), freespace, robkernel);
+      
+      // BEWARE: we assume vertex IDs are consistent across the
+      // various C-spaces!
+      for (vertex_read_iteration viter(m_envdist->GetCSpace()->begin());
+	   viter.not_at_end(); ++viter)
+	if (viter.get(envdist) > m_robot->radius)
+	  robalgo.SetMeta(viter.get(vertexid), freespace, robkernel);
 	else
-	  robalgo.SetMeta(robgrid.Index2Vertex(iv), obstacle, robkernel);
+	  robalgo.SetMeta(viter.get(vertexid), obstacle, robkernel);
+      
       // set robot goal, this will skip obstacles
       m_robot->dist->AddGoal(*m_robot->region);
     }
@@ -279,14 +287,16 @@ namespace pnf {
       for(objectmap_t::iterator io(m_object.begin()); io != m_object.end();
 	  ++io){
 	Facade & objdist(*io->second->dist);
-	const Grid & objgrid(objdist.GetGrid());
 	Algorithm & objalgo(objdist.GetAlgorithm());
 	const Kernel & objkernel(objdist.GetKernel());
-	for(size_t iv(0); iv < nvertices; ++iv)
-	  if(get(envdist, envgrid.Index2Vertex(iv)) > io->second->radius)
-	    objalgo.SetMeta(objgrid.Index2Vertex(iv), freespace, objkernel);
+	
+	for (vertex_read_iteration viter(m_envdist->GetCSpace()->begin());
+	     viter.not_at_end(); ++viter)
+	  if (viter.get(envdist) > io->second->radius)
+	    objalgo.SetMeta(viter.get(vertexid), freespace, objkernel);
 	  else
-	    objalgo.SetMeta(objgrid.Index2Vertex(iv), obstacle, objkernel);
+	    objalgo.SetMeta(viter.get(vertexid), obstacle, objkernel);
+	
 	// set object goal, this will skip obstacles
 	objdist.AddGoal(*io->second->region);
       }
@@ -381,15 +391,15 @@ namespace pnf {
     const value_map_t & objdist(obj.dist->GetAlgorithm().GetValueMap());
     const Grid & objgrid(obj.dist->GetGrid());
     obj.max_lambda = -1;	// could be more paranoid...
-    for(ssize_t ix(0); ix < static_cast<ssize_t>(xsize); ++ix)
-      for(ssize_t iy(0); iy < static_cast<ssize_t>(ysize); ++iy){
+    for(ssize_t ix(0); ix < xsize; ++ix)
+      for(ssize_t iy(0); iy < ysize; ++iy){
 	double lambda(infinity);
 	for(size_t ia(0); ia < area.size(); ++ia){
 	  const ssize_t jx(ix + area[ia].x);
-	  if((jx < 0) || (jx >= static_cast<ssize_t>(xsize)))
+	  if((jx < 0) || (jx >= xsize))
 	    continue;
 	  const ssize_t jy(iy + area[ia].y);
-	  if((jy < 0) || (jy >= static_cast<ssize_t>(ysize)))
+	  if((jy < 0) || (jy >= ysize))
 	    continue;
 	  const double ll(get(objdist, objgrid.Index2Vertex(jx, jy)));
 	  if(ll < lambda)
@@ -409,8 +419,8 @@ namespace pnf {
     obj.max_cooc = 0;
     if(alternate_worst_case){
       const unsigned int nvisteps(100);
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy){
+      for(ssize_t ix(0); ix < xsize; ++ix)
+	for(ssize_t iy(0); iy < ysize; ++iy){
 	  const double cooc(pnf_cooc_test_alt((*obj.lambda)[ix][iy],
 					      (*m_robot->lambda)[ix][iy],
 					      obj.speed, m_robot->speed,
@@ -421,8 +431,8 @@ namespace pnf {
 	}
     }
     else
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy){
+      for(ssize_t ix(0); ix < xsize; ++ix)
+	for(ssize_t iy(0); iy < ysize; ++iy){
 	  const double cooc(pnf_cooc((*obj.lambda)[ix][iy],
 				     (*m_robot->lambda)[ix][iy],
 				     obj.speed, m_robot->speed, resolution));
@@ -462,21 +472,27 @@ namespace pnf {
     m_env_cooc.reset(new array<double>(xsize, ysize));
     m_max_env_cooc = 0;
     const value_map_t & envdist(m_envdist->GetAlgorithm().GetValueMap());
-    const Grid & envgrid(m_envdist->GetGrid());
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	const double dist(get(envdist, envgrid.Index2Vertex(ix, iy)));
-	double cooc;
-	if(buffer)
-	  cooc = buffer->DistanceToRisk(dist);
-	else if(perform_convolution)
-	  cooc = (dist <= estar::epsilon ? 1 : 0);
-	else
-	  cooc = (dist <= m_robot->radius ? 1 : 0);
-	(*m_env_cooc)[ix][iy] = cooc;
+    shared_ptr<GridCSpace const> const envcspace(m_envdist->GetCSpace());
+    
+    for (vertex_read_iteration viter(m_envdist->GetCSpace()->begin());
+	 viter.not_at_end(); ++viter) {
+      double const dist(viter.get(envdist));
+      double cooc;
+      
+      if (buffer)
+	cooc = buffer->DistanceToRisk(dist);
+      else if(perform_convolution)
+	cooc = (dist <= estar::epsilon ? 1 : 0);
+      else
+	cooc = (dist <= m_robot->radius ? 1 : 0);
+      
+      shared_ptr<estar::GridNode const> const gg(envcspace->Lookup(*viter));
+      if ((gg->ix < xsize) && (gg->iy < ysize)) { // parano check
+	(*m_env_cooc)[gg->ix][gg->iy] = cooc;
 	if(cooc > m_max_env_cooc)
 	  m_max_env_cooc = cooc;
       }
+    }
     
     for(objectmap_t::iterator io(m_object.begin());
 	io != m_object.end(); ++io)
@@ -494,8 +510,8 @@ namespace pnf {
     m_max_dynamic_cooc = 0;
     
     if( ! perform_convolution){
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy){
+      for(ssize_t ix(0); ix < xsize; ++ix)
+	for(ssize_t iy(0); iy < ysize; ++iy){
 	  double risk(1); // could be more direct, but caching m_dynamic_cooc
 	  for(objectmap_t::const_iterator io(m_object.begin());
 	      io != m_object.end(); ++io)
@@ -514,8 +530,8 @@ namespace pnf {
     
     else{ // perform_convolution
       array<double> accu(xsize, ysize);
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy){
+      for(ssize_t ix(0); ix < xsize; ++ix)
+	for(ssize_t iy(0); iy < ysize; ++iy){
 	  double risk(1); // could be more direct, but caching m_dynamic_cooc
 	  for(objectmap_t::const_iterator io(m_object.begin());
 	      io != m_object.end(); ++io)
@@ -527,14 +543,14 @@ namespace pnf {
 	  accu[ix][iy] = 1 - (1 - risk) * (1 - (*m_env_cooc)[ix][iy]);
 	}
       const Sprite::indexlist_t & area(m_robot->region->GetSprite().GetArea());
-      for(ssize_t ix(0); ix < static_cast<ssize_t>(xsize); ++ix)
-	for(ssize_t iy(0); iy < static_cast<ssize_t>(ysize); ++iy){
+      for(ssize_t ix(0); ix < xsize; ++ix)
+	for(ssize_t iy(0); iy < ysize; ++iy){
 	  double risk(1);
 	  for(ssize_t ia(0); ia < static_cast<ssize_t>(area.size()); ++ia){
 	    const ssize_t jx(ix + area[ia].x);
 	    const ssize_t jy(iy + area[ia].y);
-	    if((jx < 0) || (jx >= static_cast<ssize_t>(xsize))
-	       || (jy < 0) || (jy >= static_cast<ssize_t>(ysize))){
+	    if((jx < 0) || (jx >= xsize)
+	       || (jy < 0) || (jy >= ysize)){
 	      risk = 0;           // grid edges are walls
 	      break;
 	    }
@@ -577,10 +593,10 @@ namespace pnf {
   {
     if((x < 0) || (y < 0))
       return false;
-    const size_t ix(static_cast<size_t>(rint(x / resolution)));
+    const ssize_t ix(static_cast<ssize_t>(rint(x / resolution)));
     if(ix >= xsize)
       return false;
-    const size_t iy(static_cast<size_t>(rint(y / resolution)));
+    const ssize_t iy(static_cast<ssize_t>(rint(y / resolution)));
     if(iy >= ysize)
       return false;
     AddStaticObject(ix, iy);
@@ -593,10 +609,10 @@ namespace pnf {
   {
     if((x < 0) || (y < 0))
       return false;
-    const size_t ix(static_cast<size_t>(rint(x / resolution)));
+    const ssize_t ix(static_cast<ssize_t>(rint(x / resolution)));
     if(ix >= xsize)
       return false;
-    const size_t iy(static_cast<size_t>(rint(y / resolution)));
+    const ssize_t iy(static_cast<ssize_t>(rint(y / resolution)));
     if(iy >= ysize)
       return false;
     RemoveStaticObject(ix, iy);
@@ -607,7 +623,7 @@ namespace pnf {
   bool Flow::
   SetRobot(double x, double y, double r, double v)
   {
-    size_t ix, iy;
+    ssize_t ix, iy;
     if( ! CompIndices(x, y, ix, iy))
       return false;
     return DoSetRobot(x, y, ix, iy, r, v);
@@ -826,16 +842,23 @@ namespace pnf {
   
   
   bool Flow::
-  CompIndices(double x, double y, size_t & ix, size_t & iy)
+  CompIndices(double x, double y, ssize_t & ix, ssize_t & iy)
     const
   {
     if((x < 0) || (y < 0))
       return false;
-    ix = static_cast<size_t>(rint(x / resolution));
+    ix = static_cast<ssize_t>(rint(x / resolution));
     if(ix >= xsize)
       return false;
-    iy = static_cast<size_t>(rint(y / resolution));
+    iy = static_cast<ssize_t>(rint(y / resolution));
     return iy < ysize;
+  }
+  
+  
+  const estar::Grid & Flow::
+  GetEnvdistGrid() const
+  {
+    return m_envdist->GetGrid();
   }
   
 }

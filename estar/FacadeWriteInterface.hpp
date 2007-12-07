@@ -22,6 +22,7 @@
 #define ESTAR_FACADE_WRITE_INTERFACE_HPP
 
 
+#include <estar/GridNode.hpp>
 #include <stddef.h>
 
 
@@ -45,7 +46,7 @@ namespace estar {
        FacadeReadInterface::GetMeta() about the interpretation of meta
        values.
     */
-    virtual void SetMeta(size_t ix, size_t iy, double meta) = 0;
+    virtual void SetMeta(ssize_t ix, ssize_t iy, double meta) = 0;
     
     /**
        Initialize the kernel-dependent "meta" of a cell. Unlike
@@ -58,7 +59,7 @@ namespace estar {
        initialization. Use SetMeta() when changing the environment
        information.
     */
-    virtual void InitMeta(size_t ix, size_t iy, double meta) = 0;
+    virtual void InitMeta(ssize_t ix, ssize_t iy, double meta) = 0;
     
     /**
        Declare a cell to be a goal, and define the value of the
@@ -69,7 +70,7 @@ namespace estar {
        
        \note Call RemoveAllGoals() first if you want to move the goal.
     */
-    virtual void AddGoal(size_t ix, size_t iy, double value) = 0;
+    virtual void AddGoal(ssize_t ix, ssize_t iy, double value) = 0;
     
     /**
        Revert all goal cells to normal status. Useful if you just want

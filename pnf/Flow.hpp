@@ -59,20 +59,20 @@ namespace pnf {
   class Flow
   {
   private:
-    Flow(size_t xsize, size_t ysize, double resolution,
+    Flow(ssize_t xsize, ssize_t ysize, double resolution,
 	 bool perform_convolution, bool alternate_worst_case);
     
     
   public:
     typedef std::pair<const estar::array<double> *, double> array_info_t;
     
-    const size_t xsize, ysize;
+    const ssize_t xsize, ysize;
     const double resolution;
     const double half_diagonal;
     const bool perform_convolution;
     const bool alternate_worst_case; // just for (hacked) trials...
     
-    static Flow * Create(size_t xsize, size_t ysize, double resolution,
+    static Flow * Create(ssize_t xsize, ssize_t ysize, double resolution,
 			 bool perform_convolution, bool alternate_worst_case);
     ~Flow();
     
@@ -103,8 +103,8 @@ namespace pnf {
     bool HavePNF() const;
     void PropagatePNF();
     
-    void AddStaticObject(size_t ix, size_t iy);
-    void RemoveStaticObject(size_t ix, size_t iy);
+    void AddStaticObject(ssize_t ix, ssize_t iy);
+    void RemoveStaticObject(ssize_t ix, ssize_t iy);
     void RemoveDynamicObject(size_t id);
     
     bool AddStaticObject(double x, double y);
@@ -138,7 +138,10 @@ namespace pnf {
     
     /** \todo non-const only for debugging? */
     estar::Facade & GetEnvdist() { return * m_envdist; }
-    
+      
+    /** \todo A hack around estar::CSpace refactoring */
+    const estar::Grid & GetEnvdistGrid() const;
+      
     const estar::Facade & GetPNF()     const { return * m_pnf; }
     
     /** \return pair of pointer and max lambda value (excluding
@@ -186,10 +189,10 @@ namespace pnf {
     boost::scoped_ptr<estar::array<double> > m_risk;
     double m_max_risk;
     
-    bool CompIndices(double x, double y, size_t & ix, size_t & iy) const;
+    bool CompIndices(double x, double y, ssize_t & ix, ssize_t & iy) const;
     estar::Facade * GetObjdist(size_t id, FILE * verbose_stream) const;
 
-    bool DoSetRobot(double x, double y, size_t ix, size_t iy,
+    bool DoSetRobot(double x, double y, ssize_t ix, ssize_t iy,
 		    double r, double v);
     void DoComputeLambda(local::Robot & obj);
     void DoComputeCooc(local::Object & obj);

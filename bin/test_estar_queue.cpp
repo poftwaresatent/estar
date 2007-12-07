@@ -67,11 +67,11 @@ int main(int argc, char ** argv)
   }
   cout << "\"" << kernel_name << "\" kernel\n";
   
-  Algorithm algo(false, false, false, false, false);
-  Grid grid(algo, 4, 2, connect);
+  Grid grid(static_cast<ssize_t>(4), static_cast<ssize_t>(2), connect);
+  Algorithm algo(grid.GetCSpace(), false, false, false, false, false);
   scoped_ptr<Kernel> kernel;
   if(kernel_name == "lsm")
-    kernel.reset(new LSMKernel(grid, 1));
+    kernel.reset(new LSMKernel(grid.GetCSpace(), 1));
   else if(kernel_name == "alpha")
     kernel.reset(new AlphaKernel(1));
   else{
@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
   }
   algo.InitAllMeta(kernel->freespace_meta);
   
-  if(check && ( ! check_cspace(algo.GetCSpace(), "", cout)))
+  if(check && ( ! check_cspace(algo.GetCSpaceGraph(), "", cout)))
     exit(EXIT_FAILURE);
   
   cout << "\n==================================================\n"

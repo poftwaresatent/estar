@@ -20,7 +20,7 @@
 
 #include "graphics.hpp"
 #include "RiskMap.hpp"
-#include "Grid.hpp"
+#include "GridNode.hpp"
 #include "numeric.hpp"
 #include "Algorithm.hpp"
 #include "Kernel.hpp"
@@ -37,27 +37,6 @@ using boost::tie;
 using boost::shared_ptr;
 using std::pair;
 using std::make_pair;
-
-
-namespace local {
-  
-  /** Utility for tracing the gradient from robot to goal. */
-  struct trace_s {
-    trace_s(size_t _ix, size_t _iy, double _val,
-	    bool _ok, bool _heur, double _x, double _y)
-      : ix(_ix), iy(_iy), val(_val), ok(_ok), heur(_heur), x(_x), y(_y) { }
-    size_t ix, iy;
-    double val;
-    bool ok, heur;
-    double x, y;
-  };
-    
-  /** Utility for translating an index into coordinates. */
-  typedef pair<double, double> (*pfunc_t)(double ix, double iy);
-  
-}
-
-using namespace local;
 
 
 namespace gfx {
@@ -166,46 +145,13 @@ namespace gfx {
   }
   
   
-  static pair<double, double> p_cartesian(double ix, double iy)
-  {
-    //    return make_pair(ix + 0.5, iy + 0.5);
-    return make_pair(ix, iy);
-  }
-  
-  static pair<double, double> p_hexgrid(double ix, double iy)
-  {
-    if(absval(fmod(iy, 2) - 1) > 0.5)
-      return make_pair(ix + 0.5, hex_yscale * iy + 0.5);
-    return make_pair(ix + 1.0, hex_yscale * iy + 0.5);
-  }
-  
-  static pfunc_t get_pfunc(const Grid & grid)
-  {
-    switch(grid.connect){
-    case FOUR_CONNECTED:
-    case EIGHT_CONNECTED:
-      return p_cartesian;
-    case HEX_GRID:
-      return p_hexgrid;
-    default:
-      PDEBUG_ERR("ERROR: Invalid grid.connect %d\n", grid.connect);
-      exit(EXIT_FAILURE);
-    }
-    return 0;
-  }
-  
-  
-  void draw_grid_value(const Grid & grid, const Algorithm & algo,
+  void draw_grid_value(const GridCSpace & cspace,
+		       const Algorithm & algo,
 		       const ColorScheme * colorscheme,
  		       bool auto_scale_value)
   {
     if( ! colorscheme)
       return;
-    pfunc_t pfunc(get_pfunc(grid));
-    
-    const size_t xsize(grid.GetXSize());
-    const size_t ysize(grid.GetYSize());
-    const value_map_t & value(algo.GetValueMap());
     
     if (auto_scale_value) {
       const double delta(algo.GetLastComputedValue());
@@ -215,109 +161,92 @@ namespace gfx {
       }
       
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy){
-	  const double
-	    vv(minval(get(value, grid.Index2Vertex(ix, iy)), delta));
-	  colorscheme->Set(vv / delta);
-	  double xc, yc;
-	  tie(xc, yc) = pfunc(ix, iy);
-	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
-	}
+      for (vertex_read_iteration viter(cspace.begin());
+	   viter.not_at_end(); ++viter) {
+	const double vv(minval(cspace.GetValue(*viter), delta));
+	colorscheme->Set(vv / delta);
+	double xc, yc;
+	tie(xc, yc) = cspace.ComputePosition(*viter);
+	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+      }
     }
     else {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      for(size_t ix(0); ix < xsize; ++ix)
-	for(size_t iy(0); iy < ysize; ++iy){
-	  colorscheme->Set(get(value, grid.Index2Vertex(ix, iy)));
-	  double xc, yc;
-	  tie(xc, yc) = pfunc(ix, iy);
-	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
-	}
+      for (vertex_read_iteration viter(cspace.begin());
+	   viter.not_at_end(); ++viter) {
+	colorscheme->Set(cspace.GetValue(*viter));
+	double xc, yc;
+	tie(xc, yc) = cspace.ComputePosition(*viter);
+	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+      }
     }
   }
   
   
-  void draw_grid_rhs(const Grid & grid, const Algorithm & algo,
+  void draw_grid_rhs(const GridCSpace & cspace, const Algorithm & algo,
 		     const ColorScheme * colorscheme)
   {
     if( ! colorscheme)
       return;
-    pfunc_t pfunc(get_pfunc(grid));
-    
-    const size_t xsize(grid.GetXSize());
-    const size_t ysize(grid.GetYSize());
-    const rhs_map_t & rhs(algo.GetRhsMap());
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	colorscheme->Set(get(rhs, grid.Index2Vertex(ix, iy)));
-	double xc, yc;
-	tie(xc, yc) = pfunc(ix, iy);
-	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
-      }
+    for (vertex_read_iteration viter(cspace.begin());
+	 viter.not_at_end(); ++viter) {
+      colorscheme->Set(cspace.GetRhs(*viter));
+      double xc, yc;
+      tie(xc, yc) = cspace.ComputePosition(*viter);
+      glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+    }
   }
   
   
-  void draw_grid_risk(const Grid & grid,
+  void draw_grid_risk(const GridCSpace & cspace,
  		      const Algorithm & algo,
  		      const RiskMap & riskmap,
 		      const ColorScheme * colorscheme)
   {
     if( ! colorscheme)
       return;
-    pfunc_t pfunc(get_pfunc(grid));
-    
-    const size_t xsize(grid.GetXSize());
-    const size_t ysize(grid.GetYSize());
-    const meta_map_t & meta(algo.GetMetaMap());
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	colorscheme->
-	  Set(riskmap.MetaToRisk(get(meta, grid.Index2Vertex(ix, iy))));
- 	double xc, yc;
-	tie(xc, yc) = pfunc(ix, iy);
-	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
-      }
+    for (vertex_read_iteration viter(cspace.begin());
+	 viter.not_at_end(); ++viter) {
+      colorscheme->Set(riskmap.MetaToRisk(cspace.GetMeta(*viter)));
+      double xc, yc;
+      tie(xc, yc) = cspace.ComputePosition(*viter);
+      glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+    }
   }
   
   
-  void draw_grid_meta(const Grid & grid,
+  void draw_grid_meta(const GridCSpace & cspace,
  		      const Algorithm & algo,
 		      const Kernel & kernel,
 		      const ColorScheme * colorscheme)
   {
     if( ! colorscheme)
       return;
-    pfunc_t pfunc(get_pfunc(grid));
     
-    const size_t xsize(grid.GetXSize());
-    const size_t ysize(grid.GetYSize());
-    const meta_map_t & meta(algo.GetMetaMap());
-    const double min_meta(minval(kernel.freespace_meta, kernel.obstacle_meta));
-    const double max_meta(maxval(kernel.freespace_meta, kernel.obstacle_meta));
-    const double delta(max_meta - min_meta);
+    double const min_meta(minval(kernel.freespace_meta, kernel.obstacle_meta));
+    double const max_meta(maxval(kernel.freespace_meta, kernel.obstacle_meta));
+    double const delta(max_meta - min_meta);
     
     if(delta < epsilon)
       return;
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	colorscheme->
-	  Set(get(meta, grid.Index2Vertex(ix, iy)) / delta - min_meta);
- 	double xc, yc;
-	tie(xc, yc) = pfunc(ix, iy);
-	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
-      }
+    for (vertex_read_iteration viter(cspace.begin());
+	 viter.not_at_end(); ++viter) {
+      colorscheme->Set(cspace.GetMeta(*viter) / delta - min_meta);
+      double xc, yc;
+      tie(xc, yc) = cspace.ComputePosition(*viter);
+      glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+    }
   }
   
   
   void draw_trace(const FacadeReadInterface & facade,
-		  double robot_x, double robot_y, double goalradius,
+		  double robot_x, double robot_y,
 		  const ColorScheme * colorscheme,
 		  double fail_r, double fail_g, double fail_b)
   {
@@ -325,107 +254,41 @@ namespace gfx {
       return;
     if((robot_x < 0) || (robot_y < 0))
       return;
-    double const scale(facade.GetScale());
-    const size_t ix(static_cast<size_t>(rint(robot_x / scale)));
-    const size_t iy(static_cast<size_t>(rint(robot_y / scale)));
-    if((ix >= facade.GetXSize()) || (iy >= facade.GetYSize()))
-      return;
-    draw_trace(facade.GetGrid(), facade.GetAlgorithm(),
-	       ix, iy,
-	       scale / 2, goalradius, colorscheme,
-	       fail_r, fail_g, fail_b);
+    double const distance(estar::infinity);
+    double const stepsize(0.5 * facade.GetScale());
+    ssize_t const maxsteps(1000);
+    carrot_trace trace;
+    int const status(facade.TraceCarrot(robot_x, robot_y,
+					distance, stepsize, maxsteps,
+					trace));
+    if (status >= 0)
+      draw_trace(trace, colorscheme, fail_r, fail_g, fail_b);
   }
   
   
-  /** \note It is preferable to use estar::compute_carrot() (declared
-      in estar/util.hpp) with parameters set appropriately, this
-      function is kept only for legacy code.
-      \todo Implement tracing for hexgrids. Only recompute gradient if
-      robot index changed. */
-  void draw_trace(const Grid & grid,
-		  const Algorithm & algo,
-		  size_t robot_ix, size_t robot_iy,
-		  double stepsize, double goalradius,
-		  const ColorScheme * colorscheme,
+  void draw_trace(carrot_trace const & trace,
+		  ColorScheme const * colorscheme,
 		  double fail_r, double fail_g, double fail_b)
   {
-    if( ! colorscheme)
+    if ( ! colorscheme)
       return;
-    if((grid.connect != FOUR_CONNECTED)
-       && (grid.connect != EIGHT_CONNECTED)){
-      PDEBUG("TODO: Implement tracing for hexgrids!\n");
+    if (trace.size() < 2)
       return;
+    
+    carrot_trace::const_iterator icarrot(trace.begin());
+    double const startval(icarrot->value);
+    
+    glBegin(GL_POINTS);
+    glPointSize(1);
+    for (/**/; icarrot != trace.end(); ++icarrot) {
+      colorscheme->Set(icarrot->value / startval);
+      if (icarrot->degenerate)
+	glColor3d(fail_r, fail_g, fail_b);
+      else
+	colorscheme->Set(icarrot->value / startval);
+      glVertex2d(icarrot->cx, icarrot->cy);
     }
-    
-    const value_map_t & value(algo.GetValueMap());
-    const size_t max_ix(grid.GetXSize() - 1);
-    const size_t max_iy(grid.GetYSize() - 1);
-    const double startval(get(value, grid.Index2Vertex(robot_ix, robot_iy)));
-    
-    PVDEBUG("\n"
-	    "  robot: (%lu, %lu)\n"
-	    "  initial val: %2e\n"
-	    "  stepsize: %f\n"
-	    "  goalradius: %f\n",
-	    robot_ix, robot_iy, startval, stepsize,
-	    goalradius);
-    
-    typedef std::vector<struct trace_s> trace_t;
-    trace_t trace;
-    
-    {
-      size_t rix(robot_ix);
-      size_t riy(robot_iy);
-      double rx(rix);
-      double ry(riy);
-      double val(startval);
-      for(int i(0); (i < 100000) && (val > goalradius); ++i){
-	double gx, gy;
-	const bool ok(grid.ComputeGradient(rix, riy, gx, gy));
-	bool heur(false);
-	if(ok){
-	  const double scale(stepsize / (sqrt(square(gx) + square(gy))));
-	  if(scale < epsilon)
-	    heur = true;
-	  else{
-	    rx -= gx * scale;
-	    ry -= gy * scale;
-	  }
-	}
-	if(heur || ( ! ok)){
-	  if(gx > 0)      rx -= stepsize / 2;
-	  else if(gx < 0) rx += stepsize / 2;
-	  if(gy > 0)      ry -= stepsize / 2;
-	  else if(gy < 0) ry += stepsize / 2;
-	}
-	rix = boundval<size_t>(0, static_cast<size_t>(rint(rx)), max_ix);
-	riy = boundval<size_t>(0, static_cast<size_t>(rint(ry)), max_iy);
-	val = get(value, grid.Index2Vertex(rix, riy));
-	trace.push_back(trace_s(rix, riy, val, ok, heur, rx, ry));
-	
-	PVDEBUG(" -(%5.2f, %5.2f) ==> (%5.2f, %5.2f) [%lu, %lu] @ %2e\n",
-		gx, gy, rx, ry, rix, riy, val);
-      }
-    }
-    
-    {
-      pfunc_t pfunc(get_pfunc(grid));
-      glBegin(GL_POINTS);
-      colorscheme->Set(0);
-      glPointSize(1);
-      double rx, ry;
-      tie(rx, ry) = pfunc(robot_ix, robot_iy);
-      glVertex2d(rx, ry);
-      for(trace_t::const_iterator it(trace.begin()); it != trace.end(); ++it){
-	if(it->ok && ( ! it->heur))
-	  colorscheme->Set(it->val / startval);
-	else
-	  glColor3d(fail_r, fail_g, fail_b);
-	tie(rx, ry) = pfunc(it->x, it->y);
-	glVertex2d(rx, ry);
-      }
-      glEnd();
-    }
+    glEnd();
   }
   
   
@@ -434,8 +297,8 @@ namespace gfx {
   {
     if( ! colorscheme)
       return;
-    draw_grid_meta(facade.GetGrid(), facade.GetAlgorithm(), facade.GetKernel(),
-		   colorscheme);
+    draw_grid_meta(*facade.GetCSpace(), facade.GetAlgorithm(),
+		   facade.GetKernel(), colorscheme);
   }
   
   
@@ -443,27 +306,23 @@ namespace gfx {
 			   double red, double green, double blue,
 			   bool fill_cells)
   {
-    const Grid & grid(facade.GetGrid());
-    const Algorithm & algo(facade.GetAlgorithm());
-    const Kernel & kernel(facade.GetKernel());
-    
-    pfunc_t pfunc(get_pfunc(grid));
-    const size_t xsize(grid.GetXSize());
-    const size_t ysize(grid.GetYSize());
-    const meta_map_t & meta(algo.GetMetaMap());
+    GridCSpace const & cspace(*facade.GetCSpace());
+    double const obstacle_meta(facade.GetKernel().obstacle_meta);
     
     glColor3d(red, green, blue);
     if (fill_cells)
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     else
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy)
-	if(get(meta, grid.Index2Vertex(ix, iy)) == kernel.obstacle_meta){
-	  double xc, yc;
-	  tie(xc, yc) = pfunc(ix, iy);
-	  glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
-	}
+    
+    for (vertex_read_iteration viter(cspace.begin());
+	 viter.not_at_end(); ++viter) {
+      if (obstacle_meta == cspace.GetMeta(*viter)) {
+	double xc, yc;
+	tie(xc, yc) = cspace.ComputePosition(*viter);
+	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+      }
+    }
   }
   
   
@@ -473,7 +332,7 @@ namespace gfx {
   {
     if( ! colorscheme)
       return;
-    draw_grid_value(facade.GetGrid(), facade.GetAlgorithm(),
+    draw_grid_value(*facade.GetCSpace(), facade.GetAlgorithm(),
 		    colorscheme, auto_scale_value);
   }
   
@@ -483,12 +342,12 @@ namespace gfx {
   {
     if( ! colorscheme)
       return;
-    draw_grid_rhs(facade.GetGrid(), facade.GetAlgorithm(), colorscheme);
+    draw_grid_rhs(*facade.GetCSpace(), facade.GetAlgorithm(), colorscheme);
   }
   
   
   void draw_array(const array<double> & grid,
-		  size_t x0, size_t y0, size_t x1, size_t y1,
+		  ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		  double lower, double upper,
 		  const ColorScheme * colorscheme)
   {
@@ -500,29 +359,26 @@ namespace gfx {
       return;
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    for(size_t ix(x0); ix <= x1; ++ix)
-      for(size_t iy(y0); iy <= y1; ++iy){
+    for(ssize_t ix(x0); ix <= x1; ++ix)
+      for(ssize_t iy(y0); iy <= y1; ++iy){
 	colorscheme->Set(boundval(0.0, (grid[ix][iy] - lower) / delta, 1.0));
 	glRectd(ix, iy, ix + 1, iy + 1);
       }
   }
 
 
-  void draw_grid_queue(const Grid & grid,
+  void draw_grid_queue(const GridCSpace & cspace,
 		       const Algorithm & algo)
   {
-    const flag_map_t & flag(algo.GetFlagMap());
-    const value_map_t & value(algo.GetValueMap());
-    const rhs_map_t & rhs(algo.GetRhsMap());
-    const queue_t & queue(algo.GetQueue().Get());
-    pfunc_t pfunc(get_pfunc(grid));
+    queue_t const & queue(algo.GetQueue().Get());
+    
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1);
     for(const_queue_it iq(queue.begin()); iq != queue.end(); ++iq){
-      const vertex_t vertex(iq->second);
-      const double delta(get(rhs, vertex) - get(value, vertex));
+      vertex_t const vertex(iq->second);
+      double const delta(cspace.GetRhs(vertex) - cspace.GetValue(vertex));
       double rim(0);
-      switch(get(flag, vertex)){
+      switch (cspace.GetFlag(vertex)) {
       case OPEN:
 	if (absval(delta) < epsilon) { // same, shouldn't be queued
 	  rim = 0.2;
@@ -540,7 +396,7 @@ namespace gfx {
 	  rim = 0.2;
 	  glColor3d(1, 1, 0.5);
 	}
-	else if (get(rhs, vertex) > get(value, vertex))
+	else if (cspace.GetRhs(vertex) > cspace.GetValue(vertex))
 	  glColor3d(0.5, 1, 1);
 	else {
 	  rim = 0.1;
@@ -548,12 +404,11 @@ namespace gfx {
 	}
 	break;
       default:
-	PVDEBUG("i: %d   f: %s\n", vertex, flag_name(get(flag, vertex)));
+	PVDEBUG("i: %d   f: %s\n", vertex, flag_name(cspace.GetFlag(vertex)));
 	continue;
       }
-      const GridNode & gn(grid.Vertex2Node(vertex));
       double xc, yc;
-      tie(xc, yc) = pfunc(gn.ix, gn.iy);
+      tie(xc, yc) = cspace.ComputePosition(vertex);
       glRectd(xc - 0.5 + rim, yc - 0.5 + rim,
 	      xc + 0.5 - rim, yc + 0.5 - rim);
     }
@@ -562,7 +417,7 @@ namespace gfx {
   
   void draw_grid_queue(const estar::FacadeReadInterface & facade)
   {
-    draw_grid_queue(facade.GetGrid(), facade.GetAlgorithm());
+    draw_grid_queue(*facade.GetCSpace(), facade.GetAlgorithm());
   }
   
   
@@ -570,30 +425,29 @@ namespace gfx {
 			double red, double green, double blue,
 			double linewidth)
   {
-    draw_grid_upwind(facade.GetGrid(), facade.GetAlgorithm(),
+    draw_grid_upwind(*facade.GetCSpace(), facade.GetAlgorithm(),
 		     red, green, blue, linewidth);
   }
   
   
-  void draw_grid_upwind(const Grid & grid,
+  void draw_grid_upwind(const GridCSpace & cspace,
 			const Algorithm & algo,
 			double red, double green, double blue,
 			double linewidth)
   {
-    pfunc_t pfunc(get_pfunc(grid));
-    const Upwind::map_t & uwm(algo.GetUpwind().GetMap());
+    Upwind::map_t const & uwm(algo.GetUpwind().GetMap());
+
     glBegin(GL_LINES);
     glColor3d(red, green, blue);
     glLineWidth(linewidth);
+
     for(Upwind::map_t::const_iterator iu(uwm.begin()); iu != uwm.end(); ++iu){
-      const GridNode & from(grid.Vertex2Node(iu->first));
-      const Upwind::set_t & ts(iu->second);
       double xf, yf;
-      tie(xf, yf) = pfunc(from.ix, from.iy);
+      tie(xf, yf) = cspace.ComputePosition(iu->first);
+      const Upwind::set_t & ts(iu->second);
       for(Upwind::set_t::const_iterator it(ts.begin()); it != ts.end(); ++it){
-	const GridNode & to(grid.Vertex2Node(*it));
 	double xt, yt;
-	tie(xt, yt) = pfunc(to.ix, to.iy);
+	tie(xt, yt) = cspace.ComputePosition(*it);
 	glVertex2d(0.5 * (xf + xt), 0.5 * (yf + yt));
 	glVertex2d(xt, yt);
       }
@@ -602,28 +456,22 @@ namespace gfx {
   }
   
   
-  void draw_grid_connect(const Grid & grid,
+  void draw_grid_connect(const GridCSpace & cspace,
 			 const Algorithm & algo,
 			 double red, double green, double blue,
 			 double linewidth)
   {
-    pfunc_t pfunc(get_pfunc(grid));
-    const cspace_t & cspace(algo.GetCSpace());
     glBegin(GL_LINES);
     glColor3d(red, green, blue);
     glLineWidth(linewidth);
-    vertex_it iv, vend;
-    tie(iv, vend) = vertices(cspace);
-    for(/**/; iv != vend; ++iv){
-      const GridNode & from(grid.Vertex2Node(*iv));
+    for (vertex_read_iteration viter(cspace.begin());
+	 viter.not_at_end(); ++viter) {
       double xf, yf;
-      tie(xf, yf) = pfunc(from.ix, from.iy);
-      boost::graph_traits<cspace_t>::adjacency_iterator ia, aend;
-      tie(ia, aend) = adjacent_vertices(*iv, cspace);
-      for(/**/; ia != aend; ++ia){
-	const GridNode & to(grid.Vertex2Node(*ia));
+      tie(xf, yf) = cspace.ComputePosition(*viter);
+      for (edge_read_iteration eiter(cspace.begin(*viter));
+	   eiter.not_at_end(); ++eiter) {
 	double xt, yt;
-	tie(xt, yt) = pfunc(to.ix, to.iy);
+	tie(xt, yt) = cspace.ComputePosition(*eiter);
 	glVertex2d(xf, yf);
 	glVertex2d(xt, yt);
       }
@@ -635,39 +483,14 @@ namespace gfx {
   void get_grid_bbox(const estar::FacadeReadInterface & facade,
 		     double & x0, double & y0, double & x1, double & y1)
   {
-    get_grid_bbox(facade.GetGrid() , x0, y0, x1, y1);
+    get_grid_bbox(*facade.GetCSpace() , x0, y0, x1, y1);
   }
   
   
-  void get_grid_bbox(const Grid & grid,
+  void get_grid_bbox(const GridCSpace & cspace,
 		     double & x0, double & y0, double & x1, double & y1)
   {
-    switch(grid.connect){
-    case FOUR_CONNECTED:
-    case EIGHT_CONNECTED:
-//       x0 = 0;
-//       y0 = 0;
-//       x1 = grid.xsize;
-//       y1 = grid.ysize;
-      x0 = -0.5;
-      y0 = -0.5;
-      x1 = grid.xsize - 0.5;
-      y1 = grid.ysize - 0.5;
-      break;
-    case HEX_GRID:
-      x0 = 0;
-      y0 = 0;
-      x1 = grid.xsize + 0.5;
-      y1 = hex_yscale * (grid.ysize - 1) + 1;
-      break;
-    default:
-      PDEBUG_ERR("ERROR: Invalid grid.connect %d\n", grid.connect);
-      exit(EXIT_FAILURE);
-    }
-    PVDEBUG("%s size (%lu, %lu) bbox (%g, %g, %g, %g)\n",
-	    grid.connect == FOUR_CONNECTED
-	    ? "FOUR" : (grid.connect == EIGHT_CONNECTED ? "EIGHT" : "HEX"),
-	    grid.xsize, grid.ysize, x0, y0, x1, y1);
+    cspace.ComputeBBox(x0, y0, x1, y1);
   }
   
   
@@ -685,29 +508,25 @@ namespace gfx {
 
   void draw_grid_status(const estar::FacadeReadInterface & facade)
   {
-    const Grid & grid(facade.GetGrid());
-    pfunc_t pfunc(get_pfunc(grid));
-    const size_t xsize(grid.GetXSize());
-    const size_t ysize(grid.GetYSize());
+    GridCSpace const & cspace(*facade.GetCSpace());
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    for(size_t ix(0); ix < xsize; ++ix)
-      for(size_t iy(0); iy < ysize; ++iy){
-	const FacadeReadInterface::node_status_t
-	  nstat(facade.GetStatus(ix, iy));
-	switch(nstat){
-	case FacadeReadInterface::UPWIND:    glColor3d(0, 0,   1); break;
-	case FacadeReadInterface::DOWNWIND:  glColor3d(1, 0.5, 0); break;
-	case FacadeReadInterface::WAVEFRONT: glColor3d(1, 0,   0); break;
-	case FacadeReadInterface::GOAL:      glColor3d(0, 1,   0); break;
-	case FacadeReadInterface::OBSTACLE:  glColor3d(1, 0,   1); break;
-	case FacadeReadInterface::OUT_OF_GRID:
-	default:
-	  continue;
-	}
-	double xc, yc;
-	tie(xc, yc) = pfunc(ix, iy);
-	glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+    for (vertex_read_iteration viter(cspace.begin());
+	 viter.not_at_end(); ++viter) {
+      const FacadeReadInterface::node_status_t nstat(facade.GetStatus(*viter));
+      switch (nstat) {
+      case FacadeReadInterface::UPWIND:    glColor3d(0, 0,   1); break;
+      case FacadeReadInterface::DOWNWIND:  glColor3d(1, 0.5, 0); break;
+      case FacadeReadInterface::WAVEFRONT: glColor3d(1, 0,   0); break;
+      case FacadeReadInterface::GOAL:      glColor3d(0, 1,   0); break;
+      case FacadeReadInterface::OBSTACLE:  glColor3d(1, 0,   1); break;
+      case FacadeReadInterface::OUT_OF_GRID:
+      default:
+	continue;
       }
+      double xc, yc;
+      tie(xc, yc) = cspace.ComputePosition(*viter);
+      glRectd(xc - 0.5, yc - 0.5, xc + 0.5, yc + 0.5);
+    }
   }
   
 }

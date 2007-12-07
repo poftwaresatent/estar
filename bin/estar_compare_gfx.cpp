@@ -235,9 +235,9 @@ void motion(int x, int y)
 
 
 struct goal_s {
-  goal_s(size_t _x, size_t _y, double _v)
+  goal_s(ssize_t _x, ssize_t _y, double _v)
     : x(_x), y(_y), v(_v) {}
-  size_t x, y;
+  ssize_t x, y;
   double v;
 };
 
@@ -596,9 +596,8 @@ void create_viewports()
     cerr << "ERROR in create_viewports(): no comparison\n";
     exit(EXIT_FAILURE);
   }
-  Grid const & grid(comparison->GetMaster()->GetGrid());
   double x0, y0, x1, y1;
-  get_grid_bbox(grid, x0, y0, x1, y1);
+  get_grid_bbox(*comparison->GetMaster()->GetCSpace(), x0, y0, x1, y1);
   static bb_t const realbb(x0, y0, x1, y1);
   viewport["master"].
     reset(new Viewport("master",     realbb, bb_t(0.0, 0.5, 0.5, 1.0)));
