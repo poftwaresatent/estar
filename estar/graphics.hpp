@@ -23,12 +23,11 @@
 
 
 #include <estar/util.hpp>
-#include <stddef.h>
+#include <estar/FacadeReadInterface.hpp>
 
 
 namespace estar {
 
-  class FacadeReadInterface;
   class GridCSpace;
   class Algorithm;
   class RiskMap;

@@ -22,9 +22,7 @@
 #define ESTAR_UTIL_HPP
 
 
-#include <estar/FacadeReadInterface.hpp>
 #include <boost/scoped_array.hpp>
-#include <vector>
 
 
 namespace estar {
