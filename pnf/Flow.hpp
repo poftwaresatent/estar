@@ -38,6 +38,7 @@ namespace estar {
   class RiskMap;
   class Sprite;
   class Region;
+  class Grid;
 }
 
 
