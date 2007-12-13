@@ -58,30 +58,11 @@ namespace estar {
     operator()(double ix, double iy) const = 0;
   };
   
-  struct grid_postransform_cartesian: public grid_postransform {
-    virtual std::pair<double, double> operator()(double ix, double iy) const;
-  };
-  
-  struct grid_postransform_hexgrid: public grid_postransform {
-    virtual std::pair<double, double> operator()(double ix, double iy) const;
-  };
-  
   
   struct grid_bbox_compute {
     virtual ~grid_bbox_compute() {}
     virtual void operator()(double & x0, double & y0,
 			    double & x1, double & y1) const = 0;
-  };
-
-  struct grid_bbox_compute_fixed: public grid_bbox_compute {
-    grid_bbox_compute_fixed(double _x0, double _y0, double _x1, double _y1)
-      : x0(_x0), y0(_y0), x1(_x1), y1(_y1) {}
-    
-    virtual void operator()(double & _x0, double & _y0,
-			    double & _x1, double & _y1) const
-    { _x0 = x0; _y0 = y0; _x1 = x1; _y1 = y1; }
-    
-    double x0, y0, x1, y1;
   };
   
   

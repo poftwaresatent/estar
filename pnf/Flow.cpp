@@ -58,6 +58,7 @@ using estar::dump_probabilities;
 using estar::RiskMap;
 using estar::array;
 using estar::infinity;
+using estar::GridNode;
 using boost::shared_ptr;
 using boost::scoped_ptr;
 using std::make_pair;
@@ -122,14 +123,20 @@ namespace pnf {
       half_diagonal(0.707106781187 * _resolution), // sqrt(1/2)
       perform_convolution(_perform_convolution),
       alternate_worst_case(_alternate_worst_case),
-      m_envdist(Facade::Create("lsm", _xsize, _ysize, _resolution,
-			       estar::FacadeOptions(), 0)),
+      m_envdist(Facade::Create("lsm",
+			       _resolution,
+			       estar::GridOptions(0, _xsize, 0, _ysize),
+			       estar::AlgorithmOptions(),
+			       0)),
       // m_robot invalid until SetRobot()
       // m_object to be populated by SetDynamicObject()
       // m_risk invalid until ComputeRisk()
-      m_pnf(Facade::Create("lsm", _xsize, _ysize, _resolution,
-			   estar::FacadeOptions(), 0))
-      // m_goal invalid until SetGoal()
+      m_pnf(Facade::Create("lsm",
+			   _resolution,
+			   estar::GridOptions(0, _xsize, 0, _ysize),
+			   estar::AlgorithmOptions(),
+			   0))
+    // m_goal invalid until SetGoal()
   {
   }
   
@@ -173,13 +180,16 @@ namespace pnf {
   {
     const double region_radius(r - half_diagonal);
     shared_ptr<Region>
-      region(new Region(region_radius, resolution, x, y, xsize, ysize));
+      region(new Region(region_radius, resolution, x, y, 0, xsize, 0, ysize));
     if(region->GetArea().empty())
       return false;
     
     shared_ptr<Facade>
-      dist(Facade::Create("lsm", xsize, ysize, resolution,
-			  estar::FacadeOptions(), 0));
+      dist(Facade::Create("lsm",
+			  resolution,
+			  estar::GridOptions(0, xsize, 0, ysize),
+			  estar::AlgorithmOptions(),
+			  0));
     BOOST_ASSERT( dist );
     const double object_radius(r + half_diagonal);
     shared_ptr<Object>
@@ -208,13 +218,16 @@ namespace pnf {
   {
     const double region_radius(r - half_diagonal);
     shared_ptr<Region>
-      region(new Region(region_radius, resolution, x, y, xsize, ysize));
+      region(new Region(region_radius, resolution, x, y, 0, xsize, 0, ysize));
     if(region->GetArea().empty())
       return false;		// actually already checked by caller...
     
     shared_ptr<Facade>
-      dist(Facade::Create("lsm", xsize, ysize, resolution,
-			  estar::FacadeOptions(), 0));
+      dist(Facade::Create("lsm",
+			  resolution,
+			  estar::GridOptions(0, xsize, 0, ysize),
+			  estar::AlgorithmOptions(),
+			  0));
     BOOST_ASSERT( dist );
     const double robot_radius(r + half_diagonal);
     m_robot.reset(new Robot(robot_radius, v, region, dist, xsize, ysize));
@@ -388,8 +401,9 @@ namespace pnf {
   DoComputeLambda(Robot & obj)
   {
     const Sprite::indexlist_t & area(obj.region->GetSprite().GetArea());
-    const value_map_t & objdist(obj.dist->GetAlgorithm().GetValueMap());
-    const Grid & objgrid(obj.dist->GetGrid());
+    ////const value_map_t & objdist(obj.dist->GetAlgorithm().GetValueMap());
+    shared_ptr<Grid const> objgrid(obj.dist->GetGrid());
+    shared_ptr<GridCSpace const> objcspace(obj.dist->GetCSpace());
     obj.max_lambda = -1;	// could be more paranoid...
     for(ssize_t ix(0); ix < xsize; ++ix)
       for(ssize_t iy(0); iy < ysize; ++iy){
@@ -401,9 +415,12 @@ namespace pnf {
 	  const ssize_t jy(iy + area[ia].y);
 	  if((jy < 0) || (jy >= ysize))
 	    continue;
-	  const double ll(get(objdist, objgrid.Index2Vertex(jx, jy)));
-	  if(ll < lambda)
-	    lambda = ll;
+	  shared_ptr<GridNode const> node(objgrid->GetNode(jx, jy));
+	  if (node) {
+	    double const ll(objcspace->GetValue(node->vertex));
+	    if(ll < lambda)
+	      lambda = ll;
+	  }
 	}
 	(*obj.lambda)[ix][iy] = lambda;
 	if((lambda < infinity) && (lambda > obj.max_lambda))
@@ -636,7 +653,8 @@ namespace pnf {
   {
     if(m_goal)
       m_pnf->RemoveGoal(*m_goal);
-    scoped_ptr<Region> goal(new Region(r, resolution, x, y, xsize, ysize));
+    scoped_ptr<Region>
+      goal(new Region(r, resolution, x, y, 0, xsize, 0, ysize));
     if(goal->GetArea().empty()){
       PVDEBUG("WARNING: empty goal area, treated like invalid goal!\n");
       m_goal.reset();
@@ -855,7 +873,7 @@ namespace pnf {
   }
   
   
-  const estar::Grid & Flow::
+  boost::shared_ptr<estar::Grid const> Flow::
   GetEnvdistGrid() const
   {
     return m_envdist->GetGrid();

@@ -51,10 +51,10 @@ namespace estar {
 	   double x0,
 	   /** y-coordinate of where the sprite's center should be located */
 	   double y0,
-	   /** x-dimension of the underlying grid */
-	   ssize_t xsize,
-	   /** y-dimension of the underlying grid */
-	   ssize_t ysize);
+	   ssize_t xbegin,
+	   ssize_t xend,
+	   ssize_t ybegin,
+	   ssize_t yend);
     
     /** Create a region instance by creating a circular sprite. */
     Region(/** radius of the disk */
@@ -65,10 +65,10 @@ namespace estar {
 	   double x0,
 	   /** y-coordinate of the disk center */
 	   double y0,
-	   /** x-dimension of the underlying grid */
-	   ssize_t xsize,
-	   /** y-dimension of the underlying grid */
-	   ssize_t ysize);
+	   ssize_t xbegin,
+	   ssize_t xend,
+	   ssize_t ybegin,
+	   ssize_t yend);
     
     const Sprite & GetSprite() const { return * m_sprite; }
     const indexlist_t & GetBorder() const { return m_border; }
@@ -80,7 +80,9 @@ namespace estar {
     indexlist_t m_area;
     
     void Init(double radius, double scale,
-	      double x0, double y0, ssize_t xsize, ssize_t ysize);
+	      double x0, double y0,
+	      ssize_t xbegin, ssize_t xend,
+	      ssize_t ybegin, ssize_t yend);
   };
   
 }

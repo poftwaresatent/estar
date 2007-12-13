@@ -25,6 +25,7 @@
 #include <estar/FacadeWriteInterface.hpp>
 #include <estar/FacadeReadInterface.hpp>
 #include <estar/CSpace.hpp>
+#include <estar/Grid.hpp>
 #include <boost/shared_ptr.hpp>
 #include <string>
 #include <iosfwd>
@@ -39,49 +40,37 @@ namespace estar {
   
   
   class Region;
-  class Supergrid;
   
   
-  class FacadeOptions
+  class GridOptions
   {
   public:
-    /** Default: FOUR_CONNECTED grid, no special propagator checks, no
+    GridOptions(ssize_t xbegin, ssize_t xend,
+		ssize_t ybegin, ssize_t yend,
+		double init_meta = 0,
+		Grid::neighborhood_t neighborhood = Grid::FOUR);
+    
+    ssize_t xbegin, xend, ybegin, yend;
+    double init_meta;
+    
+    /** For the preferred LSMKernel, you should set this to
+	Grid::FOUR. */
+    Grid::neighborhood_t neighborhood;
+  };
+  
+  
+  class AlgorithmOptions
+  {
+  public:
+    /** Default: no special propagator checks, no
 	automatic resets or flushing. */
-    FacadeOptions()
-      : connect_diagonal(false),
-	check_upwind(false),
-	check_local_consistency(false),
-	check_queue_key(false),
-	auto_reset(false),
-	auto_flush(false)
-    {}
+    AlgorithmOptions();
     
-    FacadeOptions(/** See connect_diagonal and Grid ctor. */
-		  bool _connect_diagonal,
-		  /** See check_upwind and Algorithm ctor. */
-		  bool _check_upwind,
-		  /** See check_local_consistency and Algorithm ctor. */
-		  bool _check_local_consistency,
-		  /** See check_queue_key and Algorithm ctor. */
-		  bool _check_queue_key,
-		  /** See auto_reset and Algorithm ctor. */
-		  bool _auto_reset,
-		  /** See auto_flush and Algorithm ctor. */
-		  bool _auto_flush)
-      : connect_diagonal(_connect_diagonal),
-	check_upwind(_check_upwind),
-	check_local_consistency(_check_local_consistency),
-	check_queue_key(_check_queue_key),
-	auto_reset(_auto_reset),
-	auto_flush(_auto_flush)
-    {}
-    
-    /** Whether to create a EIGHT_CONNECTED or FOUR_CONNECTED Grid
-	(see enum connectedness_t). If true, then the grid will be
-	8-connected, which might be appropriate in some
-	cases. However, for the preferred LSMKernel, you should set
-	this to false in order to create a 4-connected grid.*/
-    bool connect_diagonal;
+    AlgorithmOptions(bool check_upwind,
+		     bool check_local_consistency,
+		     bool check_queue_key,
+		     bool auto_reset,
+		     bool auto_flush);
     
     /** Whether to check the upwind structure when computing the
 	propagator set of a node. Passed to PropagatorFactory ctor via
@@ -189,13 +178,9 @@ namespace estar {
 	       "nf1" for NF1Kernel, "alpha" for AlphaKernel, and "lsm"
 	       for LSMKernel. The latter is preferred. */
 	   const std::string & kernel_name,
-	   /** dimension along X of the grid */
-	   ssize_t xsize,
-	   /** dimension along Y of the grid */
-	   ssize_t ysize,
-	   /** size of the square grid cells */
 	   double scale,
-	   FacadeOptions const & options,
+	   GridOptions const & grid_options,
+	   AlgorithmOptions const & algo_options,
 	   /** If non-null, error messages are written to this
 	       stream. This currently only happens when you specify an
 	       invalid kernel_name. */
@@ -203,7 +188,7 @@ namespace estar {
     
     /** Like Create(), but doesn't give you a choice of Kernel (it's
 	always LSMKernel) or of diagonally connected cells (that's
-	always disabled). It uses the default FacadeOptions ctor. */
+	always disabled). It uses the default AlgorithmOptions ctor. */
     static Facade *
     CreateDefault(ssize_t xsize, ssize_t ysize, double scale);
     
@@ -251,12 +236,7 @@ namespace estar {
        Implements FacadeWriteInterface::SetMeta(). See also
        Algorithm::SetMeta() for more details.
     */
-    virtual void SetMeta(ssize_t ix, ssize_t iy, double meta);
-    
-    /**
-       Implements FacadeWriteInterface::InitMeta().
-    */
-    virtual void InitMeta(ssize_t ix, ssize_t iy, double meta);
+    virtual bool SetMeta(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeWriteInterface::AddGoal().
@@ -264,11 +244,13 @@ namespace estar {
        \note Unlike AddGoal(const Region &), obstacle vertices are not
        ignored.
     */
-    virtual void AddGoal(ssize_t ix, ssize_t iy, double value);
+    virtual bool AddGoal(ssize_t ix, ssize_t iy, double value);
     
     /**
-       An alternative to AddGoal(ssize_t, ssize_t, double) which ignores
-       obstacles [vertices with meta equal to GetObstacleMeta()].
+       An alternative to AddGoal(ssize_t, ssize_t, double) which
+       ignores obstacles [vertices with meta equal to
+       GetObstacleMeta()] and doesn't tell us if it encountered any
+       invalid indices.
        
        \note FacadeWriteInterface has no corresponding abstract method.
     */
@@ -328,14 +310,14 @@ namespace estar {
        Implements FacadeReadInterface::IsValidIndex().
     */
     virtual bool IsValidIndex(ssize_t ix, ssize_t iy) const;
-
+    
     /**
        Implements FacadeReadInterface::GetLowestInconsistentValue().
     */
     virtual bool GetLowestInconsistentValue(double & value) const;
     
     /**
-       Write the underlying Grid to a stream. Actually just calls
+       Write the underlying grid to a stream. Actually just calls
        dump_grid() in dump.hpp, so if you want finer control have a
        look at what else is offered there.
     */
@@ -368,9 +350,9 @@ namespace estar {
     friend class pnf::Flow;
     
     /**
-       Implements FacadeReadInterface::GetGrid().
+       \note this is a hack for legacy code, don't rely on it
     */
-    virtual const Grid & GetGrid() const;
+    virtual boost::shared_ptr<Grid const> GetGrid() const;
   public:
     
     /**
@@ -409,11 +391,11 @@ namespace estar {
        once you're done.
     */
     Kernel & GetKernel() { return * m_kernel; }
-
+    
   private:
     boost::shared_ptr<GridCSpace const> m_cspace;
     boost::shared_ptr<Algorithm> m_algo;
-    boost::shared_ptr<Supergrid> m_supergrid;
+    boost::shared_ptr<Grid> m_grid;
     boost::shared_ptr<Kernel> m_kernel;
     
     node_status_t DoGetStatus(ssize_t ix, ssize_t iy, vertex_t vertex) const;

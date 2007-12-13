@@ -31,7 +31,8 @@ namespace estar {
   
   class FacadeReadInterface;
   class Facade;
-  class FacadeOptions;
+  class AlgorithmOptions;
+  class GridOptions;
   
   
   class ComparisonFacade
@@ -48,12 +49,13 @@ namespace estar {
     */
     static boost::shared_ptr<ComparisonFacade>
     Create(const std::string & master_kernel_name,
-	   FacadeOptions const & master_options,
+	   double master_scale,
+	   GridOptions const & master_grid_options,
+	   AlgorithmOptions const & master_algo_options,
 	   const std::string & sample_kernel_name,
-	   FacadeOptions const & sample_options,
-	   ssize_t xsize,
-	   ssize_t ysize,
-	   double scale,
+	   double sample_scale,
+	   GridOptions const & sample_grid_options,
+	   AlgorithmOptions const & sample_algo_options,
 	   FILE * dbgstream);
     
     /**
@@ -81,20 +83,20 @@ namespace estar {
        on both master and sample. Flags the master for reset if the
        meta is actually changed.
     */
-    virtual void SetMeta(ssize_t ix, ssize_t iy, double meta);
+    virtual bool SetMeta(ssize_t ix, ssize_t iy, double meta);
     
-    /**
-       Implements FacadeWriteInterface::InitMeta() by initializing the
-       meta on both master and sample.
-    */
-    virtual void InitMeta(ssize_t ix, ssize_t iy, double meta);
+//     /**
+//        Implements FacadeWriteInterface::InitMeta() by initializing the
+//        meta on both master and sample.
+//     */
+//     virtual void InitMeta(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeWriteInterface::AddGoal() by adding the goal
        to both master and sample, and flagging the master for reset
        (unless the cell was already a goal with the same value).
     */
-    virtual void AddGoal(ssize_t ix, ssize_t iy, double value);
+    virtual bool AddGoal(ssize_t ix, ssize_t iy, double value);
     
     /**
        Implements FacadeWriteInterface::RemoveAllGoals() by removing

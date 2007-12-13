@@ -58,54 +58,63 @@ int main(int argc, char ** argv)
       cout << "don't understand arg \"" << arg << "\"\n";
   }
   
-#define TEST_CASE 6
-  cout << "init test case " << TEST_CASE << "\n";
-
-#if TEST_CASE == 1
-  Grid grid(5, 3, EIGHT_CONNECTED);
-  AlphaKernel kernel(1);
-
-#elif TEST_CASE == 2
-  Grid grid(5, 3, FOUR_CONNECTED);
-  NF1Kernel kernel;
-
-#elif TEST_CASE == 3
-  Grid grid(5, 3, FOUR_CONNECTED);
-  AlphaKernel kernel(1);
-
-#elif TEST_CASE == 4
-  Grid grid(5, 3, FOUR_CONNECTED);
-  LSMKernel kernel(grid, 1);
-
-#elif TEST_CASE == 5
-  Grid grid(500, 300, FOUR_CONNECTED);
-  LSMKernel kernel(grid, 1);
-  skip_input = true;
-  skip_output = true;
-
-#elif TEST_CASE == 6
-  Grid grid(static_cast<ssize_t>(5), static_cast<ssize_t>(3), HEX_GRID);
-  AlphaKernel kernel(1);
-
-#else
-#error "illegal TEST_CASE"
-#endif
+  int const test_case(6);
+  cout << "test case " << test_case << "\n";
   
-  Algorithm algo(grid.GetCSpace(), false, false, false, false, false);
+  shared_ptr<Grid> grid;
+  shared_ptr<Kernel> kernel;
+  if (1 == test_case) {
+    grid.reset(new Grid(Grid::EIGHT));
+    kernel.reset(new AlphaKernel(1));
+    grid->Init(0, 5, 0, 3, kernel->freespace_meta);
+  }
+  else if (2 == test_case) {
+    grid.reset(new Grid(Grid::FOUR));
+    kernel.reset(new NF1Kernel());
+    grid->Init(0, 5, 0, 3, kernel->freespace_meta);
+  }
+  else if (3 == test_case) {
+    grid.reset(new Grid(Grid::FOUR));
+    kernel.reset(new AlphaKernel(1));
+    grid->Init(0, 5, 0, 3, kernel->freespace_meta);
+  }
+  else if (4 == test_case) {
+    grid.reset(new Grid(Grid::FOUR));
+    kernel.reset(new LSMKernel(grid->GetCSpace(), 1));
+    grid->Init(0, 5, 0, 3, kernel->freespace_meta);
+  }
+  else if (5 == test_case) {
+    grid.reset(new Grid(Grid::FOUR));
+    kernel.reset(new LSMKernel(grid->GetCSpace(), 1));
+    grid->Init(0, 500, 0, 300, kernel->freespace_meta);
+    skip_input = true;
+    skip_output = true;
+  }
+  else if (6 == test_case) {
+    grid.reset(new Grid(Grid::SIX));
+    kernel.reset(new AlphaKernel(1));
+    grid->Init(0, 5, 0, 3, kernel->freespace_meta);
+  }
+  else {
+    cerr << "invalid test_case " << test_case << "\n";
+    exit(EXIT_FAILURE);
+  }
+  
+  Algorithm algo(grid->GetCSpace(), false, false, false, false, false);
   
   if( ! skip_input){
     cout << "checking cspace\n";
     ostringstream os;
     if( ! check_cspace(algo.GetCSpaceGraph(), "", os)){
-      dump_grid(grid, stdout);
+      dump_grid(*grid, stdout);
       cout << os.str();
       exit(EXIT_FAILURE);
     }
   }
   
   cout << "\n==================================================\n"
-       << "algo.AddGoal(grid.GetVertex(0, 0), 0)\n";
-  algo.AddGoal(grid.Index2Vertex(0, 0), 0);
+       << "add goal (0, 0)\n";
+  algo.AddGoal(grid->GetNode(0, 0)->vertex, 0);
   while(algo.HaveWork()){
     if(skip_output){
       const size_t step(algo.GetStep());
@@ -113,10 +122,10 @@ int main(int argc, char ** argv)
 	cout << "step " << step << "\n";
     }
     else{
-      dump_queue(algo, &grid, 0, stdout);
-      if( ! check_queue(algo, &grid, "", cout))
+      dump_queue(algo, grid.get(), 0, stdout);
+      if( ! check_queue(algo, grid->GetCSpace().get(), "", cout))
 	exit(EXIT_FAILURE);
-      dump_grid(grid, stdout);
+      dump_grid(*grid, stdout);
     }
     if( ! skip_input){
       string cmd;
@@ -127,15 +136,14 @@ int main(int argc, char ** argv)
       if(cmd == "s")
 	skip_input = true;
     }
-    algo.ComputeOne(kernel, 0.5);
+    algo.ComputeOne(*kernel, 0.5);
   }
   if( ! skip_output)
-    dump_grid(grid, stdout);
+    dump_grid(*grid, stdout);
   
   cout << "\n==================================================\n"
-       << "algo.SetMeta(grid.Index2Vertex(1, 1), "
-       << kernel.obstacle_meta << ", kernel)\n";
-  algo.SetMeta(grid.Index2Vertex(1, 1), kernel.obstacle_meta, kernel);
+       << "set meta (1, 1) to " << kernel->obstacle_meta << "\n";
+  algo.SetMeta(grid->GetNode(1, 1)->vertex, kernel->obstacle_meta, *kernel);
   while(algo.HaveWork()){
     if(skip_output){
       const size_t step(algo.GetStep());
@@ -143,10 +151,10 @@ int main(int argc, char ** argv)
 	cout << "step " << step << "\n";
     }
     else{
-      dump_queue(algo, &grid, 0, stdout);
-      if( ! check_queue(algo, &grid, "", cout))
+      dump_queue(algo, grid.get(), 0, stdout);
+      if( ! check_queue(algo, grid->GetCSpace().get(), "", cout))
 	exit(EXIT_FAILURE);
-      dump_grid(grid, stdout);
+      dump_grid(*grid, stdout);
     }
     if( ! skip_input){
       string cmd;
@@ -157,8 +165,8 @@ int main(int argc, char ** argv)
       if(cmd == "s")
 	skip_input = true;
     }
-    algo.ComputeOne(kernel, 0.5);
+    algo.ComputeOne(*kernel, 0.5);
   }
   if( ! skip_output)
-    dump_grid(grid, stdout);
+    dump_grid(*grid, stdout);
 }

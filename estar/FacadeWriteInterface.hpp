@@ -45,21 +45,11 @@ namespace estar {
        traversability or collision risk. See
        FacadeReadInterface::GetMeta() about the interpretation of meta
        values.
-    */
-    virtual void SetMeta(ssize_t ix, ssize_t iy, double meta) = 0;
-    
-    /**
-       Initialize the kernel-dependent "meta" of a cell. Unlike
-       SetMeta(), this method does not trigger replanning and should
-       thus only be used during setup. See
-       FacadeReadInterface::GetMeta() about the interpretation of meta
-       values.
        
-       \note DO NOT use for normal operation! Only appropriate during
-       initialization. Use SetMeta() when changing the environment
-       information.
+       \return true if the index was valid and the meta was set, false
+       otherwise.
     */
-    virtual void InitMeta(ssize_t ix, ssize_t iy, double meta) = 0;
+    virtual bool SetMeta(ssize_t ix, ssize_t iy, double meta) = 0;
     
     /**
        Declare a cell to be a goal, and define the value of the
@@ -69,8 +59,10 @@ namespace estar {
        of interpolation.
        
        \note Call RemoveAllGoals() first if you want to move the goal.
+       
+       \return true if the index was valid.
     */
-    virtual void AddGoal(ssize_t ix, ssize_t iy, double value) = 0;
+    virtual bool AddGoal(ssize_t ix, ssize_t iy, double value) = 0;
     
     /**
        Revert all goal cells to normal status. Useful if you just want

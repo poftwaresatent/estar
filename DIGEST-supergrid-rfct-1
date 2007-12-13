@@ -1,0 +1,20 @@
+------------------------------------------------------------------------
+r227 | poftwaresatent | 2007-12-11 12:32:41 -0800 (Tue, 11 Dec 2007) | 147 lines
+Kicked out estar/Grid (replaced by Supergrid,  which  in time   will
+be renamed simply Grid again I guess) and implemented
+estar::Algorithm::AddVertex() which allows to add extend the C-space
+graph after the algorithm has started to run.
+
+------------------------------------------------------------------------
+r235 | poftwaresatent | 2007-12-12 01:16:16 -0800 (Wed, 12 Dec 2007) | 4 lines
+
+estar-devkit compiles again, but the planner in the smartX.sh demos
+somehow doesn't get updated (the travmap, however, seems to see the
+actual obstacles).
+
+------------------------------------------------------------------------
+r239 | poftwaresatent | 2007-12-12 17:40:18 -0800 (Wed, 12 Dec 2007) | 2 lines
+
+Renamed Supergrid -> Grid.
+
+------------------------------------------------------------------------

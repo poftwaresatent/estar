@@ -69,6 +69,25 @@ namespace estar {
 	      bool auto_flush);
     
     /**
+       For telling the algorithm that a vertex has been added to
+       C-space (after the algorithm has started running). The new
+       node's value, rhs, and flag properties are properly
+       initialized, but the meta will not be touched. The vertex is
+       put on the wavefront queue if appropriate (one of its neighbors
+       lies below the wavefront). Before calling this method, the new
+       vertex must already be properly inserted into the C-space
+       structure, particularly its neighbors must already be defined.
+       
+       \note We assume that any vertices added after the algorithm
+       started will be inserted with infinite value. This makes it OK to
+       subsequently add edges between existing vertices and new
+       vertices without reconsidering the value (and queueing) of the
+       existing vertex, as no new information could flow from the new
+       to the old node.
+    */
+    void AddVertex(vertex_t vertex, const Kernel & kernel);
+    
+    /**
        Declare a node to be a goal vertex, and fix its value. This
        only works as expected if the goal vertex is already connected
        to its neighbors. Specifying a value is useful for seeding the
@@ -140,20 +159,6 @@ namespace estar {
     void SetMeta(vertex_t vertex, double meta, const Kernel & kernel);
     
     /**
-       Blindly set the meta information of a node.
-       
-       \note Only for intialisation! Use SetMeta() to correctly
-       enqueue the node and its neighbors.
-    */
-    void InitMeta(vertex_t vertex, double meta);
-    
-    /**
-       Blindly set the meta information of all nodes. See the remarks
-       of InitMeta().
-    */
-    void InitAllMeta(double meta);
-    
-    /**
        Perform an elementary propagation (or "expansion") step. This
        is a no-op if the queue is empty. If there is a pending
        Reset(), such as after RemoveGoal() or any meta modification
@@ -217,8 +222,7 @@ namespace estar {
     
     /**
        Read-only access to the vertex ID of all C-space nodes, useful
-       for adding user-defined data to nodes. For example, see Grid
-       and GridNode.
+       for adding user-defined data to nodes.
        
        \note Check out the CustomCSpace template.
     */

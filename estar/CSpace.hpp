@@ -188,6 +188,8 @@ namespace estar {
     : public BaseCSpace
   {
   public:
+    typedef custom_t vertex_data_t;
+    
     custom_t & Lookup (vertex_t vertex)
     { return boost::get(m_custom_map, vertex); }
     

@@ -62,9 +62,12 @@ namespace estar {
     const indexlist_t & GetBorder() const { return m_border; }
     const indexlist_t & GetArea() const { return m_area; }
     
+    void GetBBox(ssize_t & x0, ssize_t & y0, ssize_t & x1, ssize_t & y1) const;
+    
   private:
     indexlist_t m_border;
     indexlist_t m_area;
+    ssize_t m_x0, m_y0, m_x1, m_y1;
   };
   
 }

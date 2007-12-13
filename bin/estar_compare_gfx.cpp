@@ -270,15 +270,18 @@ void parse_options(int argc, char ** argv)
   
   typedef vector<goal_s> goals_t;
   goals_t goals;
-  int xsize(20);
-  int ysize(20);
   double scale(1);
   string master_kernel("lsm");
   string sample_kernel("lsm");
-  FacadeOptions master_options;
-  master_options.auto_flush = true;
-  master_options.auto_reset = true;
-  FacadeOptions sample_options;
+  
+  GridOptions master_grid_options(0, 20, 0, 20);  
+  AlgorithmOptions master_algo_options;
+  master_algo_options.auto_flush = true;
+  master_algo_options.auto_reset = true;
+  
+  GridOptions sample_grid_options(0, 20, 0, 20);  
+  AlgorithmOptions sample_algo_options;
+  
   if (cfg_fname.empty())
     goals.push_back(goal_s(0, 0, 0));
   
@@ -319,12 +322,17 @@ void parse_options(int argc, char ** argv)
 	goals.push_back(goal_s(xx, yy, vv));
       }
       else if (token == "size") {
+	ssize_t xsize, ysize;
 	tls >> xsize >> ysize;
 	if ( ! tls) {
 	  cerr << "ERROR: could not parse size from \""
 	       << tls.str() << "\"\n";
 	  exit(EXIT_FAILURE);
 	}
+	master_grid_options.xend = xsize;
+	master_grid_options.yend = ysize;
+	sample_grid_options.xend = xsize;
+	sample_grid_options.yend = ysize;
       }
       else if (token == "scale") {
 	tls >> scale;
@@ -352,9 +360,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_options.connect_diagonal = true;
+	  master_grid_options.neighborhood = Grid::EIGHT;
 	else if (foo == "false")
-	  master_options.connect_diagonal = false;
+	  master_grid_options.neighborhood = Grid::FOUR;
 	else {
 	  cerr << "ERROR: invalid master_connect_diagonal \""
 	       << tls.str() << "\" should be true or false\n";
@@ -370,9 +378,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_options.check_upwind = true;
+	  master_algo_options.check_upwind = true;
 	else if (foo == "false")
-	  master_options.check_upwind = false;
+	  master_algo_options.check_upwind = false;
 	else {
 	  cerr << "ERROR: invalid master_check_upwind \""
 	       << tls.str() << "\" should be true or false\n";
@@ -388,9 +396,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_options.check_local_consistency = true;
+	  master_algo_options.check_local_consistency = true;
 	else if (foo == "false")
-	  master_options.check_local_consistency = false;
+	  master_algo_options.check_local_consistency = false;
 	else {
 	  cerr << "ERROR: invalid master_check_local_consistency \""
 	       << tls.str() << "\" should be true or false\n";
@@ -406,9 +414,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_options.check_queue_key = true;
+	  master_algo_options.check_queue_key = true;
 	else if (foo == "false")
-	  master_options.check_queue_key = false;
+	  master_algo_options.check_queue_key = false;
 	else {
 	  cerr << "ERROR: invalid master_check_queue_key \""
 	       << tls.str() << "\" should be true or false\n";
@@ -424,9 +432,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_options.auto_flush = true;
+	  master_algo_options.auto_flush = true;
 	else if (foo == "false")
-	  master_options.auto_flush = false;
+	  master_algo_options.auto_flush = false;
 	else {
 	  cerr << "ERROR: invalid master_auto_flush \""
 	       << tls.str() << "\" should be true or false\n";
@@ -442,9 +450,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  master_options.auto_reset = true;
+	  master_algo_options.auto_reset = true;
 	else if (foo == "false")
-	  master_options.auto_reset = false;
+	  master_algo_options.auto_reset = false;
 	else {
 	  cerr << "ERROR: invalid master_auto_reset \""
 	       << tls.str() << "\" should be true or false\n";
@@ -469,9 +477,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_options.connect_diagonal = true;
+	  sample_grid_options.neighborhood = Grid::EIGHT;
 	else if (foo == "false")
-	  sample_options.connect_diagonal = false;
+	  sample_grid_options.neighborhood = Grid::FOUR;
 	else {
 	  cerr << "ERROR: invalid sample_connect_diagonal \""
 	       << tls.str() << "\" should be true or false\n";
@@ -487,9 +495,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_options.check_upwind = true;
+	  sample_algo_options.check_upwind = true;
 	else if (foo == "false")
-	  sample_options.check_upwind = false;
+	  sample_algo_options.check_upwind = false;
 	else {
 	  cerr << "ERROR: invalid sample_check_upwind \""
 	       << tls.str() << "\" should be true or false\n";
@@ -505,9 +513,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_options.check_local_consistency = true;
+	  sample_algo_options.check_local_consistency = true;
 	else if (foo == "false")
-	  sample_options.check_local_consistency = false;
+	  sample_algo_options.check_local_consistency = false;
 	else {
 	  cerr << "ERROR: invalid sample_check_local_consistency \""
 	       << tls.str() << "\" should be true or false\n";
@@ -523,9 +531,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_options.check_queue_key = true;
+	  sample_algo_options.check_queue_key = true;
 	else if (foo == "false")
-	  sample_options.check_queue_key = false;
+	  sample_algo_options.check_queue_key = false;
 	else {
 	  cerr << "ERROR: invalid sample_check_queue_key \""
 	       << tls.str() << "\" should be true or false\n";
@@ -541,9 +549,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_options.auto_flush = true;
+	  sample_algo_options.auto_flush = true;
 	else if (foo == "false")
-	  sample_options.auto_flush = false;
+	  sample_algo_options.auto_flush = false;
 	else {
 	  cerr << "ERROR: invalid sample_auto_flush \""
 	       << tls.str() << "\" should be true or false\n";
@@ -559,9 +567,9 @@ void parse_options(int argc, char ** argv)
 	  exit(EXIT_FAILURE);
 	}
 	if (foo == "true")
-	  sample_options.auto_reset = true;
+	  sample_algo_options.auto_reset = true;
 	else if (foo == "false")
-	  sample_options.auto_reset = false;
+	  sample_algo_options.auto_reset = false;
 	else {
 	  cerr << "ERROR: invalid sample_auto_reset \""
 	       << tls.str() << "\" should be true or false\n";
@@ -576,9 +584,15 @@ void parse_options(int argc, char ** argv)
     }
   }
   
-  comparison = ComparisonFacade::Create(master_kernel, master_options,
-					sample_kernel, sample_options,
-					xsize, ysize, scale, stderr);
+  comparison = ComparisonFacade::Create(master_kernel,
+					scale,
+					master_grid_options,
+					master_algo_options,
+					sample_kernel,
+					scale,
+					sample_grid_options,
+					sample_algo_options,
+					stderr);
   if ( ! comparison)
     exit(EXIT_FAILURE);
   

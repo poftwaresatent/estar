@@ -10,7 +10,6 @@ endif
 
 bin_PROGRAMS= test_dbg_opt \
               test_estar \
-              test_estar_replanner \
               test_estar_queue \
               test_fake_os \
               test_pnf_cooc \
@@ -23,8 +22,6 @@ test_dbg_opt_SOURCES=     test_dbg_opt.cpp
 test_dbg_opt_LDADD=       ../libestar.la
 test_estar_SOURCES=       test_estar.cpp
 test_estar_LDADD=         ../libestar.la
-test_estar_replanner_SOURCES= test_estar_replanner.cpp
-test_estar_replanner_LDADD=   ../libestar.la
 test_estar_queue_SOURCES= test_estar_queue.cpp
 test_estar_queue_LDADD=   ../libestar.la
 test_fake_os_SOURCES=     test_fake_os.cpp

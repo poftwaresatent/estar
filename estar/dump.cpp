@@ -87,20 +87,22 @@ namespace estar {
   
   
   void dump_raw_value(const Grid & grid,
-		      const Algorithm & algo,
 		      ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		      double infinity_replacement,
 		      FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
-    const value_map_t & value(algo.GetValueMap());
-    for(ssize_t x(x0); x <= x1; x++){
-      for(ssize_t y(y0); y <= y1; y++){
-	const double vv(get(value, grid.Index2Vertex(x, y)));
-	if(vv != infinity)
-	  fprintf(stream, "%zd   %zd   %f\n", x, y, vv);
-	else
-	  fprintf(stream, "%zd   %zd   %f\n", x, y, infinity_replacement);
+    shared_ptr<BaseCSpace const> const cspace(grid.GetCSpace());
+    for (ssize_t x(x0); x <= x1; x++) {
+      for (ssize_t y(y0); y <= y1; y++) {
+	shared_ptr<GridNode const> const node(grid.GetNode(x, y));
+	if (node) {
+	  const double vv(cspace->GetValue(node->vertex));
+	  if(vv != infinity)
+	    fprintf(stream, "%zd   %zd   %f\n", x, y, vv);
+	  else
+	    fprintf(stream, "%zd   %zd   %f\n", x, y, infinity_replacement);
+	}
       }
       fprintf(stream, "\n");
     }
@@ -108,16 +110,18 @@ namespace estar {
   
   
   void dump_raw_meta(const Grid & grid,
-		     const Algorithm & algo,
 		     ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		     FILE * stream)
   {
     fprintf(stream, "# x: %zd...%zd\n# y: %zd...%zd\n", x0, x1, y0, y1);
-    const meta_map_t & meta(algo.GetMetaMap());
-    for(ssize_t x(x0); x <= x1; x++){
-      for(ssize_t y(y0); y <= y1; y++)
-	fprintf(stream, "%zd   %zd   %f\n", x, y,
-		get(meta, grid.Index2Vertex(x, y)));
+    shared_ptr<GridCSpace const> cspace(grid.GetCSpace());
+    for (ssize_t x(x0); x <= x1; x++) {
+      for (ssize_t y(y0); y <= y1; y++) {
+	shared_ptr<GridNode const> node(grid.GetNode(x, y));
+	if (node)
+	  fprintf(stream, "%zd   %zd   %f\n", x, y,
+		  cspace->GetMeta(node->vertex));
+      }
       fprintf(stream, "\n");
     }
   }
@@ -127,21 +131,19 @@ namespace estar {
 		FILE * value_stream,
 		FILE * meta_stream)
   {
-    ////    shared_ptr<Grid const> grid(facade.GetGrid());
-    Grid const & grid(facade.GetGrid());
-    ////     if ( ! grid)
-    ////       return;
-    ssize_t const xsize(grid.GetXSize());
-    if (xsize < 1)
+    Grid const & grid(*facade.GetGrid());
+    ssize_t const x0(grid.GetXBegin());
+    ssize_t const x1(grid.GetXEnd() - 1);
+    if (x1 < x0)
       return;
-    ssize_t const ysize(grid.GetYSize());
-    if (ysize < 1)
+    ssize_t const y0(grid.GetYBegin());
+    ssize_t const y1(grid.GetYEnd() - 1);
+    if (y1 < y0)
       return;
-    Algorithm const & algo(facade.GetAlgorithm());
     if(value_stream)
-      dump_raw_value(grid, algo, 0, 0, xsize - 1, ysize - 1, -1, value_stream);
+      dump_raw_value(grid, x0, y0, x1, y1, -1, value_stream);
     if(meta_stream)
-      dump_raw_meta(grid, algo, 0, 0, xsize - 1, ysize - 1, meta_stream);  
+      dump_raw_meta(grid, x0, y0, x1, y1, value_stream);
   }
   
   
@@ -153,9 +155,12 @@ namespace estar {
       fprintf(stream, "queue: empty\n");
       return;
     }
-    const flag_map_t & flag(algo.GetFlagMap());
-    const value_map_t & value(algo.GetValueMap());
-    const rhs_map_t & rhs(algo.GetRhsMap());
+
+    shared_ptr<BaseCSpace const> base_cspace(algo.GetCSpace());
+    shared_ptr<GridCSpace const> grid_cspace;
+    if (grid)
+      grid_cspace = grid->GetCSpace();
+
     size_t count(0);
     const_queue_it iq(queue.begin());
     const double firstkey(iq->first);
@@ -164,17 +169,17 @@ namespace estar {
       const vertex_t vertex(iq->second);
       fprintf(stream, "  %s f: %s %s i: %zu",
 	      iq->first == firstkey ? "*" : " ",
-	      flag_name(get(flag, vertex)),
-	      get(rhs, vertex) < get(value, vertex)
+	      flag_name(base_cspace->GetFlag(vertex)),
+	      base_cspace->GetRhs(vertex) < base_cspace->GetValue(vertex)
 	      ? "lower" : "raise", vertex);
-      if(0 != grid){
-	const GridNode & gn(grid->Vertex2Node(vertex));
+      if(grid_cspace){
+	GridNode const & gn(*grid_cspace->Lookup(vertex));
 	fprintf(stream, " (%zu, %zu)", gn.ix, gn.iy);
       }
-      const double vv(get(value, vertex));
+      const double vv(base_cspace->GetValue(vertex));
       if(vv == infinity) fprintf(stream, " k: %g v: inf", iq->first);
       else               fprintf(stream, " k: %g v: %g", iq->first, vv);
-      const double rr(get(rhs, vertex));
+      const double rr(base_cspace->GetRhs(vertex));
       if(rr == infinity) fprintf(stream, " rhs: inf\n");
       else               fprintf(stream, " rhs: %g\n", rr);
       if((limit > 0) && (count > limit) && (iq->first != firstkey))
@@ -186,7 +191,7 @@ namespace estar {
   void dump_queue(const FacadeReadInterface & facade, size_t limit,
 		  FILE * stream)
   {
-    dump_queue(facade.GetAlgorithm(), &facade.GetGrid(), limit, stream);
+    dump_queue(facade.GetAlgorithm(), facade.GetGrid().get(), limit, stream);
   }
   
   
@@ -195,8 +200,8 @@ namespace estar {
 		      const char * prefix, const char * high)
   {
     char * line;
-    if(grid.connect == HEX_GRID) line = "+-----+-----";
-    else                         line = "+-----------";
+    if(grid.GetNeighborhood() == Grid::SIX) line = "+-----+-----";
+    else                                    line = "+-----------";
     if(0 != high)   fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
     for(ssize_t ix(ix0); ix <= ix1; ++ix)
@@ -217,20 +222,27 @@ namespace estar {
     if(0 != prefix) fprintf(stream, prefix);
     shared_ptr<GridCSpace const> const cspace(grid.GetCSpace());
     for(ssize_t ix(ix0); ix <= ix1; ++ix){
-      const double meta(cspace->GetMeta(grid.Index2Vertex(ix, iy)));
-      if(infinity == meta)
-	fprintf(stream, "|infty ");
-      else if(huge <= meta)
-	fprintf(stream, "|huge  ");
-      else
-	fprintf(stream, "|%5.2f ", meta);
-      const double value(cspace->GetValue(grid.Index2Vertex(ix, iy)));
-      if(infinity == value)
-	fprintf(stream, "infty");
-      else if(huge <= value)
-	fprintf(stream, "huge ");
-      else
-	fprintf(stream, "%5.2f", value);
+      shared_ptr <GridNode const> node(grid.GetNode(ix, iy));
+      if ( ! node) {
+	fprintf(stream, "|      ");
+	fprintf(stream, "|      ");
+      }
+      else {
+	const double meta(cspace->GetMeta(node->vertex));
+	if(infinity == meta)
+	  fprintf(stream, "|infty ");
+	else if(huge <= meta)
+	  fprintf(stream, "|huge  ");
+	else
+	  fprintf(stream, "|%5.2f ", meta);
+	const double value(cspace->GetValue(node->vertex));
+	if(infinity == value)
+	  fprintf(stream, "infty");
+	else if(huge <= value)
+	  fprintf(stream, "huge ");
+	else
+	  fprintf(stream, "%5.2f", value);
+      }
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -245,18 +257,25 @@ namespace estar {
     if(0 != prefix) fprintf(stream, prefix);
     shared_ptr<GridCSpace const> const cspace(grid.GetCSpace());
     for(ssize_t ix(ix0); ix <= ix1; ++ix){
-      const flag_t flag(cspace->GetFlag(grid.Index2Vertex(ix, iy)));
-      if(NONE == flag)
+      shared_ptr <GridNode const> node(grid.GetNode(ix, iy));
+      if ( ! node) {
 	fprintf(stream, "|      ");
-      else
-	fprintf(stream, "|%5s ", flag_name(flag));
-      const double rhs(cspace->GetRhs(grid.Index2Vertex(ix, iy)));
-      if(infinity == rhs)
-	fprintf(stream, "infty");
-      else if(huge <= rhs)
-	fprintf(stream, "huge ");
-      else
-	fprintf(stream, "%5.2f", rhs);
+	fprintf(stream, "|      ");
+      }
+      else {
+	const flag_t flag(cspace->GetFlag(node->vertex));
+	if(NONE == flag)
+	  fprintf(stream, "|      ");
+	else
+	  fprintf(stream, "|%5s ", flag_name(flag));
+	const double rhs(cspace->GetRhs(node->vertex));
+	if(infinity == rhs)
+	  fprintf(stream, "infty");
+	else if(huge <= rhs)
+	  fprintf(stream, "huge ");
+	else
+	  fprintf(stream, "%5.2f", rhs);
+      }
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -271,16 +290,23 @@ namespace estar {
     if(0 != prefix) fprintf(stream, prefix);
     shared_ptr<GridCSpace const> const cspace(grid.GetCSpace());
     for(ssize_t ix(ix0); ix <= ix1; ++ix){
-      const vertex_t vertex(grid.Index2Vertex(ix, iy));
-      if( ! (OPEN & cspace->GetFlag(vertex)))
+      shared_ptr <GridNode const> node(grid.GetNode(ix, iy));
+      if ( ! node) {
 	fprintf(stream, "|      ");
-      else if(cspace->GetRhs(vertex) < cspace->GetValue(vertex))
-	fprintf(stream, "|lower ");
-      else if(cspace->GetRhs(vertex) > cspace->GetValue(vertex))
-	fprintf(stream, "|raise ");
-      else
-	fprintf(stream, "|r==v? ");
-      fprintf(stream, "%5zu", grid.Index2Vertex(ix, iy));
+	fprintf(stream, "|      ");
+      }
+      else {
+	const vertex_t vertex(node->vertex);
+	if( ! (OPEN & cspace->GetFlag(vertex)))
+	  fprintf(stream, "|      ");
+	else if(cspace->GetRhs(vertex) < cspace->GetValue(vertex))
+	  fprintf(stream, "|lower ");
+	else if(cspace->GetRhs(vertex) > cspace->GetValue(vertex))
+	  fprintf(stream, "|raise ");
+	else
+	  fprintf(stream, "|r==v? ");
+	fprintf(stream, "%5zu", node->vertex);
+      }
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -294,8 +320,11 @@ namespace estar {
     if(0 != high) fprintf(stream, high);
     if(0 != prefix) fprintf(stream, prefix);
     for(ssize_t ix(ix0); ix <= ix1; ++ix){
-      const GridNode & node(grid.Index2Node(ix, iy));
-      fprintf(stream, "| (%3zu, %3zu)", node.ix, node.iy);
+      shared_ptr <GridNode const> node(grid.GetNode(ix, iy));
+      if ( ! node)
+	fprintf(stream, "|           ");
+      else
+	fprintf(stream, "| (%3zu, %3zu)", ix, iy);
     }
     if(0 != high) fprintf(stream, "|%s\n", high);
     else          fprintf(stream, "|\n");
@@ -304,7 +333,9 @@ namespace estar {
 
   void dump_grid(const Grid & grid, FILE * stream)
   {
-    dump_grid_range(grid, 0, 0, grid.xsize - 1, grid.ysize - 1, stream);
+    dump_grid_range(grid, grid.GetXBegin(), grid.GetYBegin(),
+		    grid.GetXEnd() - 1, grid.GetYEnd() - 1,
+		    stream);
   }
   
   
@@ -330,8 +361,16 @@ namespace estar {
   {
     PVDEBUG("%zu   %zu   %zu   %zu\n", ix0, iy0, ix1, iy1);
     const char * even("");
-    const char * oddsep(grid.connect == HEX_GRID ? "+-----" : even);
-    const char * oddpre(grid.connect == HEX_GRID ? "      " : even);
+    const char * oddsep;
+    const char * oddpre;
+    if (grid.GetNeighborhood() == Grid::SIX) {
+      oddsep = "+-----";
+      oddpre = "      ";
+    }
+    else {
+      oddsep = even;
+      oddpre = even;
+    }
     ssize_t iy(iy1);
     const char * prefix;
     for(/**/; iy != iy0; --iy){
@@ -373,7 +412,7 @@ namespace estar {
 				   ssize_t ixhigh, ssize_t iyhigh,
 				   FILE * stream)
   {
-    dump_grid_range_highlight(facade.GetGrid(), ix0, iy0, ix1, iy1,
+    dump_grid_range_highlight(*facade.GetGrid(), ix0, iy0, ix1, iy1,
 			      ixhigh, iyhigh, stream);
   }
   
@@ -417,23 +456,25 @@ namespace estar {
 
   void dump_upwind(const Algorithm & algo, const Grid * grid, FILE * stream)
   {
-    const Upwind & upwind(algo.GetUpwind());
-    const GridNode * gfrom(0);
-    vertex_it iv, vend;
-    tie(iv, vend) = vertices(algo.GetCSpaceGraph());
-    if(iv == vend)
-      return;
+    Upwind const & upwind(algo.GetUpwind());
+    shared_ptr<GridNode const> gfrom;
+    shared_ptr<GridCSpace const> gcspace;
+    if (grid)
+      gcspace = grid->GetCSpace();
     fprintf(stream, "upwind edges (from, to):\n");
-    for(/**/; iv != vend; ++iv){
-      if(0 != grid) gfrom = &(grid->Vertex2Node(*iv));
-      const Upwind::set_t & downwind(upwind.GetDownwind(*iv));
+    for (vertex_read_iteration iv(algo.GetCSpace()->begin());
+	iv.not_at_end(); ++iv) {
+      if (gcspace)
+	gfrom = gcspace->Lookup(*iv);
+      Upwind::set_t const & downwind(upwind.GetDownwind(*iv));
       for(Upwind::set_t::const_iterator id(downwind.begin());
 	  id != downwind.end(); ++id){
 	fprintf(stream, "  (%zu, %zu)", *iv, *id);
-	if(0 != grid){
-	  const GridNode & gto(grid->Vertex2Node(*id));
-	  fprintf(stream, " [(%zu, %zu) -> (%zu, %zu)]",
-		  gfrom->ix, gfrom->iy, gto.ix, gto.iy);
+	if (gcspace && gfrom) {
+	  shared_ptr<GridNode const> gto(gcspace->Lookup(*id));
+	  if (gto)
+	    fprintf(stream, " [(%zu, %zu) -> (%zu, %zu)]",
+		    gfrom->ix, gfrom->iy, gto->ix, gto->iy);
 	}
 	fprintf(stream, "\n");
       }

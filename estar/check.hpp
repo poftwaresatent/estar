@@ -30,7 +30,7 @@ namespace estar {
   
   
   class Algorithm;
-  class Grid;
+  class GridCSpace;
   
   
   bool check_cspace(const cspace_t & cspace,
@@ -40,7 +40,7 @@ namespace estar {
      \note If grid is null it will be ignored.
      \todo Add "smart" Queue class checking.
   */
-  bool check_queue(const Algorithm & algo, const Grid * grid,
+  bool check_queue(const Algorithm & algo, const GridCSpace * grid_cspace,
 		   const char * prefix, std::ostream & os);
   
 } // namespace estar

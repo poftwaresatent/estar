@@ -39,7 +39,11 @@ namespace estar {
   Sprite::
   Sprite(double _radius, double _scale)
     : radius(_radius),
-      scale(_scale)
+      scale(_scale),
+      m_x0(0),
+      m_y0(0),
+      m_x1(0),
+      m_y1(0)
   {
     const ssize_t offset(static_cast<ssize_t>(ceil(_radius / _scale)));
     for(ssize_t ix(-offset); ix <= offset; ++ix){
@@ -50,6 +54,14 @@ namespace estar {
 	  m_area.push_back(sindex(ix, iy, rr));
 	  if(rr >= _radius - _scale)
 	    m_border.push_back(sindex(ix, iy, rr));
+	  if (ix < m_x0)
+	    m_x0 = ix;
+	  if (ix > m_x1)
+	    m_x1 = ix;
+	  if (iy < m_y0)
+	    m_y0 = iy;
+	  if (iy > m_y1)
+	    m_y1 = iy;
 	}
       }
     }
@@ -93,6 +105,16 @@ namespace estar {
 	os << sprite[ix][iy] << ' ';
       os << "\n";
     }
+  }
+  
+  
+  void Sprite::
+  GetBBox(ssize_t & x0, ssize_t & y0, ssize_t & x1, ssize_t & y1) const
+  {
+    x0 = m_x0;
+    y0 = m_y0;
+    x1 = m_x1;
+    y1 = m_y1;
   }
   
 }

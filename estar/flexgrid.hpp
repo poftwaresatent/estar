@@ -66,12 +66,18 @@ namespace estar {
     void resize_xend(ssize_t xend) { resize_xend(xend, value_t()); }
     
     void resize_x(ssize_t xbegin, ssize_t xend, value_t const & value) {
-      resize_xbegin(xbegin, value);
-      resize_xend(xend, value);
+      if (xbegin < m_default.ibegin())
+	resize_xbegin(xbegin, value);
+      if (xend > m_default.iend())
+	resize_xend(xend, value);
     }
     
-    void resize_x(ssize_t xbegin, ssize_t xend)
-    { resize_x(xbegin, xend, value_t()); }
+    void resize_x(ssize_t xbegin, ssize_t xend) {
+      if (xbegin < m_default.ibegin())
+	resize_xbegin(xbegin);
+      if (xend > m_default.iend())
+	resize_xend(xend);
+    }
     
     /** \note Lots of copying if you're growing the range. Prefer the
 	version with implicit default value, it's gonna be faster. */
@@ -106,34 +112,46 @@ namespace estar {
     { m_grid.resize_end(yend, m_default); }
     
     void resize_y(ssize_t ybegin, ssize_t yend, value_t const & value) {
-      resize_ybegin(ybegin, value);
-      resize_yend(yend, value);
+      if (ybegin < m_grid.ibegin())
+	resize_ybegin(ybegin, value);
+      if (yend > m_grid.iend())
+	resize_yend(yend, value);
     }
     
     void resize_y(ssize_t ybegin, ssize_t yend) {
-      resize_ybegin(ybegin);
-      resize_yend(yend);
+      if (ybegin < m_grid.ibegin())
+	resize_ybegin(ybegin);
+      if (yend > m_grid.iend())
+	resize_yend(yend);
     }
     
     /** \note Beware of parameter ordering, it is NOT like the
-	coordinates of a boudning box. */
+	coordinates of a bounding box. */
     void resize(ssize_t xbegin, ssize_t xend,
 		ssize_t ybegin, ssize_t yend,
 		value_t const & value) {
-      resize_xbegin(xbegin, value);
-      resize_xend(xend, value);
-      resize_ybegin(ybegin, value);
-      resize_yend(yend, value);
+      if (xbegin < m_default.ibegin())
+	resize_xbegin(xbegin, value);
+      if (xend > m_default.iend())
+	resize_xend(xend, value);
+      if (ybegin < m_grid.ibegin())
+	resize_ybegin(ybegin, value);
+      if (yend > m_grid.iend())
+	resize_yend(yend, value);
     }
     
     /** \note Beware of parameter ordering, it is NOT like the
 	coordinates of a boudning box. */
     void resize(ssize_t xbegin, ssize_t xend,
 		ssize_t ybegin, ssize_t yend) {
-      resize_xbegin(xbegin);
-      resize_xend(xend);
-      resize_ybegin(ybegin);
-      resize_yend(yend);
+      if (xbegin < m_default.ibegin())
+	resize_xbegin(xbegin);
+      if (xend > m_default.iend())
+	resize_xend(xend);
+      if (ybegin < m_grid.ibegin())
+	resize_ybegin(ybegin);
+      if (yend > m_grid.iend())
+	resize_yend(yend);
     }
     
     ssize_t xbegin() const { return m_default.ibegin(); }
@@ -181,6 +199,28 @@ namespace estar {
     const_iterator end() const {
       return const_iterator(m_grid, m_default,
 			    m_default.iend(), m_grid.iend());
+    }
+    
+    bool valid(ssize_t ix, ssize_t iy) const {
+      return (ix >= m_default.ibegin())
+	&&   (ix <  m_default.iend())
+	&&   (iy >= m_grid.ibegin())
+	&&   (iy <  m_grid.iend());
+    }
+    
+    bool valid_range(ssize_t xbegin, ssize_t xend,
+		     ssize_t ybegin, ssize_t yend) const {
+      return (xbegin >= m_default.ibegin())
+	&&   (xend   <= m_default.iend())
+	&&   (ybegin >= m_grid.ibegin())
+	&&   (yend   <= m_grid.iend());
+    }
+    
+    bool valid_bbox(ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1) const {
+      return (x0 >= m_default.ibegin())
+	&&   (x1 <  m_default.iend())
+	&&   (y0 >= m_grid.ibegin())
+	&&   (y1 <  m_grid.iend());
     }
     
   protected:

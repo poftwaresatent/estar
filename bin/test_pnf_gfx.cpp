@@ -483,7 +483,7 @@ void keyboard(unsigned char key, int x, int y)
   case 'x':
     cout << "checking environment distance queue...\n";
     if( ! check_queue(m_flow->GetEnvdist().GetAlgorithm(),
-		      &(m_flow->GetEnvdistGrid()), "", cout))
+		      m_flow->GetEnvdistGrid()->GetCSpace().get(), "", cout))
       cout << "INCONSISTENT QUEUE in environment distance\n"
 	   << "==================================================\n";
     else
@@ -521,16 +521,16 @@ void timer(int handle)
 	  m_flow->PropagateEnvdist(true);
 	if(m_debug){
 	  const Algorithm & algo(m_flow->GetEnvdist().GetAlgorithm());
-	  const Grid & grid(m_flow->GetEnvdistGrid());
+	  const Grid & grid(*m_flow->GetEnvdistGrid());
 	  dump_queue(algo, &grid, 10, stdout);
 	  const vertex_t vertex(algo.GetLastComputedVertex());
-	  const GridNode & gn(grid.Vertex2Node(vertex));
+	  const GridNode & gn(*grid.GetCSpace()->Lookup(vertex));
 	  static const ssize_t dx(2);
 	  static const ssize_t dy(2);
 	  const ssize_t x0(gn.ix <= dx ? 0 : gn.ix - dx);
 	  const ssize_t y0(gn.iy <= dy ? 0 : gn.iy - dy);
-	  const ssize_t x1(minval(gn.ix + dx, grid.xsize - 1));
-	  const ssize_t y1(minval(gn.iy + dy, grid.ysize - 1));
+	  const ssize_t x1(minval(gn.ix + dx, grid.GetXBegin() - 1));
+	  const ssize_t y1(minval(gn.iy + dy, grid.GetYBegin() - 1));
 	  dump_grid_range_highlight(grid, x0, y0, x1, y1,
 				    gn.ix, gn.iy, stdout);
 	  //BOOST_ASSERT( ! (get(algo.GetFlagMap(), vertex) & OPEN) );

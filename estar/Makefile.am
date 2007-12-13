@@ -16,7 +16,6 @@ libestarsub_la_SOURCES= Algorithm.cpp \
                         Facade.cpp \
                         ComparisonFacade.cpp \
                         Grid.cpp \
-                        Supergrid.cpp \
                         Kernel.cpp \
                         LSMKernel.cpp \
                         NF1Kernel.cpp \
@@ -42,7 +41,6 @@ include_HEADERS=        Algorithm.hpp \
                         ComparisonFacade.hpp \
                         GridNode.hpp \
                         Grid.hpp \
-                        Supergrid.hpp \
                         Kernel.hpp \
                         LSMKernel.hpp \
                         NF1Kernel.hpp \

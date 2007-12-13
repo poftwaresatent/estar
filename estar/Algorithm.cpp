@@ -226,22 +226,6 @@ namespace estar {
   
   
   void Algorithm::
-  InitMeta(vertex_t vertex, double meta)
-  {
-    put(m_meta, vertex, meta);
-  }
-  
-  
-  void Algorithm::
-  InitAllMeta(double meta)
-  {
-    vertex_it iv, vend;
-    for(tie(iv, vend) = vertices(m_cspace_graph); iv != vend; ++iv)
-      put(m_meta, *iv, meta);
-  }
-  
-  
-  void Algorithm::
   Reset()
   {
     // Note: obstacle information is not in the flag, but in the meta,
@@ -292,6 +276,27 @@ namespace estar {
 	      vertex, flag_name(flag), get(m_value, vertex), rhs);
 
       m_queue.Requeue(vertex, m_flag, m_value, m_rhs);
+    }
+  }
+  
+  
+  void Algorithm::
+  AddVertex(vertex_t vertex, const Kernel & kernel)
+  {
+    m_cspace->SetValue(vertex, infinity);
+    m_cspace->SetRhs(vertex, infinity);
+    m_cspace->SetFlag(vertex, NONE);
+    if (m_queue.Get().empty())
+      UpdateVertex(vertex, kernel);
+    else {
+      double const thresh(m_queue.Get().begin()->first);
+      for (edge_read_iteration inbor(m_cspace->begin(vertex));
+	   inbor.not_at_end(); ++inbor) {
+	if (m_cspace->GetValue(*inbor) < thresh) {
+	  UpdateVertex(vertex, kernel);
+	  return;
+	}
+      }
     }
   }
   

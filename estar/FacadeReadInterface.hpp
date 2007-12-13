@@ -181,9 +181,9 @@ namespace estar {
 					    ssize_t, ssize_t, FILE *);
     
     /**
-       \return The underlying Grid instance.
+       \note this is a hack for legacy code, don't rely on it
     */
-    virtual const Grid & GetGrid() const = 0;
+    virtual boost::shared_ptr<Grid const> GetGrid() const = 0;
   public:
     
     /**

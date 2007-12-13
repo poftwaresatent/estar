@@ -141,7 +141,7 @@ namespace pnf {
     estar::Facade & GetEnvdist() { return * m_envdist; }
       
     /** \todo A hack around estar::CSpace refactoring */
-    const estar::Grid & GetEnvdistGrid() const;
+    boost::shared_ptr<estar::Grid const> GetEnvdistGrid() const;
       
     const estar::Facade & GetPNF()     const { return * m_pnf; }
     

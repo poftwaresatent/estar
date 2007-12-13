@@ -20,7 +20,7 @@
 
 #include "check.hpp"
 #include "Algorithm.hpp"
-#include "Grid.hpp"
+#include "GridNode.hpp"
 #include "util.hpp"
 #include "pdebug.hpp"
 #include <map>
@@ -35,7 +35,7 @@ using namespace std;
 namespace estar {
   
   
-  bool check_queue(const Algorithm & algo, const Grid * grid,
+  bool check_queue(const Algorithm & algo, const GridCSpace * grid_cspace,
 		   const char * prefix, std::ostream & os)
   {
     ostringstream err;
@@ -51,8 +51,8 @@ namespace estar {
       if( ! (get(flag, iq->second) & OPEN)){
 	result = false;
 	err << prefix << "  lacking OPEN flag on i: " << iq->second;
-	if(0 != grid){
-	  const GridNode & gn(grid->Vertex2Node(iq->second));
+	if(0 != grid_cspace){
+	  GridNode const & gn(*(grid_cspace->Lookup(iq->second)));
 	  err << " (" << gn.ix << ", " << gn.iy << ")";
 	}
 	err << "\n";
@@ -60,8 +60,8 @@ namespace estar {
       if(minval(get(value, iq->second), get(rhs, iq->second)) != iq->first){
 	result = false;
 	err << prefix << "  wrong key on i: " << iq->second;
-	if(0 != grid){
-	  const GridNode & gn(grid->Vertex2Node(iq->second));
+	if(0 != grid_cspace){
+	  GridNode const & gn(*(grid_cspace->Lookup(iq->second)));
 	  err << " (" << gn.ix << ", " << gn.iy << ")";
 	}
 	err << " k: " << iq->first << " v: " << get(value, iq->second)
@@ -71,8 +71,8 @@ namespace estar {
       if(iqm == queue_map.end()){
 	result = false;
 	err << prefix << "  missing queue_map entry for i: " << iq->second;
-	if(0 != grid){
-	  const GridNode & gn(grid->Vertex2Node(iq->second));
+	if(0 != grid_cspace){
+	  GridNode const & gn(*(grid_cspace->Lookup(iq->second)));
 	  err << " (" << gn.ix << ", " << gn.iy << ")";
 	}
 	err << "\n";
@@ -80,8 +80,8 @@ namespace estar {
       else if(iqm->second != iq->first){
 	result = false;
 	err << prefix << "  queue_map mismatch for i: " << iq->second;
-	if(0 != grid){
-	  const GridNode & gn(grid->Vertex2Node(iq->second));
+	if(0 != grid_cspace){
+	  GridNode const & gn(*(grid_cspace->Lookup(iq->second)));
 	  err << " (" << gn.ix << ", " << gn.iy << ")";
 	}
 	err << " queue: " << iq->first
@@ -90,8 +90,8 @@ namespace estar {
       if(queued_vs.find(iq->second) != queued_vs.end()){
 	result = false;
 	err << prefix << "  duplicate i: " << iq->second;
-	if(0 != grid){
-	  const GridNode & gn(grid->Vertex2Node(iq->second));
+	if(0 != grid_cspace){
+	  GridNode const & gn(*(grid_cspace->Lookup(iq->second)));
 	  err << " (" << gn.ix << ", " << gn.iy << ")";
 	}
 	err << " k: " << iq->first
@@ -99,15 +99,16 @@ namespace estar {
       }
       queued_vs.insert(make_pair(iq->second, iq->first));
     }
-    const cspace_t & cspace(algo.GetCSpaceGraph());
-    vertex_it vi, vend;
-    for(tie(vi, vend) = vertices(cspace); vi != vend; ++vi){
-      if((get(flag, *vi) & OPEN) && (queued_vs.find(*vi) == queued_vs.end())){
+    BaseCSpace const & base_cspace(*algo.GetCSpace());
+    for (vertex_read_iteration iv(base_cspace.begin());
+	 iv.not_at_end(); ++iv) {
+      if ((base_cspace.GetFlag(*iv) & OPEN)
+	  && (queued_vs.find(*iv) == queued_vs.end())) {
  	result = false;
- 	err << prefix << "  " << flag_name(get(flag, *vi))
+ 	err << prefix << "  " << flag_name(base_cspace.GetFlag(*iv))
  	    << " not in queue i: ";
- 	if(0 != grid){
- 	  const GridNode & gn(grid->Vertex2Node(*vi));
+ 	if(0 != grid_cspace){
+ 	  GridNode const & gn(*(grid_cspace->Lookup(*iv)));
  	  err << " (" << gn.ix << ", " << gn.iy << ")";
  	}
  	err << "\n";

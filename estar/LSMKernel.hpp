@@ -33,8 +33,7 @@ namespace estar {
   
   
   /** Interpolation kernel based on Level Set Method. Needs a
-      4-connected regular grid as C-space, ie an instance of Grid with
-      connectedness_t FOUR_CONNECTED. */
+      4-connected regular grid as C-space. */
   class LSMKernel:
     public Kernel {
   public:

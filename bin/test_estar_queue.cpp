@@ -38,80 +38,80 @@ using namespace std;
 
 int main(int argc, char ** argv)
 {
-  static const bool check(true);
+  static bool const check(true);
   
-  connectedness_t connect(FOUR_CONNECTED);
+  Grid::neighborhood_t connect(Grid::FOUR);
   string kernel_name("lsm");
-  for(int argi(1); argi < argc; ++argi){
-    const string arg(argv[argi]);
-    if(arg == "hex"){
-      connect = HEX_GRID;
+  for (int argi(1); argi < argc; ++argi) {
+    string const arg(argv[argi]);
+    if (arg == "hex") {
+      connect = Grid::SIX;
       cout << "hexgrid\n";
     }
-    else if(arg == "eight"){
-      connect = EIGHT_CONNECTED;
+    else if (arg == "eight") {
+      connect = Grid::EIGHT;
       cout << "eight-grid\n";
     }
-    else if(arg == "four")
+    else if (arg == "four")
       cout << "four-grid\n";	// default
-    else if(arg == "lsm")
+    else if (arg == "lsm")
       cout << "LSM kernel\n";	// default
-    else if(arg == "alpha"){
+    else if (arg == "alpha") {
       kernel_name = "alpha";
       cout << "ALPHA kernel\n";
     }
-    else{
+    else {
       cout << "what do you mean, \"" << arg << "\"?\n";
       exit(EXIT_FAILURE);
     }
   }
   cout << "\"" << kernel_name << "\" kernel\n";
   
-  Grid grid(static_cast<ssize_t>(4), static_cast<ssize_t>(2), connect);
+  Grid grid(connect);
   Algorithm algo(grid.GetCSpace(), false, false, false, false, false);
   scoped_ptr<Kernel> kernel;
-  if(kernel_name == "lsm")
+  if (kernel_name == "lsm")
     kernel.reset(new LSMKernel(grid.GetCSpace(), 1));
-  else if(kernel_name == "alpha")
+  else if (kernel_name == "alpha")
     kernel.reset(new AlphaKernel(1));
-  else{
+  else {
     cout << "what's a \"" << kernel_name << "\" kernel?\n";
     exit(EXIT_FAILURE);
   }
-  algo.InitAllMeta(kernel->freespace_meta);
+  grid.Init(0, 4, 0, 2, kernel->freespace_meta);
   
-  if(check && ( ! check_cspace(algo.GetCSpaceGraph(), "", cout)))
+  if (check && ( ! check_cspace(algo.GetCSpaceGraph(), "", cout)))
     exit(EXIT_FAILURE);
   
   cout << "\n==================================================\n"
-       << "algo.AddGoal(grid.GetVertex(0, 0), 0)\n";
-  algo.AddGoal(grid.Index2Vertex(0, 0), 0);
-  while(true){
+       << "add goal (0, 0)\n";
+  algo.AddGoal(grid.GetNode(0, 0)->vertex, 0);
+  while (true) {
     dump_upwind(algo, &grid, stdout);
     dump_queue(algo, &grid, 0, stdout);
     dump_grid(grid, stdout);
-    if(check && ( ! check_queue(algo, &grid, "", cout)))
+    if (check && ( ! check_queue(algo, grid.GetCSpace().get(), "", cout)))
       exit(EXIT_FAILURE);
     
-    while(true){
+    while (true) {
       string cmd;
       cout << argv[0] << " > ";
       getline(cin, cmd);
 
-      if(cmd == "")
+      if (cmd == "")
 	break;
       else{
 
-	if(cmd[0] == 'q')
+	if (cmd[0] == 'q')
 	  exit(EXIT_SUCCESS);
 
-	else if(cmd[0] == 'h'){
+	else if (cmd[0] == 'h') {
 	  cout << "available commands:\n  q - quit\n  h - help"
 	       << "\n  m - change meta\n  a - add goal\n  r - remove goal\n"
 	       << "  <number> - change queue order\n";
 	}
 
-	else if(cmd[0] == 'm'){
+	else if (cmd[0] == 'm') {
 	  cout << "  m <vertex> { <meta> | 'inf' }\n";
  	  istringstream is(cmd);
 	  string junk;
@@ -119,17 +119,17 @@ int main(int argc, char ** argv)
 	  string meta_token;
 	  double meta(-1);
 	  is >> junk >> vertex >> meta_token;
-	  if(meta_token == "inf")
+	  if (meta_token == "inf")
 	    meta = infinity;
-	  else{
+	  else {
 	    istringstream mis(meta_token);
 	    mis >> meta;
-	    if( ! mis)
+	    if ( ! mis)
 	      cout << "oops parsing meta \"" << meta_token << "\"\n";
 	  }
-	  if((meta < 0) || (! is))
+	  if ((meta < 0) || (! is))
 	    cout << "oops parsing \"" << cmd << "\"\n";
-	  else{
+	  else {
 	    algo.SetMeta(vertex, meta, *kernel);
 	    dump_upwind(algo, &grid, stdout);
 	    dump_queue(algo, &grid, 0, stdout);
@@ -138,15 +138,16 @@ int main(int argc, char ** argv)
 	  }
 	}
 
-	else if(cmd[0] == 'a'){
+	else if (cmd[0] == 'a') {
 	  cout << "  a <vertex> <value>\n";
  	  istringstream is(cmd);
 	  string junk;
 	  vertex_t vertex;
 	  double value;
 	  is >> junk >> vertex >> value;
-	  if( ! is) cout << "oops parsing \"" << cmd << "\"\n";
-	  else{
+	  if ( ! is)
+	    cout << "oops parsing \"" << cmd << "\"\n";
+	  else {
 	    algo.AddGoal(vertex, value);
 	    dump_upwind(algo, &grid, stdout);
 	    dump_queue(algo, &grid, 0, stdout);
@@ -155,14 +156,15 @@ int main(int argc, char ** argv)
 	  }
 	}
 
-	else if(cmd[0] == 'r'){
+	else if (cmd[0] == 'r') {
 	  cout << "  r <vertex>\n";
  	  istringstream is(cmd);
 	  string junk;
 	  vertex_t vertex;
 	  is >> junk >> vertex;
-	  if( ! is) cout << "oops parsing \"" << cmd << "\"\n";
-	  else{
+	  if ( ! is)
+	    cout << "oops parsing \"" << cmd << "\"\n";
+	  else {
 	    algo.RemoveGoal(vertex);
 	    dump_upwind(algo, &grid, stdout);
 	    dump_queue(algo, &grid, 0, stdout);
@@ -171,24 +173,26 @@ int main(int argc, char ** argv)
 	  }
 	}
 
-	else{
+	else {
 	  cout << "  <number>\n";
  	  istringstream is(cmd);
 	  vertex_t vertex;
 	  is >> vertex;
-	  if( ! is) cout << "oops parsing \"" << cmd << "\"\n";
-	  else{
-	    if(algo.GetQueue().VitaminB(vertex)){
+	  if ( ! is)
+	    cout << "oops parsing \"" << cmd << "\"\n";
+	  else {
+	    if (algo.GetQueue().VitaminB(vertex)) {
 	      cout << "queue reordered\n";
 	      dump_queue(algo, &grid, 1, stdout);
 	    }
-	    else cout << "vitamin B failed on vertex " << vertex << "\n";
+	    else
+	      cout << "vitamin B failed on vertex " << vertex << "\n";
 	  }
 	}
       }
     }
 
-    if(algo.HaveWork())
+    if (algo.HaveWork())
       algo.ComputeOne(*kernel, 0.5);
     else
       cout << "nothing left to do\n";

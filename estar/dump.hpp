@@ -63,18 +63,18 @@ namespace estar {
      \note BEWARE x1 and y1 are *inclusive*
   */
   void dump_raw_value(const Grid & grid,
-		      const Algorithm & algo,
 		      ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		      double infinity_replacement,
 		      FILE * stream);
   
   
   /**
-     Similar to dump_raw(), but specifically for a Grid's meta information.
+     Similar to dump_raw(), but specifically for a Grid's meta
+     information.
+     
      \note BEWARE x1 and y1 are *inclusive*
   */
   void dump_raw_meta(const Grid & grid,
-		     const Algorithm & algo,
 		     ssize_t x0, ssize_t y0, ssize_t x1, ssize_t y1,
 		     FILE * stream);
   
@@ -112,7 +112,8 @@ namespace estar {
 				   ssize_t ixhigh, ssize_t iyhigh,
 				   FILE * stream);
 
-  void dump_upwind(const Algorithm & algo, const Grid * grid, FILE * stream);
+  void dump_upwind(const Algorithm & algo, const Grid * grid,
+		   FILE * stream);
     
 }
 
