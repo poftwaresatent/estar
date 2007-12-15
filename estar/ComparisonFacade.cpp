@@ -153,4 +153,22 @@ namespace estar {
     m_sample->Reset();
   }
   
+  
+  size_t ComparisonFacade::
+  AddRange(ssize_t xbegin, ssize_t xend,
+	   ssize_t ybegin, ssize_t yend,
+	   double meta)
+  {
+    m_master->AddRange(xbegin, xend, ybegin, yend, meta);
+    return m_sample->AddRange(xbegin, xend, ybegin, yend, meta);
+  }
+  
+  
+  bool ComparisonFacade::
+  AddNode(ssize_t ix, ssize_t iy, double meta)
+  {
+    m_master->AddNode(ix, iy, meta);
+    return m_sample->AddNode(ix, iy, meta);
+  }
+  
 } // namespace estar

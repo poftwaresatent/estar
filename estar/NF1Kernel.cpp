@@ -20,7 +20,6 @@
 
 #include "NF1Kernel.hpp"
 #include "Propagator.hpp"
-#include "numeric.hpp"
 
 
 using boost::tie;
@@ -31,7 +30,7 @@ namespace estar {
   
   NF1Kernel::
   NF1Kernel()
-    : Kernel(0, infinity, 1)
+    : SubKernel<NF1Kernel>(1)
   {
   }
   

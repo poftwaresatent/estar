@@ -29,21 +29,37 @@ namespace estar {
   
   
   /**
+     Things that are required of specialized  KernelTraits:
+     \code
+     template<>
+     struct KernelTraits<FooBar> {
+       static double freespace_meta() { return foo; }
+       static double obstacle_meta() { return bar; }
+     };
+     \endcode
+  */
+  template<class KernelSubclass>
+  struct KernelTraits;
+  
+  
+  /**
      Generic E* kernel interface. The base class ensures some simple
      rules, such as how to react to empty Propagator instances.
 
-     \todo Refactor the "polymorphic" constants using a traits
-     class. Implement a factory method that allows creating a subclass
+     \todo Implement a factory method that allows creating a subclass
      from a parameter object or config string or something...
   */
-  class Kernel {
+  class Kernel
+  {
   public:
     const double freespace_meta;
     const double obstacle_meta;
     const double scale;
     
-    Kernel(double fsm, double obm, double _scale)
-      : freespace_meta(fsm), obstacle_meta(obm), scale(_scale) { }
+    Kernel(double _freespace_meta, double _obstacle_meta, double _scale)
+      : freespace_meta(_freespace_meta),
+	obstacle_meta(_obstacle_meta),
+	scale(_scale) {}
     
     virtual ~Kernel();
     
@@ -60,6 +76,17 @@ namespace estar {
     double DoCompute(Propagator & propagator) const = 0;
   };
   
+  
+  template<class KernelSubclass>
+  class SubKernel
+    : public Kernel
+  {
+  public:
+    typedef class KernelTraits<KernelSubclass> traits;
+    
+    explicit SubKernel(double scale)
+      : Kernel(traits::freespace_meta(), traits::obstacle_meta(), scale) {}
+  };
   
 } // namespace estar
 

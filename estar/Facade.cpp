@@ -41,13 +41,11 @@ namespace estar {
   GridOptions::
   GridOptions(ssize_t _xbegin, ssize_t _xend,
 	      ssize_t _ybegin, ssize_t _yend,
-	      double _init_meta,
 	      Grid::neighborhood_t _neighborhood)
     : xbegin(_xbegin),
       xend(_xend),
       ybegin(_ybegin),
       yend(_yend),
-      init_meta(_init_meta),
       neighborhood(_neighborhood)
   {
   }
@@ -99,13 +97,30 @@ namespace estar {
 	 AlgorithmOptions const & algo_options,
 	 FILE * dbgstream)
   {
+    double init_meta;
+    if (kernel_name == "nf1")
+      init_meta = KernelTraits<NF1Kernel>::freespace_meta();
+    else if (kernel_name == "alpha")
+      init_meta = KernelTraits<AlphaKernel>::freespace_meta();
+    else if (kernel_name == "lsm")
+      init_meta = KernelTraits<LSMKernel>::freespace_meta();
+    else {
+      if(0 != dbgstream)
+	fprintf(dbgstream,
+		"ERROR in %s():\n"
+		"  invalid kernel_name \"%s\"\n"
+		"  known kernels: nf1, alpha, lsm\n",
+		__FUNCTION__, kernel_name.c_str());
+      return 0;
+    }
+    
     shared_ptr<Grid>
       grid(new Grid(grid_options.xbegin,
 		    grid_options.xend,
 		    grid_options.ybegin,
 		    grid_options.yend,
 		    grid_options.neighborhood,
-		    grid_options.init_meta));
+		    init_meta));
     shared_ptr<Algorithm>
       algo(new Algorithm(grid->GetCSpace(),
 			 algo_options.check_upwind,
@@ -123,7 +138,7 @@ namespace estar {
     else {
       if(0 != dbgstream)
 	fprintf(dbgstream,
-		"ERROR in %s():\n"
+		"BUG in %s() [should have checked this at start of method]:\n"
 		"  invalid kernel_name \"%s\"\n"
 		"  known kernels: nf1, alpha, lsm\n",
 		__FUNCTION__, kernel_name.c_str());
@@ -146,7 +161,7 @@ namespace estar {
 		    grid_options.ybegin,
 		    grid_options.yend,
 		    grid_options.neighborhood,
-		    grid_options.init_meta));
+		    KernelTraits<LSMKernel>::freespace_meta()));
     AlgorithmOptions algo_options;
     shared_ptr<Algorithm>
       algo(new Algorithm(grid->GetCSpace(),
@@ -393,10 +408,7 @@ namespace estar {
   {
     PVDEBUG("(%g   %g)   d: %g   s: %g   N: %lu\n",
 	    robot_x, robot_y, distance, stepsize, maxsteps);
-    if((robot_x < 0) || (robot_y < 0)){
-      PDEBUG("FAIL (robot_x < 0) || (robot_y < 0)\n");
-      return -1;
-    }
+    
     robot_x /= scale;
     robot_y /= scale;
     distance /= scale;
@@ -493,6 +505,23 @@ namespace estar {
   GetCSpace() const
   {
     return m_cspace;
+  }
+  
+  
+  size_t Facade::
+  AddRange(ssize_t xbegin, ssize_t xend,
+	   ssize_t ybegin, ssize_t yend,
+	   double meta)
+  {
+    return m_grid->AddRange(xbegin, xend, ybegin, yend, meta,
+			    *m_algo, *m_kernel);
+  }
+  
+  
+  bool Facade::
+  AddNode(ssize_t ix, ssize_t iy, double meta)
+  {
+    return m_grid->AddNode(ix, iy, meta, *m_algo, *m_kernel);
   }
 
 } // namespace estar

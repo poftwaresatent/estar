@@ -23,6 +23,7 @@
 
 
 #include <estar/Kernel.hpp>
+#include <estar/numeric.hpp>
 
 
 namespace estar {
@@ -34,8 +35,9 @@ namespace estar {
       
       \todo TEST ME! This is just an initial implementation.
   */
-  class AlphaKernel:
-    public Kernel {
+  class AlphaKernel
+    : public SubKernel<AlphaKernel>
+  {
   public:
     const double alpha;
     
@@ -43,6 +45,13 @@ namespace estar {
     
   protected:
     virtual double DoCompute(Propagator & propagator) const;
+  };
+
+  
+  template<>
+  struct KernelTraits<AlphaKernel> {
+    static double freespace_meta() { return 1; }
+    static double obstacle_meta() { return infinity; }
   };
   
 } // namespace estar

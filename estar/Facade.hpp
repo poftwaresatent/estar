@@ -47,11 +47,9 @@ namespace estar {
   public:
     GridOptions(ssize_t xbegin, ssize_t xend,
 		ssize_t ybegin, ssize_t yend,
-		double init_meta = 0,
 		Grid::neighborhood_t neighborhood = Grid::FOUR);
     
     ssize_t xbegin, xend, ybegin, yend;
-    double init_meta;
     
     /** For the preferred LSMKernel, you should set this to
 	Grid::FOUR. */
@@ -295,6 +293,18 @@ namespace estar {
        Implements FacadeWriteInterface::Reset().
     */
     virtual void Reset();
+    
+    /**
+       Implements FacadeWriteInterface::AddRange().
+    */
+    virtual size_t AddRange(ssize_t xbegin, ssize_t xend,
+			    ssize_t ybegin, ssize_t yend,
+			    double meta);
+    
+    /**
+       Implements FacadeWriteInterface::AddNode().
+    */
+    virtual bool AddNode(ssize_t ix, ssize_t iy, double meta);
     
     /**
        Implements FacadeReadInterface::GetStatus().

@@ -34,8 +34,9 @@ namespace estar {
   
   /** Interpolation kernel based on Level Set Method. Needs a
       4-connected regular grid as C-space. */
-  class LSMKernel:
-    public Kernel {
+  class LSMKernel
+    : public SubKernel<LSMKernel>
+  {
   public:
     LSMKernel(boost::shared_ptr<GridCSpace const> cspace, double scale);
     
@@ -45,6 +46,13 @@ namespace estar {
     virtual double DoCompute(Propagator & propagator) const;
     
     boost::shared_ptr<GridCSpace const> m_cspace;
+  };
+
+  
+  template<>
+  struct KernelTraits<LSMKernel> {
+    static double freespace_meta() { return 1; }
+    static double obstacle_meta() { return 0; }
   };
   
   

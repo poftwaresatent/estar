@@ -247,6 +247,7 @@ namespace estar {
     node->iy = iy;
     node->vertex = m_cspace->AddVertex(node);
     m_flexgrid->at(ix, iy) = node;
+    m_cspace->SetMeta(node->vertex, meta);
     
     for (nbor_offset_t::const_iterator in(m_nbor_offset.begin());
 	 in != m_nbor_offset.end(); ++in) {

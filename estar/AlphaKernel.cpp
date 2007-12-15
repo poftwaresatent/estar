@@ -19,7 +19,6 @@
 
 
 #include "AlphaKernel.hpp"
-#include "numeric.hpp"
 #include "Propagator.hpp"
 #include "util.hpp"
 #include "pdebug.hpp"
@@ -30,7 +29,7 @@ namespace estar {
   
   AlphaKernel::
   AlphaKernel(double scale)
-    : Kernel(1, infinity, scale),
+    : SubKernel<AlphaKernel>(scale),
       alpha(2.0)
   {
   }

@@ -23,18 +23,28 @@
 
 
 #include <estar/Kernel.hpp>
+#include <estar/numeric.hpp>
 
 
 namespace estar {
   
   
   /** Non-interpolating kernel, mimics NF1 but allows continuous risk. */
-  class NF1Kernel:
-    public Kernel {
+  class NF1Kernel
+    : public SubKernel<NF1Kernel>
+  {
   public:
     NF1Kernel();
+    
   protected:
     virtual double DoCompute(Propagator & propagator) const;
+  };
+  
+  
+  template<>
+  struct KernelTraits<NF1Kernel> {
+    static double freespace_meta() { return 0; }
+    static double obstacle_meta() { return infinity; }
   };
   
   

@@ -119,6 +119,24 @@ namespace estar {
     */
     virtual void Reset();
     
+    /**
+       Implements FacadeWriteInterface::AddRange() by adding to both
+       master and sample.
+       
+       \return whatever the sample returned.
+    */
+    virtual size_t AddRange(ssize_t xbegin, ssize_t xend,
+			    ssize_t ybegin, ssize_t yend,
+			    double meta);
+    
+    /**
+       Implements FacadeWriteInterface::AddRange() by adding to both
+       master and sample.
+       
+       \return whatever the sample returned.
+    */
+    virtual bool AddNode(ssize_t ix, ssize_t iy, double meta);
+    
     
   private:
     boost::shared_ptr<Facade> m_master;

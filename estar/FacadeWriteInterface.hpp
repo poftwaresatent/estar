@@ -46,8 +46,7 @@ namespace estar {
        FacadeReadInterface::GetMeta() about the interpretation of meta
        values.
        
-       \return true if the index was valid and the meta was set, false
-       otherwise.
+       \return true if the index was valid.
     */
     virtual bool SetMeta(ssize_t ix, ssize_t iy, double meta) = 0;
     
@@ -83,6 +82,31 @@ namespace estar {
        goal nodes.
     */
     virtual void Reset() = 0;
+    
+    /**
+       Makes sure that the required range of indices is available,
+       where (xend, yend) is the ONE-PAST-end marker for the X- and Y-
+       directions. That is to say, after this call there is guaranteed
+       to be a GridNode at [xend-1, yend-1] but not beyond that. The
+       method does not modify any prior existing nodes in the given
+       range of indices, except for adding neighborhood edges where
+       appropriate.
+       
+       \return The number of added vertices.
+    */
+    virtual size_t AddRange(ssize_t xbegin, ssize_t xend,
+			    ssize_t ybegin, ssize_t yend,
+			    double meta) = 0;
+    
+    /**
+       If (ix, iy) is already in the grid, simply call
+       SetMeta(). Otherwise, add a new GridNode instance and "hook it"
+       into the E* structures.
+       
+       \return true if a new GridNode was allocated and inserted into
+       the grid.
+    */
+    virtual bool AddNode(ssize_t ix, ssize_t iy, double meta) = 0;
   };
   
 } // namespace estar

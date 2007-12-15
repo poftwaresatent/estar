@@ -34,7 +34,7 @@ namespace estar {
   
   LSMKernel::
   LSMKernel(shared_ptr<GridCSpace const> cspace, double scale)
-    : Kernel(1, 0, scale),
+    : SubKernel<LSMKernel>(scale),
       m_cspace(cspace)
   {
   }
