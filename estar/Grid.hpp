@@ -83,11 +83,20 @@ namespace estar {
 		    double meta,
 		    Algorithm & algo, Kernel const & kernel);
     
+    struct get_meta {
+      virtual ~get_meta() {}
+      virtual double operator () (ssize_t ix, ssize_t iy) const = 0;
+    };
+    
+    size_t AddRange(ssize_t xbegin, ssize_t xend,
+		    ssize_t ybegin, ssize_t yend,
+		    get_meta const * gm,
+		    Algorithm & algo, Kernel const & kernel);
+    
     /**
-       If (ix, iy) is already in the grid, simply call
-       Algorithm::SetMeta(). Otherwise, add a new GridNode instance,
-       hook it up via edges to its neighbors, initialize its meta, and
-       call Algorithm::AddVertex().
+       If (ix, iy) is NOT already in the grid, add a new GridNode
+       instance, hook it up via edges to its neighbors, initialize its
+       meta, and call Algorithm::AddVertex(). Otherwise ignore.
        
        \note All freshly added nodes get assigned a value of infinity.
        

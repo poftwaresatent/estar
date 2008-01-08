@@ -260,7 +260,7 @@ namespace gfx {
     carrot_trace trace;
     int const status(facade.TraceCarrot(robot_x, robot_y,
 					distance, stepsize, maxsteps,
-					trace));
+					trace, 0));
     if (status >= 0)
       draw_trace(trace, colorscheme, fail_r, fail_g, fail_b);
   }

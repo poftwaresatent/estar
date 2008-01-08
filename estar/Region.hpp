@@ -55,6 +55,13 @@ namespace estar {
 	   ssize_t xend,
 	   ssize_t ybegin,
 	   ssize_t yend);
+
+    /** region from existing sprite "without limit checks" */
+    Region(boost::shared_ptr<Sprite> sprite,
+	   /** x-coordinate of where the sprite's center should be located */
+	   double x0,
+	   /** y-coordinate of where the sprite's center should be located */
+	   double y0);
     
     /** Create a region instance by creating a circular sprite. */
     Region(/** radius of the disk */
@@ -69,6 +76,16 @@ namespace estar {
 	   ssize_t xend,
 	   ssize_t ybegin,
 	   ssize_t yend);
+    
+    /** cicular region "without" limit checks */
+    Region(/** radius of the disk */
+	   double radius,
+	   /** grid resolution (to scale the disk to grid cell units) */
+	   double scale,
+	   /** x-coordinate of the disk center */
+	   double x0,
+	   /** y-coordinate of the disk center */
+	   double y0);
     
     const Sprite & GetSprite() const { return * m_sprite; }
     const indexlist_t & GetBorder() const { return m_border; }

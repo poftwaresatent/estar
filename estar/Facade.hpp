@@ -301,6 +301,10 @@ namespace estar {
 			    ssize_t ybegin, ssize_t yend,
 			    double meta);
     
+    size_t AddRange(ssize_t xbegin, ssize_t xend,
+		    ssize_t ybegin, ssize_t yend,
+		    Grid::get_meta const * gm);
+    
     /**
        Implements FacadeWriteInterface::AddNode().
     */
@@ -376,7 +380,8 @@ namespace estar {
     virtual int TraceCarrot(double robot_x, double robot_y,
 			    double distance, double stepsize,
 			    size_t maxsteps,
-			    carrot_trace & trace) const;
+			    carrot_trace & trace,
+			    std::ostream * err_os) const;
     
     /**
        Implements FacadeReadInterface::GetCSpace().

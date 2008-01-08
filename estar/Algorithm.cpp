@@ -201,6 +201,7 @@ namespace estar {
       m_goalset.erase(vertex);
       put(m_flag, vertex, NONE);
       m_pending_reset = true;
+#warning "could use m_pending_reset more to avoid work when not needed"
     }
   }
   
@@ -286,6 +287,10 @@ namespace estar {
     m_cspace->SetValue(vertex, infinity);
     m_cspace->SetRhs(vertex, infinity);
     m_cspace->SetFlag(vertex, NONE);
+#undef ALWAYS_UPDATE
+#ifdef ALWAYS_UPDATE
+    UpdateVertex(vertex, kernel);
+#else // ALWAYS_UPDATE
     if (m_queue.Get().empty())
       UpdateVertex(vertex, kernel);
     else {
@@ -298,6 +303,7 @@ namespace estar {
 	}
       }
     }
+#endif // ALWAYS_UPDATE
   }
   
 } // namespace estar

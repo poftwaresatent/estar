@@ -404,7 +404,8 @@ namespace estar {
   TraceCarrot(double robot_x, double robot_y,
 	      double distance, double stepsize,
 	      size_t maxsteps,
-	      carrot_trace & trace) const
+	      carrot_trace & trace,
+	      std::ostream * err_os) const
   {
     PVDEBUG("(%g   %g)   d: %g   s: %g   N: %lu\n",
 	    robot_x, robot_y, distance, stepsize, maxsteps);
@@ -421,6 +422,9 @@ namespace estar {
     shared_ptr<GridNode const> node(m_grid->GetNode(ix, iy));
     if ( ! node) {
       PDEBUG("no node at (ix, iy)\n");
+      if (err_os)
+	(*err_os) << "ERROR (-1) in estar::Facade::TraceCarrot():\n"
+		  << "  no node at [" << ix << "  " << iy << "]\n";
       return -1;
     }
     
@@ -435,6 +439,10 @@ namespace estar {
 							gx, gy, dx, dy));
       if (0 > res) {
 	PDEBUG("ComputeStableScaledGradient() failed\n");
+	if (err_os)
+	  (*err_os) << "ERROR (-2) in estar::Facade::TraceCarrot():\n"
+		    << "  ComputeStableScaledGradient() failed\n"
+		    << "  at node [" << node->ix << "  " << node->iy << "]\n";
 	return -2;
       }
       bool const heur(0 != res);
@@ -466,7 +474,11 @@ namespace estar {
 	iy = niy;
 	node = m_grid->GetNode(ix, iy);
 	if ( ! node) {
+#warning "this seems to happen 'sometimes' with growable cspace"
 	  PDEBUG("no node at (nix, niy)\n");
+	  if (err_os)
+	    (*err_os) << "ERROR (-3) in estar::Facade::TraceCarrot():\n"
+		      << "  no neighbor at [" << ix << "  " << iy << "]\n";
 	  return -3;
 	}
       }
@@ -481,6 +493,10 @@ namespace estar {
       
       if (0 > res) {
 	PDEBUG("ComputeStableScaledGradient() failed\n");
+	if (err_os)
+	  (*err_os) << "ERROR (-4) in estar::Facade::TraceCarrot():\n"
+		    << "  ComputeStableScaledGradient() failed\n"
+		    << "  at node [" << node->ix << "  " << node->iy << "]\n";
 	return -4;
       }
       bool const heur(0 != res);
@@ -517,6 +533,16 @@ namespace estar {
 			    *m_algo, *m_kernel);
   }
   
+  
+  size_t Facade::
+  AddRange(ssize_t xbegin, ssize_t xend,
+	   ssize_t ybegin, ssize_t yend,
+	   Grid::get_meta const * gm)
+  {
+    return m_grid->AddRange(xbegin, xend, ybegin, yend, gm,
+			    *m_algo, *m_kernel);
+  }
+
   
   bool Facade::
   AddNode(ssize_t ix, ssize_t iy, double meta)

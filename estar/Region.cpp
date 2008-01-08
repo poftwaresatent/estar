@@ -49,6 +49,19 @@ namespace estar {
   
   
   Region::
+  Region(shared_ptr<Sprite> sprite,
+	 double _x0, double _y0)
+    : x0(_x0),
+      y0(_y0),
+      m_sprite(sprite)
+  {
+    Init(sprite->radius, sprite->scale, x0, y0,
+	 numeric_limits<ssize_t>::min(), numeric_limits<ssize_t>::max(), 
+	 numeric_limits<ssize_t>::min(), numeric_limits<ssize_t>::max());
+  }
+  
+  
+  Region::
   Region(double radius, double scale,
 	 double _x0, double _y0,
 	 ssize_t xbegin, ssize_t xend,
@@ -58,6 +71,19 @@ namespace estar {
       m_sprite(new Sprite(radius, scale))
   {
     Init(radius, scale, x0, y0, xbegin, xend, ybegin, yend);
+  }
+  
+  
+  Region::
+  Region(double radius, double scale,
+	 double _x0, double _y0)
+    : x0(_x0),
+      y0(_y0),
+      m_sprite(new Sprite(radius, scale))
+  {
+    Init(radius, scale, x0, y0,
+	 numeric_limits<ssize_t>::min(), numeric_limits<ssize_t>::max(), 
+	 numeric_limits<ssize_t>::min(), numeric_limits<ssize_t>::max());
   }
   
   

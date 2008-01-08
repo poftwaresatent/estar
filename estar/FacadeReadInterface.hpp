@@ -223,7 +223,9 @@ namespace estar {
     virtual int TraceCarrot(double robot_x, double robot_y,
 			    double distance, double stepsize,
 			    size_t maxsteps,
-			    carrot_trace & trace) const = 0;
+			    carrot_trace & trace,
+			    /** optionally write error info here */
+			    std::ostream * err_os) const = 0;
 
     virtual boost::shared_ptr<GridCSpace const> GetCSpace() const = 0;
   };

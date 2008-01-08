@@ -184,20 +184,51 @@ namespace estar {
   }
   
   
+  
+  size_t Grid::
+  AddRange(ssize_t xbegin, ssize_t xend,
+	   ssize_t ybegin, ssize_t yend,
+	   get_meta const * gm,
+	   Algorithm & algo, Kernel const & kernel)
+  {
+    size_t count(0);
+    
+    // Grow the flexgrid if necessary. Do NOT simply call
+    // flexgrid::resize() because that could end up removing cells,
+    // which we do not support (yet?).
+    if (xbegin < m_flexgrid->xbegin())
+      m_flexgrid->resize_xbegin(xbegin);
+    if (xend > m_flexgrid->xend())
+      m_flexgrid->resize_xend(xend);
+    if (ybegin < m_flexgrid->ybegin())
+      m_flexgrid->resize_ybegin(ybegin);
+    if (yend > m_flexgrid->yend())
+      m_flexgrid->resize_yend(yend);
+    
+    for (ssize_t ix(xbegin); ix < xend; ++ix)
+      for (ssize_t iy(ybegin); iy < yend; ++iy) {
+	vertex_data_t node(m_flexgrid->at(ix, iy));
+	if ( ! node) {
+	  node = DoAddNode(ix, iy, (*gm)(ix, iy));
+	  algo.AddVertex(node->vertex, kernel);
+	  ++count;
+	}
+      }
+    
+    return count;
+  }
+  
+  
   bool Grid::
   AddNode(ssize_t ix, ssize_t iy, double meta,
 	  Algorithm & algo, Kernel const & kernel)
   {
-    bool added(false);
     vertex_data_t node(m_flexgrid->smart_at(ix, iy));
     if (node)
-      algo.SetMeta(node->vertex, meta, kernel);
-    else {
-      node = DoAddNode(ix, iy, meta);
-      algo.AddVertex(node->vertex, kernel);
-      added = true;
-    }
-    return added;
+      return false;
+    node = DoAddNode(ix, iy, meta);
+    algo.AddVertex(node->vertex, kernel);
+    return true;
   }
   
   

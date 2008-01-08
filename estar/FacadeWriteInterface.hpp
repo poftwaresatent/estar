@@ -99,9 +99,8 @@ namespace estar {
 			    double meta) = 0;
     
     /**
-       If (ix, iy) is already in the grid, simply call
-       SetMeta(). Otherwise, add a new GridNode instance and "hook it"
-       into the E* structures.
+       Ignore if (ix, iy) is already in the grid. Otherwise, add a new
+       GridNode instance and "hook it" into the E* structures.
        
        \return true if a new GridNode was allocated and inserted into
        the grid.
