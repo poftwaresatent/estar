@@ -549,5 +549,12 @@ namespace estar {
   {
     return m_grid->AddNode(ix, iy, meta, *m_algo, *m_kernel);
   }
+  
+  
+  bool Facade::
+  HaveGoal() const
+  {
+    return m_algo->HaveGoal();
+  }
 
 } // namespace estar

@@ -256,6 +256,8 @@ namespace estar {
 	ComputeOne(). */
     double GetLastPoppedKey() const { return m_last_popped_key; }
     
+    /** \return true if there is at least one goal node. */
+    bool HaveGoal() const { return ! m_goalset.empty(); }
     
   private:
     typedef std::set<vertex_t> goalset_t;

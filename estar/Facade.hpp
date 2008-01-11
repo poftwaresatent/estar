@@ -407,6 +407,9 @@ namespace estar {
     */
     Kernel & GetKernel() { return * m_kernel; }
     
+    bool HaveGoal() const;
+    
+    
   private:
     boost::shared_ptr<GridCSpace const> m_cspace;
     boost::shared_ptr<Algorithm> m_algo;
