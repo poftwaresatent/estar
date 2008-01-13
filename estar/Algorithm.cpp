@@ -287,7 +287,7 @@ namespace estar {
     m_cspace->SetValue(vertex, infinity);
     m_cspace->SetRhs(vertex, infinity);
     m_cspace->SetFlag(vertex, NONE);
-#undef ALWAYS_UPDATE
+#define ALWAYS_UPDATE
 #ifdef ALWAYS_UPDATE
     UpdateVertex(vertex, kernel);
 #else // ALWAYS_UPDATE
