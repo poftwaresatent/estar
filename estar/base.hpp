@@ -42,8 +42,14 @@ namespace estar {
     GOAL,			// 2 = b10
     /** goal node in queue */
     OPNG			// 3 = b11
-  } flag_t;
-  
+  } flag_enum_t;
+
+#ifdef WIN32
+  typedef size_t flag_t;
+#else
+  typedef flag_enum_t flag_t;
+#endif // WIN32
+
 
   /**
      Debug utility.

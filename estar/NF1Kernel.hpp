@@ -42,7 +42,8 @@ namespace estar {
   
   
   template<>
-  struct KernelTraits<NF1Kernel> {
+  class KernelTraits<NF1Kernel> {
+  public:
     static double freespace_meta() { return 0; }
     static double obstacle_meta() { return infinity; }
   };

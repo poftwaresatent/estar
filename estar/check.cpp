@@ -114,11 +114,13 @@ namespace estar {
  	err << "\n";
       }
     }
+
     if( ! result)
-      os << prefix << __func__ << "() log:\n" << err.str();
+      os << prefix << "check_queue() log:\n" << err.str();
     else
-      os << prefix << __func__ << "(): OK\n";
-    return result;
+      os << prefix << "check_queue(): OK\n";
+
+	return result;
   }
   
   
@@ -153,7 +155,8 @@ namespace estar {
 	  err << prefix << "duplicate neighbor: " << *vi << " => " << ni->first
 	      << " *" << ni->second << "\n";
 	}
-    }
+
+	}
     if( ! result)
       os << err.str();
     return result;

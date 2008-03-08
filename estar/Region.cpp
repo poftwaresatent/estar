@@ -28,6 +28,11 @@
 #include "pdebug.hpp"
 #include <iostream>
 
+#ifdef WIN32
+# include <estar/win32.hpp>
+#endif // WIN32
+
+
 using namespace boost;
 using namespace std;
 

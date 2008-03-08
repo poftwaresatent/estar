@@ -28,6 +28,7 @@
 namespace estar {
   
   
+#ifndef WIN32
   /**
      Set the function for cleaning up after your program. Also sets up
      signal handlers for SIGINT, SIGHUP, and SIGTERM to call that ceanup
@@ -39,6 +40,7 @@ namespace estar {
      from main.
   */
   void set_cleanup(void (*function)());
+#endif // WIN32
 
 
   /**

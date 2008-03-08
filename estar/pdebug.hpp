@@ -50,9 +50,15 @@
 #include <string>
 #include <stdio.h>
 
-#define PDEBUG_ERR(fmt, arg...) fprintf(stderr, "%s(): "fmt, __func__, ## arg)
-#define PDEBUG_OUT(fmt, arg...) fprintf(stdout, "%s(): "fmt, __func__, ## arg)
-#define PDEBUG_OFF(fmt, arg...)
+#ifndef WIN32
+# define PDEBUG_ERR(fmt, arg...) fprintf(stderr, "%s(): "fmt, __func__, ## arg)
+# define PDEBUG_OUT(fmt, arg...) fprintf(stdout, "%s(): "fmt, __func__, ## arg)
+# define PDEBUG_OFF(fmt, arg...)
+#else
+inline void PDEBUG_ERR(char const * fmt, ...) {}
+inline void PDEBUG_OUT(char const * fmt, ...) {}
+inline void PDEBUG_OFF(char const * fmt, ...) {}
+#endif // WIN32
 
 #ifdef ESTAR_VERBOSE_DEBUG
 # define ESTAR_DEBUG

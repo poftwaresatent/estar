@@ -21,8 +21,11 @@
 #include "util.hpp"
 #include "FacadeReadInterface.hpp"
 ////#include "Grid.hpp"
-#include <signal.h>
-#include <stdlib.h>
+
+#ifndef WIN32
+# include <signal.h>
+# include <stdlib.h>
+#endif // WIN32
 
 
 using namespace std;
@@ -31,6 +34,7 @@ using namespace std;
 namespace estar {
 
 
+#ifndef WIN32
   static void handle(int signum)
   {
     // The cleanup function is called implcitly through exit().
@@ -57,5 +61,6 @@ namespace estar {
       exit(EXIT_FAILURE);
     }
   }
+#endif // WIN32
   
 }

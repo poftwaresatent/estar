@@ -474,7 +474,9 @@ namespace estar {
 	iy = niy;
 	node = m_grid->GetNode(ix, iy);
 	if ( ! node) {
-#warning "this seems to happen 'sometimes' with growable cspace"
+#ifndef WIN32
+# warning "this seems to happen 'sometimes' with growable cspace"
+#endif // WIN32
 	  PDEBUG("no node at (nix, niy)\n");
 	  if (err_os)
 	    (*err_os) << "ERROR (-3) in estar::Facade::TraceCarrot():\n"

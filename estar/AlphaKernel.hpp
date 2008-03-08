@@ -49,7 +49,8 @@ namespace estar {
 
   
   template<>
-  struct KernelTraits<AlphaKernel> {
+  class KernelTraits<AlphaKernel> {
+  public:
     static double freespace_meta() { return 1; }
     static double obstacle_meta() { return infinity; }
   };

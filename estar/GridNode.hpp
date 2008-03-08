@@ -25,6 +25,10 @@
 #include <estar/CSpace.hpp>
 #include <boost/shared_ptr.hpp>
 
+#ifdef WIN32
+# include <estar/win32.hpp>
+#endif // WIN32
+
 
 namespace estar {
   

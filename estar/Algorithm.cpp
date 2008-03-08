@@ -201,8 +201,10 @@ namespace estar {
       m_goalset.erase(vertex);
       put(m_flag, vertex, NONE);
       m_pending_reset = true;
-#warning "could use m_pending_reset more to avoid work when not needed"
-    }
+#ifndef WIN32
+# warning "could use m_pending_reset more to avoid work when not needed"
+#endif // WIN32
+	}
   }
   
   
@@ -236,8 +238,10 @@ namespace estar {
     tie(iv, vend) = vertices(m_cspace_graph);
     for(/**/; iv != vend; ++iv){
 
-#warning Is it a waste of time to clear the upwind structure? Does it create or avoid inconsistencies?
-      //clear_vertex(get(m_upwind_v, *iv), m_upwind);
+#ifndef WIN32
+# warning Is it a waste of time to clear the upwind structure? Does it create or avoid inconsistencies?
+#endif // WIN32
+		//clear_vertex(get(m_upwind_v, *iv), m_upwind);
 
       if(get(m_flag, *iv) & GOAL){
 	put(m_value, *iv, infinity);

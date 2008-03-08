@@ -50,7 +50,8 @@ namespace estar {
 
   
   template<>
-  struct KernelTraits<LSMKernel> {
+  class KernelTraits<LSMKernel> {
+  public:
     static double freespace_meta() { return 1; }
     static double obstacle_meta() { return 0; }
   };

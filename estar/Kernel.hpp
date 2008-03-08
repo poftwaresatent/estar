@@ -39,7 +39,7 @@ namespace estar {
      \endcode
   */
   template<class KernelSubclass>
-  struct KernelTraits;
+  class KernelTraits;
   
   
   /**
