@@ -27,11 +27,12 @@
 
 
 #include <limits>
-#include <cmath>
 
 #ifdef WIN32
-# define M_PI 3.14159265358979323846
+#define _USE_MATH_DEFINES
 #endif // WIN32
+
+#include <cmath>
 
 
 namespace estar {
