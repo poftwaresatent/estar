@@ -201,7 +201,9 @@ namespace estar {
        <code>distance</code>, the number of iterations has reached
        <code>maxsteps</code>, or the trace has reached a goal location.
        
-       \note The trace is computed in the grid frame of reference. The
+       \note The trace is computed in the grid frame of reference (if
+       you are using a sfl::GridFrame from libsunflower, just call its
+       From() method but do not divide by its Delta()). The
        <code>trace</code> is cleared prior to filling it.
        
        \return
