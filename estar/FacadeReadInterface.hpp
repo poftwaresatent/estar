@@ -157,7 +157,7 @@ namespace estar {
        The "lowest inconsistent value" is the "height" of the cell
        which would be propagated next. This value is needed if you
        want to figure out, for example, if a given cell is in the
-       region of knownstabilized navigation function or not. However,
+       region of known stabilized navigation function or not. However,
        due to replanning, a cell with a value higher than
        GetLowestInconsistentValue() can already be at its "stable"
        height. It will only change if the cell lies in the shadow of
