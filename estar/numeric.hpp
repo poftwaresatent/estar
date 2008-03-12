@@ -29,10 +29,16 @@
 #include <limits>
 
 #ifdef WIN32
-#define _USE_MATH_DEFINES
+// According to Microsoft documentation, this should suffice to make M_PI and such appear...
+# define _USE_MATH_DEFINES
 #endif // WIN32
 
 #include <cmath>
+
+#ifndef M_PI
+// However, Microsoft's _USE_MATH_DEFINES does not seem to work. Whatever.
+# define M_PI 3.14159265358979323846
+#endif // M_PI
 
 
 namespace estar {
