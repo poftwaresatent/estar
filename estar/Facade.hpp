@@ -141,9 +141,6 @@ namespace estar {
        call CreateDefault() instead. Typically, the first things you
        will do with a freshly created Facade are:
        
-       -# Initialize traversability information using
-          InitMeta(). However, once you have started propagating, you
-          should not use InitMeta() anymore. Use SetMeta() instead.
        -# Set the goal(s) by calling AddGoal().
        -# Repeatedly call ComputeOne(), HaveWork(), and/or GetStatus()
           to compute the navigation function until you reach the robot

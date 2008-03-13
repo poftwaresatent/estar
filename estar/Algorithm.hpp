@@ -140,8 +140,7 @@ namespace estar {
     
     /**
        Set the meta information of a node (if different from what's
-       already stored there). Unlike InitMeta() which should only be
-       used during initialisation, this method also performs the
+       already stored there). This method also performs the
        correct updates by estimating the new one-step-lookahead
        rhs-value, entering the vertex into the Queue, and updating the
        upwind graph accordingly.

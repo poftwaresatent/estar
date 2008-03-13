@@ -85,12 +85,6 @@ namespace estar {
     */
     virtual bool SetMeta(ssize_t ix, ssize_t iy, double meta);
     
-//     /**
-//        Implements FacadeWriteInterface::InitMeta() by initializing the
-//        meta on both master and sample.
-//     */
-//     virtual void InitMeta(ssize_t ix, ssize_t iy, double meta);
-    
     /**
        Implements FacadeWriteInterface::AddGoal() by adding the goal
        to both master and sample, and flagging the master for reset
