@@ -46,6 +46,9 @@ ENDIF (ESTAR_CXX_FLAG_Wundef)
 SET (PREFIX /usr/local          CACHE PATH "project installation prefix")
 SET (BOOST_PATH ${PREFIX}/boost CACHE PATH "Boost installation prefix")
 
+SET (CMAKE_REQUIRED_INCLUDES ${BOOST_PATH}/include ${PREFIX}/include)
+INCLUDE_DIRECTORIES (${BOOST_PATH}/include ${PREFIX}/include)
+
 INCLUDE (CheckIncludeFileCXX)
 
 CHECK_INCLUDE_FILE_CXX (boost/shared_ptr.hpp ESTAR_HAVE_SHARED_PTR)
