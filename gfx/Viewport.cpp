@@ -62,7 +62,7 @@ namespace gfx {
     const
   {
     return new Viewport(newname, m_rbbox, Lbbox(),
-			m_preserve_aspect, m_remap_thresh);
+			m_preserve_aspect, Enabled(), m_remap_thresh);
   }
 
 
@@ -209,6 +209,7 @@ namespace gfx {
 	     realbbox,
 	     lbbox,
 	     preserve_aspect,
+		 false,
 	     remap_thresh)
   {
   }

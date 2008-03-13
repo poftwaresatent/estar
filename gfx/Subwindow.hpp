@@ -31,6 +31,10 @@
 #include <iostream>
 #include <cmath>
 
+#ifdef WIN32
+# include <estar/win32.hpp>
+#endif // WIN32
+
 
 namespace gfx {
 

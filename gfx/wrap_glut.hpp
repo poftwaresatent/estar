@@ -29,8 +29,10 @@
 #  include <GL/glut.h>
 # elif defined( OSX )
 #  include <GLUT/glut.h>
+# elif defined( WIN32 )
+#  include "win32glut.h"
 # else
-#  error Define LINUX, OPENBSD or OSX symbol (or extend this header).
+#  error Define LINUX, OPENBSD, OSX, or WIN32 symbol (or extend this header).
 # endif
 
 #endif // GFX_WRAP_GLUT_HPP

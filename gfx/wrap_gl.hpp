@@ -29,8 +29,11 @@
 #  include <GL/gl.h>
 # elif defined( OSX )
 #  include <OpenGL/gl.h>
+# elif defined( WIN32 )
+#  include <windows.h>
+#  include <GL/glu.h>
 # else
-#  error Define LINUX, OPENBSD, or OSX (or extend this header).
+#  error Define LINUX, OPENBSD, OSX, or WIN32 (or extend this header).
 # endif
 
 #endif // GFX_WRAP_GL_HPP

@@ -161,6 +161,9 @@
 			RelativePath=".\estar\flexgrid_traits.hpp">
 		</File>
 		<File
+			RelativePath=".\estar\graphics.cpp">
+		</File>
+		<File
 			RelativePath=".\estar\Grid.cpp">
 		</File>
 		<File
@@ -180,6 +183,9 @@
 		</File>
 		<File
 			RelativePath=".\estar\LSMKernel.hpp">
+		</File>
+		<File
+			RelativePath=".\gfx\Mousehandler.cpp">
 		</File>
 		<File
 			RelativePath=".\estar\NF1Kernel.cpp">
@@ -233,6 +239,9 @@
 			RelativePath=".\estar\Sprite.hpp">
 		</File>
 		<File
+			RelativePath=".\gfx\Subwindow.cpp">
+		</File>
+		<File
 			RelativePath=".\estar\Upwind.cpp">
 		</File>
 		<File
@@ -245,7 +254,13 @@
 			RelativePath=".\estar\util.hpp">
 		</File>
 		<File
+			RelativePath=".\gfx\Viewport.cpp">
+		</File>
+		<File
 			RelativePath=".\estar\win32.hpp">
+		</File>
+		<File
+			RelativePath=".\gfx\wrap_glu.cpp">
 		</File>
 	</Files>
 	<Globals>
