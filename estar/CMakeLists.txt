@@ -18,6 +18,7 @@ ADD_LIBRARY (estar
              check.cpp
              dump.cpp
              numeric.cpp
+	     graphics.cpp
              util.cpp)
 
 INCLUDE_DIRECTORIES (.

@@ -84,4 +84,4 @@ ENDIF(WIN32)
 
 
 
-SUBDIRS (estar)
+SUBDIRS (estar gfx)
