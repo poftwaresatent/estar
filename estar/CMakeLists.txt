@@ -22,4 +22,5 @@ ADD_LIBRARY (estar
              util.cpp)
 
 INCLUDE_DIRECTORIES (.
-                     ..)
+                     ..
+		     ${PREFIX}/include)

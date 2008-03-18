@@ -5,4 +5,5 @@ ADD_LIBRARY (gfx
              wrap_glu.cpp)
 
 INCLUDE_DIRECTORIES (.
-                     ..)
+                     ..
+		     ${PREFIX}/include)
