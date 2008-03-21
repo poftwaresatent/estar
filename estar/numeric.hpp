@@ -44,7 +44,16 @@
 namespace estar {
 
 
+#ifdef WIN32
+  // Under some circumstances, Visual C++ does not seem to like the
+  // "proper" way, but sometimes it does. Anyway, this workaround
+  // should do the trick. Note that initializing a non-integer static
+  // const is not supposed to be standard either...
+  static const double infinity(DBL_MAX);
+#else
   static const double infinity = std::numeric_limits<double>::max();
+#endif
+
   static const double epsilon = 1e3 * std::numeric_limits<double>::epsilon();
   //static const double epsilon = std::numeric_limits<double>::epsilon();
   
