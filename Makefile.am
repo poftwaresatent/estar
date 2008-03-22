@@ -5,14 +5,13 @@ LDFLAGS=  @ESTAR_LDFLAGS@
 
 if ESTAR_ENABLE_GFX
   GFX_DIR= gfx
-  GFX_LIB= gfx/libgfx.la
 endif
 
 SUBDIRS= estar pnf $(GFX_DIR) bin
 
 lib_LTLIBRARIES=     libestar.la
 libestar_la_SOURCES= 
-libestar_la_LIBADD=  estar/libestarsub.la pnf/libpnf.la $(GFX_LIB)
+libestar_la_LIBADD=  estar/libestarsub.la pnf/libpnf.la
 
 SRCDIR=              @abs_top_srcdir@
 BUILDDIR=            @abs_top_builddir@

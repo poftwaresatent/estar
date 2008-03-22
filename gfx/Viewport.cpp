@@ -224,7 +224,7 @@ namespace gfx {
   }
 
 
-  Subwindow::logical_point_t Viewport::
+  logical_point_t Viewport::
   PaddedScreen2Real(screen_point_t pixel)
     const
   {

@@ -39,7 +39,7 @@ using namespace std;
 namespace local {
   
   /** lazy typing */
-  typedef Subwindow::logical_bbox_t bb_t;
+  typedef logical_bbox_t bb_t;
   
   /** convenient string-based lookup of viewports */
   typedef map<string, shared_ptr<Viewport> > viewport_map_t;
@@ -152,7 +152,7 @@ void draw()
 
 void reshape(int width, int height)
 {
-  Subwindow::DispatchResize(Subwindow::screen_point_t(width, height));
+  Subwindow::DispatchResize(screen_point_t(width, height));
 }
 
 
@@ -223,14 +223,13 @@ void timer(int handle)
 
 void mouse(int button, int state, int x, int y)
 {
-  Subwindow::DispatchClick(button, state,
-			   Subwindow::screen_point_t(x, y));
+  Subwindow::DispatchClick(button, state, screen_point_t(x, y));
 }
 
 
 void motion(int x, int y)
 {
-  Subwindow::DispatchDrag(Subwindow::screen_point_t(x, y));
+  Subwindow::DispatchDrag(screen_point_t(x, y));
 }
 
 

@@ -49,7 +49,7 @@ using namespace std;
 namespace local {
   
   /** Lazy typing. */
-  typedef Subwindow::logical_bbox_t bb_t;
+  typedef logical_bbox_t bb_t;
 
   /** Testing E* for "Navigation in Human Presence". Work done in the
       context of Cogniron and Akin's thesis at LAAS-CNRS. */
@@ -271,7 +271,7 @@ void cleanup()
 
 void reshape(int width, int height)
 {
-  Subwindow::DispatchResize(Subwindow::screen_point_t(width, height));
+  Subwindow::DispatchResize(screen_point_t(width, height));
 }
 
 
@@ -342,14 +342,13 @@ void timer(int handle)
 
 void mouse(int button, int state, int x, int y)
 {
-  Subwindow::DispatchClick(button, state,
-			   Subwindow::screen_point_t(x, y));
+  Subwindow::DispatchClick(button, state, screen_point_t(x, y));
 }
 
 
 void motion(int x, int y)
 {
-  Subwindow::DispatchDrag(Subwindow::screen_point_t(x, y));
+  Subwindow::DispatchDrag(screen_point_t(x, y));
 }
 
 

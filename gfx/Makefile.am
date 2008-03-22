@@ -3,7 +3,7 @@ CFLAGS=   @ESTAR_CFLAGS@
 CXXFLAGS= @ESTAR_CXXFLAGS@
 LDFLAGS=  @ESTAR_LDFLAGS@
 
-noinst_LTLIBRARIES= libgfx.la
+lib_LTLIBRARIES=    libgfx.la
 
 libgfx_la_SOURCES=  Mousehandler.cpp \
                     Subwindow.cpp \
