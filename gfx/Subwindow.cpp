@@ -375,7 +375,7 @@ namespace gfx {
   bool Rootwindow::
   Detach(Subwindow * win)
   {
-    registry_t::const_iterator ir(m_registry.find(win));
+    registry_t::iterator ir(m_registry.find(win));
     if (ir == m_registry.end())
       return false;
     m_registry.erase(ir);
