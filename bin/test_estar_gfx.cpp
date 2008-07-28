@@ -90,6 +90,10 @@ static void mouse(int button, int state, int x, int y);
 static void motion(int x, int y);
 static void cleanup(void);
 
+enum {
+  DEFAULT,
+  UPWIND_HIGHLIGHT
+};
 
 static const unsigned int timer_delay(100);
 
@@ -97,6 +101,9 @@ static bool text_only(false);
 static bool step(true);
 static bool continuous(false);
 static bool finish(false);
+static double upwind_linewidth(1);
+static bool upwind_arrow(false);
+static int coloring(DEFAULT);
 static shared_ptr<Viewport> m_value_view;
 static shared_ptr<Viewport> m_risk_view;
 static shared_ptr<Grid> m_grid;
@@ -135,10 +142,16 @@ int main(int argc, char ** argv)
     double x0, y0, x1, y1;
     get_grid_bbox(*m_grid->GetCSpace(), x0, y0, x1, y1);
     static const bb_t realbbox(x0, y0, x1, y1);
-    m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 0.5, 1)));
+    if (UPWIND_HIGHLIGHT == coloring)
+      m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 1, 1)));
+    else
+      m_value_view.reset(new Viewport("value", realbbox, bb_t(0, 0, 0.5, 1)));
     m_value_view->SetMousehandler(Viewport::LEFT, m_mouse_meta);
     m_value_view->Enable();
-    m_risk_view.reset(new Viewport("risk", realbbox, bb_t(0.5, 0, 1, 1)));
+    if (UPWIND_HIGHLIGHT == coloring)
+      m_risk_view.reset(new Viewport("risk", realbbox, bb_t(0, 0, 0.1, 0.1)));
+    else
+      m_risk_view.reset(new Viewport("risk", realbbox, bb_t(0.5, 0, 1, 1)));
     m_risk_view->SetMousehandler(Viewport::LEFT, m_mouse_meta);
     m_risk_view->Enable();
     run_glthread(0);
@@ -188,48 +201,58 @@ void draw()
     have_path = true;
   
   m_value_view->PushProjection();
-  draw_grid_value(*m_grid->GetCSpace(), *m_algo,
-		  ColorScheme::Get(BLUE_GREEN_RED), true);
+  if (UPWIND_HIGHLIGHT == coloring)
+    draw_grid_value(*m_grid->GetCSpace(), *m_algo,
+		    ColorScheme::Get(GREY_WITH_SPECIAL), true);
+  else
+    draw_grid_value(*m_grid->GetCSpace(), *m_algo,
+		    ColorScheme::Get(BLUE_GREEN_RED), true);
   draw_grid_connect(*m_grid->GetCSpace(), *m_algo, 0.5, 0.5, 0.5, 1);
   draw_grid_queue(*m_grid->GetCSpace(), *m_algo);
-  draw_grid_upwind(*m_grid->GetCSpace(), *m_algo, 1, 1, 1, 5);
-  if (have_path) {
-    if ( ! m_facade)
-      m_facade.reset(new Facade(m_algo, m_grid, m_kernel));
-    draw_trace(*m_facade,
-	       m_robot_ix * m_facade->scale,
-	       m_robot_iy * m_facade->scale,
-	       ColorScheme::Get(GREEN_PINK_BLUE),
-	       1, 0.5, 0);
+  if (UPWIND_HIGHLIGHT == coloring)
+    draw_grid_upwind(*m_grid->GetCSpace(), *m_algo, 1, 0.5, 0.5, upwind_linewidth, upwind_arrow);
+  else {
+    draw_grid_upwind(*m_grid->GetCSpace(), *m_algo, 1, 1, 1, upwind_linewidth, upwind_arrow);
+    if (have_path) {
+      if ( ! m_facade)
+	m_facade.reset(new Facade(m_algo, m_grid, m_kernel));
+      draw_trace(*m_facade,
+		 m_robot_ix * m_facade->scale,
+		 m_robot_iy * m_facade->scale,
+		 ColorScheme::Get(GREEN_PINK_BLUE),
+		 1, 0.5, 0);
+    }
+    glPointSize(5);
+    glBegin(GL_POINTS);
+    glColor3d(1, 0.5, 0.5);
+    glVertex2d(m_robot_ix + 0.5, m_robot_iy + 0.5);
+    glColor3d(0.5, 1.0, 0.5);
+    glVertex2d(m_goal_ix + 0.5, m_goal_iy + 0.5);
+    glEnd();
   }
-  glPointSize(5);
-  glBegin(GL_POINTS);
-  glColor3d(1, 0.5, 0.5);
-  glVertex2d(m_robot_ix + 0.5, m_robot_iy + 0.5);
-  glColor3d(0.5, 1.0, 0.5);
-  glVertex2d(m_goal_ix + 0.5, m_goal_iy + 0.5);
-  glEnd();
   m_value_view->PopProjection();
   
-  m_risk_view->PushProjection();
-  draw_grid_risk(*m_grid->GetCSpace(), *m_algo, *m_riskmap,
-		 ColorScheme::Get(GREEN_PINK_BLUE));
-  if(have_path) {
-    if ( ! m_facade)
-      m_facade.reset(new Facade(m_algo, m_grid, m_kernel));
-    draw_trace(*m_facade,
-	       m_robot_ix * m_facade->scale,
-	       m_robot_iy * m_facade->scale,
-	       ColorScheme::Get(GREY_WITH_SPECIAL),
-	       1, 0.5, 0);
+  if (UPWIND_HIGHLIGHT != coloring) {
+    m_risk_view->PushProjection();
+    draw_grid_risk(*m_grid->GetCSpace(), *m_algo, *m_riskmap,
+		   ColorScheme::Get(GREEN_PINK_BLUE));
+    if(have_path) {
+      if ( ! m_facade)
+	m_facade.reset(new Facade(m_algo, m_grid, m_kernel));
+      draw_trace(*m_facade,
+		 m_robot_ix * m_facade->scale,
+		 m_robot_iy * m_facade->scale,
+		 ColorScheme::Get(GREY_WITH_SPECIAL),
+		 1, 0.5, 0);
+    }
+    glBegin(GL_POINTS);
+    glColor3d(1, 0.5, 0.5);
+    glVertex2d(m_robot_ix + 0.5, m_robot_iy + 0.5);
+    glColor3d(0.5, 1.0, 0.5);
+    glVertex2d(m_goal_ix + 0.5, m_goal_iy + 0.5);
+    glEnd();
+    m_risk_view->PopProjection();
   }
-  glBegin(GL_POINTS);
-  glColor3d(1, 0.5, 0.5);
-  glVertex2d(m_robot_ix + 0.5, m_robot_iy + 0.5);
-  glColor3d(0.5, 1.0, 0.5);
-  glVertex2d(m_goal_ix + 0.5, m_goal_iy + 0.5);
-  glEnd();
-  m_risk_view->PopProjection();
   
   glFlush();
   glutSwapBuffers();
@@ -360,6 +383,11 @@ void parse_options(int argc, char ** argv)
 				      "disable Open GL output"));
   parser.Add(new util::Callback<string>(result_fname, 'o', "outfile",
 					"write results to specified file"));
+  parser.Add(new util::Callback<bool>(upwind_arrow, 'a', "arrow",
+				      "plot upwind graph with arrow heads"));
+  parser.Add(new util::Callback<int>(coloring, 'c', "colorcode",
+				     "use coloring ID"));
+  
   cout << argv[0] << "\n";
   parser.UsageMessage(cout);
   const int res(parser.Do(argc, argv, cerr));
@@ -397,6 +425,9 @@ void parse_options(int argc, char ** argv)
       exit(EXIT_FAILURE);
     }
   }
+  
+  if (upwind_arrow)
+    upwind_linewidth = 2;
 }
 
 

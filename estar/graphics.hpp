@@ -143,11 +143,11 @@ namespace gfx {
   void draw_grid_upwind(const estar::GridCSpace & cspace,
 			const estar::Algorithm & algo,
 			double red, double green, double blue,
-			double linewidth);
+			double linewidth, bool arrow);
   
   void draw_grid_upwind(const estar::FacadeReadInterface & facade,
 			double red, double green, double blue,
-			double linewidth);
+			double linewidth, bool arrow);
   
   void draw_grid_connect(const estar::GridCSpace & cspace,
 			 const estar::Algorithm & algo,

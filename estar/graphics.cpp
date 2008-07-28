@@ -423,23 +423,23 @@ namespace gfx {
   
   void draw_grid_upwind(const estar::FacadeReadInterface & facade,
 			double red, double green, double blue,
-			double linewidth)
+			double linewidth, bool arrow)
   {
     draw_grid_upwind(*facade.GetCSpace(), facade.GetAlgorithm(),
-		     red, green, blue, linewidth);
+		     red, green, blue, linewidth, arrow);
   }
   
   
   void draw_grid_upwind(const GridCSpace & cspace,
 			const Algorithm & algo,
 			double red, double green, double blue,
-			double linewidth)
+			double linewidth, bool arrow)
   {
     Upwind::map_t const & uwm(algo.GetUpwind().GetMap());
 
+    glLineWidth(linewidth);
     glBegin(GL_LINES);
     glColor3d(red, green, blue);
-    glLineWidth(linewidth);
 
     for(Upwind::map_t::const_iterator iu(uwm.begin()); iu != uwm.end(); ++iu){
       double xf, yf;
@@ -448,11 +448,27 @@ namespace gfx {
       for(Upwind::set_t::const_iterator it(ts.begin()); it != ts.end(); ++it){
 	double xt, yt;
 	tie(xt, yt) = cspace.ComputePosition(*it);
-	glVertex2d(0.5 * (xf + xt), 0.5 * (yf + yt));
+	double const xm(0.5 * (xf + xt));
+	double const ym(0.5 * (yf + yt));
+	glVertex2d(xm, ym);
 	glVertex2d(xt, yt);
+	if (arrow) {
+	  double xu(xf - xt);
+	  double yu(yf - yt);
+	  double sc(10 * sqrt(square(xu) + square(yu)));
+	  xu /= sc;
+	  yu /= sc;
+	  double const xn(-yu);
+	  double const yn(xu);
+	  glVertex2d(xm, ym);
+	  glVertex2d(xm - 2 * xu - xn, ym - 2 * yu - yn);
+	  glVertex2d(xm, ym);
+	  glVertex2d(xm - 2 * xu + xn, ym - 2 * yu + yn);
+	}
       }
     }
     glEnd();
+    glLineWidth(1);
   }
   
   
