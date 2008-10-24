@@ -31,6 +31,8 @@
 
 #ifdef WIN32
 # include <estar/win32.hpp>
+#else
+# include <unistd.h>
 #endif // WIN32
 
 
