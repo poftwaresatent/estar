@@ -678,13 +678,14 @@ void parse_options(int argc, char ** argv)
   else
     config_name = "setup.pnf";
   m_config->paper = false;
-  if(argc > 2)
+  if(argc > 2) {
     if(string(argv[2]) == "paper"){
       m_config->paper = true;
       m_finish = true;
     }
     else
       cout << "ignoring second argument \"" << argv[2] << "\"\n";
+  }
   
   ifstream config_is(config_name.c_str());
   if( ! config_is){

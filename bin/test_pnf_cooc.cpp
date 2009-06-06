@@ -238,7 +238,7 @@ static void dump_plot(FILE *stream,
 	  "plot 'test_cooc.data' i %d u 1:2 w l t '%s'",
 	  title.c_str(), dataset, param[0].msg.c_str());
   for(size_t jj(1); jj < param.size(); ++jj)
-    fprintf(stream, ", 'test_cooc.data' i %d u 1:%d w l t '%s'",
+    fprintf(stream, ", 'test_cooc.data' i %d u 1:%zu w l t '%s'",
 	    dataset, jj + 2, param[jj].msg.c_str());
   fprintf(stream, "\nset mouse\npause -1 \"hit return to quit\"\n");
 }
@@ -259,7 +259,7 @@ void dump_plot_fig(FILE *stream,
 	  "plot 'test_cooc.data' i %d u 1:2 w l t '%s'",
 	  title.c_str(), dataset, param[0].msg.c_str());
   for(size_t jj(1); jj < param.size(); ++jj)
-    fprintf(stream, ", 'test_cooc.data' i %d u 1:%d w l t '%s'",
+    fprintf(stream, ", 'test_cooc.data' i %d u 1:%zu w l t '%s'",
 	    dataset, jj + 2, param[jj].msg.c_str());
   fprintf(stream, "\nEOF\n");
 }
@@ -316,7 +316,7 @@ void test_normal(double start_pos, double end_pos, double resolution,
 	  "# end_pos == %g\n"
 	  "# resolution == %g\n"
 	  "### OUT\n"
-	  "# position_len == %u\n",
+	  "# position_len == %zd\n",
 	  start_pos, end_pos, resolution, position_len);
   
   dump_double(datastream,
@@ -456,7 +456,7 @@ void test_alt(double start_pos, double end_pos, double resolution,
 	  "# end_pos == %g\n"
 	  "# resolution == %g\n"
 	  "### OUT\n"
-	  "# position_len == %u\n",
+	  "# position_len == %zu\n",
 	  start_pos, end_pos, resolution, poslen);
   
   dump_double(datastream,
