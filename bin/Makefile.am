@@ -8,6 +8,10 @@ if ESTAR_ENABLE_GFX
   GFX_LIBADD= ../gfx/libgfx.la @ESTAR_GFXLIBS@
 endif
 
+if ESTAR_HAVE_PGM
+  PGM_PROGS= pgm2ascii
+endif
+
 bin_PROGRAMS= test_dbg_opt \
               test_estar \
               test_estar_queue \
@@ -16,7 +20,7 @@ bin_PROGRAMS= test_dbg_opt \
               test_pnf_cooc3d \
               test_pnf_riskmap \
               test_shape \
-              pgm2ascii \
+              $(PGM_PROGS) \
               $(GFX_PROGS)
 
 test_dbg_opt_SOURCES=     test_dbg_opt.cpp
@@ -35,8 +39,6 @@ test_pnf_riskmap_SOURCES= test_pnf_riskmap.cpp
 test_pnf_riskmap_LDADD=   ../libestar.la
 test_shape_SOURCES=       test_shape.cpp
 test_shape_LDADD=         ../libestar.la
-pgm2ascii_SOURCES=        pgm2ascii.cpp
-pgm2ascii_LDADD=          -lnetpbm
 
 if ESTAR_ENABLE_GFX
   test_estar_gfx_SOURCES= test_estar_gfx.cpp Getopt.cpp
@@ -45,6 +47,11 @@ if ESTAR_ENABLE_GFX
   estar_compare_gfx_LDADD=   ../libestar.la $(GFX_LIBADD)
   test_pnf_gfx_SOURCES=   test_pnf_gfx.cpp
   test_pnf_gfx_LDADD=     ../libestar.la $(GFX_LIBADD)
+endif
+
+if ESTAR_HAVE_PGM
+  pgm2ascii_SOURCES=        pgm2ascii.cpp
+  pgm2ascii_LDADD=          -lnetpbm
 endif
 
 dist_bin_SCRIPTS= plot_pnf.sh pnf_3d_riskplot.sh

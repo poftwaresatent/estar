@@ -20,9 +20,9 @@
 
 #include "util.hpp"
 #include "FacadeReadInterface.hpp"
-////#include "Grid.hpp"
 
 #ifndef WIN32
+# include <stdio.h>
 # include <signal.h>
 # include <stdlib.h>
 #endif // WIN32

@@ -79,6 +79,12 @@ AC_CHECK_HEADER([boost/graph/adjacency_list.hpp], [], [
   AC_MSG_ERROR([  specify boost library install path (--with-boost=PATH)]) ])
 CPPFLAGS="$oldCPPFLAGS"
 
+AC_CHECK_HEADER([pgm.h],
+  [ AC_MSG_NOTICE([found netpbm headers])
+    AM_CONDITIONAL([ESTAR_HAVE_PGM], [true]) ],
+  [ AC_MSG_NOTICE([netpbm not found])
+    AM_CONDITIONAL([ESTAR_HAVE_PGM], [false]) ] )
+
 AC_DISABLE_STATIC
 case $host_os in
   darwin*) AC_DISABLE_SHARED;;
