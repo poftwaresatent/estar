@@ -1,89 +1,83 @@
-==================================================
-E-star Interpolated Graph Replanner
---------------------------------------------------
-Some files are:
- Copyright (C) 2004-2005 Swiss Federal Institute of Technology, Lausanne
-Some others are:
- Copyright (C) 2005-2007 Roland Philippsen <roland dot philippsen at gmx net>
-All files are:
- Released under the GNU General Public License, see LICENSE.GPL
-==================================================
+# E-star Interpolated Graph Replanner
+
+> Copyright (C) 2004-2005 Swiss Federal Institute of Technology, Lausanne
+>
+> Copyright (C) 2005-2007 Roland Philippsen <roland dot philippsen at gmx net>
+>
+> Released under the GNU General Public License, see `LICENSE.GPL`
 
 
-HOMEPAGE
+## Homepage
 
-http://github.com/poftwaresatent/estar
+We still use the [Sourceforge E* project]() for mailing lists and file distribution. The code has moved to a [github repository]() though, and the [github wiki]() may be a good place to look, too.
 
-(previously http://estar.sourceforge.net/)
+[Sourceforge E* project]: http://sourceforge.net/projects/estar/
+[github repository]: http://github.com/poftwaresatent/estar
+[github wiki]: http://github.com/poftwaresatent/estar/wiki
 
 
-DESCRIPTION
+## Description
 
 The E* algorithm is a path planner for (mobile) robotics. Unlike A*,
 which constrains movements to graph edges, it produces smooth
 trajectories by interpolating between edges. Like D*, it supports
-dynamic replanning after local path cost changes.
-
-If you want to give E* a try in simulation, try the E* "development
-kit" available for download and checkout from the project homepage.
+dynamic replanning after local path cost changes. The file `ABOUT` has some more details.
 
 
-PREREQUISITES
+## Dependencies
 
- * Boost Graph Library and smart pointers.
-   http://www.boost.org/
- * To build the development version, you need GNU Automake, Autoconf, and
-   Libtool. If you're building from a release tarball, you don't need
-   this.
-   http://www.gnu.org/software/automake/
-   http://www.gnu.org/software/autoconf/
-   http://www.gnu.org/software/libtool/
- * An OpenGL implementation (currently works for Linux and OS X).
-   [This is sort of optional, the configure script tries to guess if
-   you have OpenGL, but it has never been really tested on a system
-   without it.]
- * Doxygen (optional, http://www.doxygen.org/).
+### Required
 
+* Boost [Graph Library]()
+* Boost [Shared Pointers]()
 
-BUILDING
+[Graph Library]: http://www.boost.org/libs/graph/
+[Shared Pointers]: http://www.boost.org/libs/smart_ptr/
 
-From source tarball (the "-s" option is important if you do *not* have
-GNU Automake, Autoconf, and Libtool):
+### Optional
 
- $ tar xfvz estar-X.Y.tar.gz
- $ cd estar-X.Y
- $ ./build-stage.sh -s
+* To build the development version, you need GNU [Automake](), [Autoconf](), and [Libtool](). If you're building from a release tarball, you don't need this.
+* An OpenGL implementation. This is sort of optional, the configure script tries to guess if you have OpenGL, but it has never been really tested on a system without it.
+* [Doxygen]() for creating API documentation
 
-This will "install" it in the stage/ directory under your current
-working directory by default. You can also do a manual "configure /
-make / make install", or read the output of "/build-stage.sh -h".
-
-More cutting edge: Use git to check out (or update) a working copy!
-
- $ git clone git://github.com/poftwaresatent/estar.git
- $ cd estar
- $ ./build-stage.sh
-
-Note that in any case, "./build-stage" will create a build/ directory,
-which you can then use for recompiling the project after modifications
-to the code. The GNU tools provide dependency tracking, and in most
-cases only a small portion of the code gets recompiled after a
-change. Also, you can pass
-"-s" to subsequent calls to "./build-stage.sh" to avoid wasting time
-on recreating files that haven't changed.
-
-The build-stage script has some more tricks up its sleeve, check out
-its "--help" output. For example, to install E* on your system, say in
-/usr/local/estar, just do this:
-
- $ ./build-stage.sh -p /usr/local/estar
+[Automake]: http://www.gnu.org/software/automake/
+[Autoconf]: http://www.gnu.org/software/autoconf/
+[Libtool]: http://www.gnu.org/software/libtool/
+[Doxygen]: http://www.doxygen.org/
 
 
-DOCUMENTATION
+## Building E*
 
-Point your favorite browser to file doc/html/index.html if it exists,
-or build it using doxygen by typing (after a successful configuration,
-see BUILDING above):
+Release tarballs are available form the [download]() page on Sourceforge.
 
- $ cd build
- $ make doc
+[download]: http://sourceforge.net/projects/estar/files/estar/
+
+The instructions here assume you're using the `build-stage.sh` script. It has several options for fine-grained control, read the output of `./build-stage.sh -h` for more information. You can also do a manual "configure / make / make install" of course.
+
+### Download and Build a Release Tarball
+
+    $ tar xfvz estar-X.Y.tar.gz
+    $ cd estar-X.Y
+    $ ./build-stage.sh -s
+
+Note the `-s` option to the `build-stage.sh` script, which is especially important if you do *not* have GNU Automake, Autoconf, and Libtool. This will build everything using a separate `build` directory, and "install" it in the `stage/` directory.
+
+### Cloning the git Repository
+
+    $ git clone git://github.com/poftwaresatent/estar.git
+    $ cd estar
+    $ ./build-stage.sh
+
+Note that `build-stage.sh` will create a `build/` directory that can then be used for recompiling the project after modifications to the code. The GNU tools provide dependency tracking, and in most cases only a small portion of the code gets recompiled after a change. Also, you can pass `-s` to subsequent calls to `./build-stage.sh` to avoid wasting time on recreating the build system files that haven't changed.
+
+The build-stage script has some more tricks up its sleeve. For example, to install E* on your system, for example underneath `/usr/local/estar`, just do this:
+
+    $ ./build-stage.sh -p /usr/local/estar
+
+
+## API Documentation
+
+If you downloaded one of the tarballs that comes with documentation, then simply open `doc/html/index.html` in a browser. Otherwise, you can create the API documentation using [Doxygen](), which works best *after* a successful *configuration* form within the `build` directory:
+
+    $ cd build
+    $ make doc
