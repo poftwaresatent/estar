@@ -18,9 +18,9 @@ We still use the [Sourceforge E* project]() for mailing lists and file distribut
 
 ## Description
 
-The E* algorithm is a path planner for (mobile) robotics. Unlike A*,
+The E\* algorithm is a path planner for (mobile) robotics. Unlike A\*,
 which constrains movements to graph edges, it produces smooth
-trajectories by interpolating between edges. Like D*, it supports
+trajectories by interpolating between edges. Like D\*, it supports
 dynamic replanning after local path cost changes. The file `ABOUT` has some more details.
 
 
@@ -46,7 +46,7 @@ dynamic replanning after local path cost changes. The file `ABOUT` has some more
 [Doxygen]: http://www.doxygen.org/
 
 
-## Building E*
+## Building E\*
 
 Release tarballs are available form the [download]() page on Sourceforge.
 
@@ -70,7 +70,7 @@ Note the `-s` option to the `build-stage.sh` script, which is especially importa
 
 Note that `build-stage.sh` will create a `build/` directory that can then be used for recompiling the project after modifications to the code. The GNU tools provide dependency tracking, and in most cases only a small portion of the code gets recompiled after a change. Also, you can pass `-s` to subsequent calls to `./build-stage.sh` to avoid wasting time on recreating the build system files that haven't changed.
 
-The build-stage script has some more tricks up its sleeve. For example, to install E* on your system, for example underneath `/usr/local/estar`, just do this:
+The build-stage script has some more tricks up its sleeve. For example, to install E\* on your system, for example underneath `/usr/local/estar`, just do this:
 
     $ ./build-stage.sh -p /usr/local/estar
 
