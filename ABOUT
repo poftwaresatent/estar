@@ -1,5 +1,5 @@
-Grid or graph based path planning methods such as NF1, A*, or
-Dijkstra's algorithm are constrained to movement choices along graph
+Grid or graph based path planning methods such as NF1, A*,
+Dijkstra's algorithm, or D* are constrained to movement choices along graph
 edges or discrete transitions between grid cells. They thus produce
 paths that are not optimal for real-world execution. Frequently, a
 smoothing step is performed after planning to alleviate this problem,
@@ -19,17 +19,21 @@ increasing values to nodes. However, the continuous formulation allows
 us to interpolate between edges, which resolves the issue with
 movement choices at a more fundamental level than methods that employ
 post-planning path smoothing.
-
 Papers describing E* have been published in international conferences
-and a PhD thesis. The current implementation has been used to prove
-the algorithm and evaluate its effectiveness.
+and a PhD thesis.
 
-Distributing the Open Source C++ implementation of E* through
-SourceForge, along with a C wrapper for compatibility with legacy
-control architectures, allows roboticists to easily take advantage of
+Distributing the Open Source C++ implementation of E* (first through
+SourceForge, then through github), allows roboticists to easily take advantage of
 our research. It is also of potential interest for other projects
 which need to estimate non-trivial distance functions, such as route
 planners not constrained to roads, or agents in animations and
 games. We rely on the Boost Graph Library for data representation. E*
 specific class hierarchies are layered on top of it, up to a
 high-level Facade for straightforward access.
+
+E* was written to be as independent of the interpolation method as
+possible. However, over time it became increasingly obvious that the
+best one is based on the Fast Marching Method (FMM), a special
+(efficient) case of the Level Set Method (LSM). So, E* can be regarded
+as D* with an cell expansion step based on FMM instead of a simple
+Dijkstra-like cost propagation.

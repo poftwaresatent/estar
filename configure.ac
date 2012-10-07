@@ -1,6 +1,7 @@
 AC_REVISION($Id$)
 AC_INIT([estar],[0.3pre],[estar-devel AT lists DOT sourceforge DOT net])
 AC_CONFIG_AUX_DIR([.])
+AC_CONFIG_MACRO_DIR([m4])
 AC_PREREQ(2.57)
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CANONICAL_HOST
@@ -8,6 +9,7 @@ AC_CANONICAL_HOST
 AC_LANG(C++)
 AC_PROG_CC
 AC_PROG_CXX
+AM_PROG_AR
 
 ESTAR_CFLAGS="-Wall -pipe"
 
@@ -32,7 +34,6 @@ case "$host_os" in
 	     [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [false]) ]);;
   darwin*) AC_MSG_NOTICE([detected OSX])
            ESTAR_CPPFLAGS="$ESTAR_CPPFLAGS -DOSX"
-           ESTAR_CFLAGS="$ESTAR_CFLAGS -Wno-long-double"
            ESTAR_GFXLIBS="-framework OpenGL -framework GLUT -lobjc"
            AC_CHECK_HEADER([GLUT/glut.h],
              [ AM_CONDITIONAL([ESTAR_ENABLE_GFX], [true]) ],
