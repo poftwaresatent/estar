@@ -4,7 +4,8 @@
 >
 > Copyright (C) 2005-2007 Roland Philippsen <roland dot philippsen at gmx net>
 >
-> Released under the GNU General Public License, see `LICENSE.GPL`
+> Released under the GNU General Public License, version 2. See
+> `LICENSE.GPL` for more details.
 
 
 ## Homepage
