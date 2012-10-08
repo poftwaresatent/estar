@@ -10,9 +10,11 @@
 
 ## Homepage
 
-We still use the [Sourceforge E* project][] for mailing lists and file distribution. The code has moved to a [github repository][] though, and the [github wiki][] may be a good place to look, too.
+We still use the [Sourceforge E* project][] for [mailing lists][] and [file distribution][]. The code has moved to a [github repository][] though, and the [github wiki][] may be a good place to look, too.
 
 [Sourceforge E* project]: http://sourceforge.net/projects/estar/
+[mailing lists]: http://sourceforge.net/mail/?group_id=161999
+[file distribution]: http://sourceforge.net/projects/estar/files/estar/
 [github repository]: http://github.com/poftwaresatent/estar
 [github wiki]: http://github.com/poftwaresatent/estar/wiki
 
