@@ -9,7 +9,7 @@
 
 ## Homepage
 
-We still use the [Sourceforge E* project]() for mailing lists and file distribution. The code has moved to a [github repository]() though, and the [github wiki]() may be a good place to look, too.
+We still use the [Sourceforge E* project][] for mailing lists and file distribution. The code has moved to a [github repository][] though, and the [github wiki][] may be a good place to look, too.
 
 [Sourceforge E* project]: http://sourceforge.net/projects/estar/
 [github repository]: http://github.com/poftwaresatent/estar
@@ -28,17 +28,17 @@ dynamic replanning after local path cost changes. The file `ABOUT` has some more
 
 ### Required
 
-* Boost [Graph Library]()
-* Boost [Shared Pointers]()
+* Boost [Graph Library][]
+* Boost [Shared Pointers][]
 
 [Graph Library]: http://www.boost.org/libs/graph/
 [Shared Pointers]: http://www.boost.org/libs/smart_ptr/
 
 ### Optional
 
-* To build the development version, you need GNU [Automake](), [Autoconf](), and [Libtool](). If you're building from a release tarball, you don't need this.
+* To build the development version, you need GNU [Automake][], [Autoconf][], and [Libtool][]. If you're building from a release tarball, you don't need this.
 * An OpenGL implementation. This is sort of optional, the configure script tries to guess if you have OpenGL, but it has never been really tested on a system without it.
-* [Doxygen]() for creating API documentation
+* [Doxygen][] for creating API documentation
 
 [Automake]: http://www.gnu.org/software/automake/
 [Autoconf]: http://www.gnu.org/software/autoconf/
@@ -48,7 +48,7 @@ dynamic replanning after local path cost changes. The file `ABOUT` has some more
 
 ## Building E\*
 
-Release tarballs are available form the [download]() page on Sourceforge.
+Release tarballs are available form the [download][] page on Sourceforge.
 
 [download]: http://sourceforge.net/projects/estar/files/estar/
 
@@ -77,7 +77,7 @@ The build-stage script has some more tricks up its sleeve. For example, to insta
 
 ## API Documentation
 
-If you downloaded one of the tarballs that comes with documentation, then simply open `doc/html/index.html` in a browser. Otherwise, you can create the API documentation using [Doxygen](), which works best *after* a successful *configuration* form within the `build` directory:
+If you downloaded one of the tarballs that comes with documentation, then simply open `doc/html/index.html` in a browser. Otherwise, you can create the API documentation using [Doxygen][], which works best *after* a successful *configuration* form within the `build` directory:
 
     $ cd build
     $ make doc
