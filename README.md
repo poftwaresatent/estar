@@ -145,19 +145,10 @@ There are also two utility scripts for creating vector-format figures of PNF plo
     @INPROCEEDINGS{philippsen:2007,
      author    = {Roland Philippsen},
      title     = {E* Interpolated Graph Replanner},
-     booktitle = {Proceedings of the IEEE International Conference
-                  on Intelligent Robots and Systems (IROS)},
+     booktitle = {Workshop Proceedings on Algorithmic Motion Planning for Autonomous Robots
+                  in Challenging Environments, held in conjunction with the IEEE International
+                  Conference on Intelligent Robots and Systems (IROS)},
      year      = 2007
-    }
-
-[E* paper](http://estar.sourceforge.net/papers/philippsen_siegwart_icra2005_paper.pdf) presented at ICRA 2005 (describes an outdated formulation, but gives basic insights)
-
-    @INPROCEEDINGS{philippsen:2005,
-     author    = {Roland Philippsen and Roland Siegwart},
-     title     = {An Interpolated Dynamic Navigation Function},
-     booktitle = {Proceedings of the IEEE International Conference
-                  on Robotics and Automation (ICRA)},
-     year      = 2005
     }
 
 [Technical Report on "light" E\*](http://estar.sourceforge.net/papers/philippsen--estar-TR06.pdf) written in 2006. This describes the formulation underlying this implementation.
@@ -165,9 +156,17 @@ There are also two utility scripts for creating vector-format figures of PNF plo
     @TECHREPORT{philippsen:2006a,
      author      = {Roland Philippsen},
      title       = {A Light Formulation of the E\* Interpolated Path Replanner},
-     institution = {Autonomous Systems Lab,
-                    Ecole Polytechnique Federale de Lausanne},
+     institution = {Autonomous Systems Lab, Ecole Polytechnique Federale de Lausanne},
      year        = 2006
+    }
+
+[E* paper](http://estar.sourceforge.net/papers/philippsen_siegwart_icra2005_paper.pdf) presented at ICRA 2005 (describes an outdated formulation, but gives basic insights)
+
+    @INPROCEEDINGS{philippsen:2005,
+     author    = {Roland Philippsen and Roland Siegwart},
+     title     = {An Interpolated Dynamic Navigation Function},
+     booktitle = {Proceedings of the IEEE International Conference on Robotics and Automation (ICRA)},
+     year      = 2005
     }
 
 [PNF paper](http://estar.sourceforge.net/papers/philippsen-jensen-siegwart--star06.pdf.zip) published in STAR 2006.
@@ -175,8 +174,7 @@ There are also two utility scripts for creating vector-format figures of PNF plo
     @INBOOK{philippsen:2006b,
      author       = {Philippsen, R. and Jensen, B. and Siegwart, R.},
      editor       = {Laugier, C. and Chatila, R.},
-     chapter      = {Towards Real-Time Sensor-Based Path Planning
-                     in Highly Dynamic Environments},
+     chapter      = {Towards Real-Time Sensor-Based Path Planning in Highly Dynamic Environments},
      title        = {Autonomous Navigation in Dynamic Environments},
      publisher    = {Springer Tracts on Advanced Robotics},
      year         = 2006
