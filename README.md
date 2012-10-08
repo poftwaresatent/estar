@@ -139,9 +139,19 @@ There are also two utility scripts for creating vector-format figures of PNF plo
 
 ## References
 
-* [E* poster](http://estar.sourceforge.net/papers/philippsen-estar-poster-iros07.pdf) presented at IROS 2007 (and the corresponding [flyer](http://estar.sourceforge.net/papers/philippsen-estar-flyer-iros07.pdf)) during the Workshop on Algorithmic Motion Planning for Autonomous Robots in Challenging Environments.
-* [E* paper](http://estar.sourceforge.net/papers/philippsen_siegwart_icra2005_paper.pdf) presented at ICRA 2005 (describes an outdated formulation, but gives basic insights)
- ```
+
+[E* poster](http://estar.sourceforge.net/papers/philippsen-estar-poster-iros07.pdf) presented at IROS 2007 (and the corresponding [flyer](http://estar.sourceforge.net/papers/philippsen-estar-flyer-iros07.pdf)) during the Workshop on Algorithmic Motion Planning for Autonomous Robots in Challenging Environments.
+
+    @INPROCEEDINGS{philippsen:2007,
+     author    = {Roland Philippsen},
+     title     = {E* Interpolated Graph Replanner},
+     booktitle = {Proceedings of the IEEE International Conference
+                  on Intelligent Robots and Systems (IROS)},
+     year      = 2007
+    }
+
+[E* paper](http://estar.sourceforge.net/papers/philippsen_siegwart_icra2005_paper.pdf) presented at ICRA 2005 (describes an outdated formulation, but gives basic insights)
+
     @INPROCEEDINGS{philippsen:2005,
      author    = {Roland Philippsen and Roland Siegwart},
      title     = {An Interpolated Dynamic Navigation Function},
@@ -149,9 +159,9 @@ There are also two utility scripts for creating vector-format figures of PNF plo
                   on Robotics and Automation (ICRA)},
      year      = 2005
     }
-  ```
-* [Technical Report on "light" E\*](http://estar.sourceforge.net/papers/philippsen--estar-TR06.pdf) written in 2006. This describes the formulation underlying this implementation.
-  ```
+
+[Technical Report on "light" E\*](http://estar.sourceforge.net/papers/philippsen--estar-TR06.pdf) written in 2006. This describes the formulation underlying this implementation.
+
     @TECHREPORT{philippsen:2006a,
      author      = {Roland Philippsen},
      title       = {A Light Formulation of the E\* Interpolated Path Replanner},
@@ -159,9 +169,9 @@ There are also two utility scripts for creating vector-format figures of PNF plo
                     Ecole Polytechnique Federale de Lausanne},
      year        = 2006
     }
-  ```
-* [PNF paper](http://estar.sourceforge.net/papers/philippsen-jensen-siegwart--star06.pdf.zip) published in STAR 2006.
-  ```
+
+[PNF paper](http://estar.sourceforge.net/papers/philippsen-jensen-siegwart--star06.pdf.zip) published in STAR 2006.
+
     @INBOOK{philippsen:2006b,
      author       = {Philippsen, R. and Jensen, B. and Siegwart, R.},
      editor       = {Laugier, C. and Chatila, R.},
@@ -171,4 +181,3 @@ There are also two utility scripts for creating vector-format figures of PNF plo
      publisher    = {Springer Tracts on Advanced Robotics},
      year         = 2006
     }
-  ```
